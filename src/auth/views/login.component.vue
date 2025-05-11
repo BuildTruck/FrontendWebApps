@@ -1,6 +1,11 @@
 <script>
 import AppInput from '../../core/components/AppInput.vue'
 import AppButton from '../../core/components/AppButton.vue'
+import { AuthService } from '../services/auth-api.service'
+
+// Importa los modelos
+import { Manager } from '../../context/manager/models/manager.entity.js'
+import { Supervisor } from '../../context/supervisor/models/supervisor.entity.js'
 
 export default {
   name: 'LoginComponent',
@@ -18,30 +23,26 @@ export default {
   methods: {
     async login() {
       try {
-        // Simulación de respuesta desde tu servicio real
-        const response = {
-          token: 'token_fake',
-          user: {
-            name: 'So',
-            role: 'manager', // o 'supervisor'
-            projectId: 'p001'
-          }
-        }
+        const rawUser = await AuthService.login(this.email, this.password)
 
-        const { token, user } = response
+        // Convertimos en modelo según el rol
+        const user = rawUser.role === 'manager'
+            ? new Manager(rawUser)
+            : new Supervisor(rawUser)
 
-        localStorage.setItem('token', token)
-        localStorage.setItem('user', JSON.stringify(user))
+        localStorage.setItem('token', 'fake-token')
+        localStorage.setItem('user', JSON.stringify(user.toJSON()))
 
+        console.log('Autenticado:', user)
+
+        // Redirección según el rol
         if (user.role === 'manager') {
-          this.$router.push(`/proyecto/${user.projectId}`)
+          this.$router.push(`/proyecto/${user.projects[0]}`)
         } else if (user.role === 'supervisor') {
           this.$router.push(`/supervisor/${user.projectId}`)
-        } else {
-          this.$router.push('/')
         }
       } catch (e) {
-        alert('Error al iniciar sesión')
+        alert('Correo o contraseña inválidos')
       }
     }
   }
@@ -81,10 +82,10 @@ export default {
         </div>
 
         <AppButton
-            type="submit"
             label="Iniciar sesión"
             variant="primary"
             fullWidth
+            @click="login"
         />
       </form>
     </div>

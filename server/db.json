@@ -1,0 +1,20 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "name": "So Gerente",
+      "email": "gerente@buildtruck.com",
+      "password": "123456",
+      "role": "manager",
+      "projects": ["p001", "p002"]
+    },
+    {
+      "id": 2,
+      "name": "Sofi Supervisora",
+      "email": "supervisor@buildtruck.com",
+      "password": "123456",
+      "role": "supervisor",
+      "projectId": "p001"
+    }
+  ]
+}

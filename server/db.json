@@ -16,5 +16,26 @@
       "role": "supervisor",
       "projectId": "p001"
     }
-  ]
+  ],
+  "projects": [
+    {
+      "id": "p001",
+      "name": "Residencial Las Palmeras",
+      "description": "Proyecto habitacional de 8 torres de departamentos en Lurín...",
+      "image": "/images/proyecto1.jpg",
+      "managerId": 1
+    },
+    {
+      "id": "p002",
+      "name": "Edificio Corporativo EcoTower",
+      "description": "Edificio de oficinas de 12 pisos con sistema de eficiencia energética...",
+      "image": "/images/proyecto2.jpg",
+      "managerId": 1
+    }
+  ],
+  "documents": [],
+  "materials": [],
+  "incidents": [],
+  "machinery": [],
+  "personnel": []
 }

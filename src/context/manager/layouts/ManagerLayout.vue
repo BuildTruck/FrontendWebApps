@@ -1,182 +1,224 @@
 <script>
-import AppButton from '../../../core/components/AppButton.vue';
-
 export default {
   name: 'ManagerLayout',
-  components: {
-    AppButton
-  },
   props: {
-    projectName: {
+    userName: {
       type: String,
-      default: 'Proyecto'
-    },
-    projectId: {
-      type: String,
-      default: ''
+      default: 'Usuario'
     }
   },
   data() {
     return {
-      tabs: [
-        { id: 'documentacion', label: 'Documentación', route: 'documentacion', active: true, count: null },
-        { id: 'personal', label: 'Personal', route: 'personal', active: false, count: 4 },
-        { id: 'inventario', label: 'Inventario', route: 'inventario', active: false, count: 2 },
-        { id: 'incidentes', label: 'Incidentes', route: 'incidentes', active: false, count: 200 },
-        { id: 'maquinaria', label: 'Maquinaria', route: 'maquinaria', active: false, count: null },
-        { id: 'configuracion', label: 'Configuración de la obra', route: 'configuracion', active: false, count: null }
+      menuItems: [
+        { id: 'proyectos', label: 'Proyectos', icon: 'pi pi-home', route: '/proyectos', active: true },
+        { id: 'estadisticas', label: 'Estadísticas generales', icon: 'pi pi-chart-bar', route: '/layout/estadisticas', active: false },
+        { id: 'reportes', label: 'Reportes globales', icon: 'pi pi-file', route: '/layout/reportes', active: false },
+        { id: 'configuraciones', label: 'Configuraciones', icon: 'pi pi-cog', route: '/layout/configuraciones', active: false }
       ],
-      activeTab: 'documentacion'
+      profileItems: [
+        { id: 'perfil', label: 'Mi perfil', icon: 'pi pi-user', route: '/layout/perfil', active: false },
+        { id: 'salir', label: 'Salir', icon: 'pi pi-sign-out', route: '/logout', active: false }
+      ]
+    }
+  },
+  computed: {
+    activeMenuId() {
+      const currentPath = this.$route.path;
+      for (const item of [...this.menuItems, ...this.profileItems]) {
+        if (currentPath.includes(item.id)) {
+          return item.id;
+        }
+      }
+      return 'proyectos'; // Default
     }
   },
   methods: {
-    setActiveTab(tabId) {
-      this.activeTab = tabId;
-      // Navegar a la ruta correspondiente
-      this.$router.push(`/proyecto/${this.projectId}/${tabId}`);
-    },
-    goBack() {
-      this.$router.push('/proyectos');
+    navigateTo(route) {
+      this.$router.push(route);
     }
   }
 }
 </script>
 
 <template>
-  <div class="project-layout">
-    <!-- Encabezado del proyecto -->
-    <header class="project-header">
+  <div class="manager-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
       <div class="logo-container">
-        <img src="../../../assets/buildtruck-logo.svg" alt="BuildTruck" class="logo">
+        <!-- Logo con background-image -->
+        <div class="logo"></div>
       </div>
-      <h1 class="project-title">Obra {{ projectName }}</h1>
-    </header>
 
-    <!-- Navegación por pestañas -->
-    <nav class="tabs-navigation">
-      <div
-          v-for="tab in tabs"
-          :key="tab.id"
-          :class="['tab-item', { 'active': activeTab === tab.id }]"
-          @click="setActiveTab(tab.id)"
-      >
-        <span>{{ tab.label }}</span>
-        <span v-if="tab.count !== null" class="tab-counter">{{ tab.count }}</span>
-      </div>
-    </nav>
+      <!-- Menú principal -->
+      <nav class="sidebar-menu">
+        <ul class="menu-list">
+          <li
+              v-for="item in menuItems"
+              :key="item.id"
+              :class="['menu-item', { active: activeMenuId === item.id }]"
+              @click="navigateTo(item.route)"
+          >
+            <i :class="item.icon"></i>
+            <span>{{ item.label }}</span>
+          </li>
+        </ul>
+      </nav>
+
+      <!-- Separador -->
+      <div class="sidebar-divider"></div>
+
+      <!-- Opciones de perfil -->
+      <nav class="sidebar-profile">
+        <ul class="menu-list">
+          <li
+              v-for="item in profileItems"
+              :key="item.id"
+              :class="['menu-item', { active: activeMenuId === item.id }]"
+              @click="navigateTo(item.route)"
+          >
+            <i :class="item.icon"></i>
+            <span>{{ item.label }}</span>
+          </li>
+        </ul>
+      </nav>
+    </aside>
 
     <!-- Contenido principal -->
-    <main class="project-content">
-      <slot></slot>
+    <main class="main-content">
+      <!-- Router view para el contenido dinámico -->
+      <router-view></router-view>
     </main>
-
-    <!-- Botón de regreso -->
-    <div class="back-button-container">
-      <AppButton
-          variant="back"
-          icon="pi pi-arrow-left"
-          @click="goBack"
-      />
-    </div>
   </div>
 </template>
 
 <style scoped>
-.project-layout {
+.manager-layout {
+  display: flex;
   min-height: 100vh;
+  width: 100%;
   background-color: #f9f9f9;
-  position: relative;
 }
 
-.project-header {
-  display: flex;
-  align-items: center;
-  padding: 12px 20px;
+.sidebar {
+  width: 250px;
   background-color: white;
-  border-bottom: 1px solid #eaeaea;
-}
-
-.logo-container {
-  margin-right: 20px;
-}
-
-.logo {
-  height: 30px;
-}
-
-.project-title {
-  font-size: 1.1rem;
-  font-weight: 500;
-  color: #333;
-  margin: 0;
-}
-
-.tabs-navigation {
+  border-right: 1px solid #eaeaea;
   display: flex;
-  overflow-x: auto;
-  background-color: white;
-  border-bottom: 1px solid #eaeaea;
-}
-
-.tab-item {
-  padding: 12px 16px;
-  cursor: pointer;
-  white-space: nowrap;
-  color: #555;
-  font-size: 0.9rem;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  transition: all 0.2s;
-}
-
-.tab-item.active {
-  color: #FF5F01;
-  border-bottom: 2px solid #FF5F01;
-}
-
-.tab-counter {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #FF5F01;
-  color: white;
-  border-radius: 50%;
-  font-size: 0.75rem;
-  width: 18px;
-  height: 18px;
-  padding: 2px;
-}
-
-.project-content {
-  padding: 20px;
-}
-
-.back-button-container {
+  flex-direction: column;
+  height: 100vh;
   position: fixed;
-  bottom: 30px;
-  left: 30px;
+  left: 0;
+  top: 0;
   z-index: 100;
 }
 
-/* Estilos responsivos */
+.logo-container {
+  padding: 20px;
+  border-bottom: 1px solid #eaeaea;
+  display: flex;
+  justify-content: center;
+}
+
+/* Logo usando background-image */
+.logo {
+  width: 100%;
+  height: 30px;
+  background-image: url('../../../assets/buildtruck-logo.svg');
+  background-size: contain;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.sidebar-menu,
+.sidebar-profile {
+  padding: 10px 0;
+}
+
+.sidebar-menu {
+  flex-grow: 1;
+  overflow-y: auto;
+}
+
+.menu-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 20px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  color: #555;
+}
+
+.menu-item:hover {
+  background-color: #f5f5f5;
+}
+
+.menu-item.active {
+  background-color: #FF5F01;
+  color: white;
+}
+
+.menu-item i {
+  margin-right: 12px;
+  font-size: 1.1rem;
+}
+
+.sidebar-divider {
+  height: 1px;
+  background-color: #eaeaea;
+  margin: 10px 0;
+}
+
+.main-content {
+  flex-grow: 1;
+  margin-left: 250px;
+  width: calc(100% - 250px);
+  min-height: 100vh;
+  position: relative;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+  .sidebar {
+    width: 200px;
+  }
+
+  .main-content {
+    margin-left: 200px;
+    width: calc(100% - 200px);
+  }
+}
+
 @media (max-width: 768px) {
-  .tabs-navigation {
-    padding: 0 10px;
+  .sidebar {
+    width: 60px;
   }
 
-  .tab-item {
-    padding: 12px 10px;
-    font-size: 0.8rem;
+  .menu-item span {
+    display: none;
   }
 
-  .project-content {
-    padding: 15px;
+  .menu-item i {
+    margin-right: 0;
+    font-size: 1.2rem;
   }
 
-  .back-button-container {
-    bottom: 20px;
-    left: 20px;
+  .logo-container {
+    padding: 15px 10px;
+  }
+
+  .logo {
+    width: 40px;
+  }
+
+  .main-content {
+    margin-left: 60px;
+    width: calc(100% - 60px);
   }
 }
 </style>

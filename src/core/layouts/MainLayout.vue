@@ -1,234 +1,292 @@
 <script>
+import AppButton from "../components/AppButton.vue";
+
 export default {
-  name: 'MainLayout',
+  name: 'ProjectManagerLayout',
+  components: {
+    AppButton
+  },
   props: {
-    userName: {
+    projectName: {
       type: String,
-      default: 'Usuario'
+      default: 'Obra'
+    },
+    projectId: {
+      type: String,
+      default: ''
     }
   },
   data() {
     return {
-      menuItems: [
-        { id: 'proyectos', label: 'Proyectos', icon: 'pi pi-home', route: '/proyectos', active: true },
-        { id: 'estadisticas', label: 'Estadísticas generales', icon: 'pi pi-chart-bar', route: '/estadisticas' },
-        { id: 'reportes', label: 'Reportes globales', icon: 'pi pi-file', route: '/reportes' },
-        { id: 'configuraciones', label: 'Configuraciones', icon: 'pi pi-cog', route: '/configuraciones' }
+      tabs: [
+        { id: 'documentacion', label: 'Documentación', route: 'documentacion', active: false, count: null },
+        { id: 'personal', label: 'Personal', route: 'personal', active: true, count: 1 },
+        { id: 'inventario', label: 'Inventario', route: 'inventario', active: false, count: 9 },
+        { id: 'incidentes', label: 'Incidentes', route: 'incidentes', active: false, count: 214 },
+        { id: 'maquinaria', label: 'Maquinaria', route: 'maquinaria', active: false, count: null },
+        { id: 'configuracion', label: 'Configuración de la obra', route: 'configuracion', active: false, count: null }
       ],
-      profileItems: [
-        { id: 'perfil', label: 'Mi perfil', icon: 'pi pi-user', route: '/perfil' },
-        { id: 'salir', label: 'Salir', icon: 'pi pi-sign-out', route: '/logout' }
-      ]
+      activeTab: 'personal',
+      searchQuery: ''
     }
   },
   methods: {
-    navigateTo(route) {
-      // Simulamos la navegación con una alerta por ahora
-      alert(`Navegando a: ${route}`);
-      // Cuando tengas el router configurado, descomenta esta línea:
-      // this.$router.push(route);
+    setActiveTab(tabId) {
+      this.activeTab = tabId;
+      // Navegar a la ruta correspondiente
+      this.$router.push(`/proyecto/${this.projectId}/${tabId}`);
+    },
+    goBack() {
+      this.$router.push('/proyectos');
+    },
+    handleSearch() {
+      // Implementar lógica de búsqueda
+      console.log('Buscando:', this.searchQuery);
     }
   }
 }
 </script>
 
 <template>
-  <div class="main-layout">
-    <!-- Sidebar -->
-    <aside class="sidebar">
+  <div class="project-layout">
+    <!-- Cabecera de la obra -->
+    <header class="project-header">
       <div class="logo-container">
-        <!-- Usar div con background-image -->
         <div class="logo"></div>
       </div>
+      <h1 class="project-title">{{ projectName }}</h1>
+    </header>
 
-      <div class="sidebar-title">
-        <h2>Proyectos</h2>
+    <!-- Navegación por pestañas -->
+    <nav class="tabs-navigation">
+      <div
+          v-for="tab in tabs"
+          :key="tab.id"
+          :class="['tab-item', { 'active': activeTab === tab.id }]"
+          @click="setActiveTab(tab.id)"
+      >
+        <span>{{ tab.label }}</span>
+        <span v-if="tab.count !== null" class="tab-counter">{{ tab.count }}</span>
       </div>
+    </nav>
 
-      <!-- Menú principal -->
-      <nav class="sidebar-menu">
-        <ul class="menu-list">
-          <li
-              v-for="item in menuItems"
-              :key="item.id"
-              :class="['menu-item', { active: item.active }]"
-              @click="navigateTo(item.route)"
-          >
-            <i :class="item.icon"></i>
-            <span>{{ item.label }}</span>
-          </li>
-        </ul>
-      </nav>
-
-      <!-- Separador -->
-      <div class="sidebar-divider"></div>
-
-      <!-- Opciones de perfil -->
-      <nav class="sidebar-profile">
-        <ul class="menu-list">
-          <li
-              v-for="item in profileItems"
-              :key="item.id"
-              class="menu-item"
-              @click="navigateTo(item.route)"
-          >
-            <i :class="item.icon"></i>
-            <span>{{ item.label }}</span>
-          </li>
-        </ul>
-      </nav>
-    </aside>
+    <!-- Barra de búsqueda y acciones -->
+    <div class="action-bar">
+      <div class="search-container">
+        <div class="search-input-wrapper">
+          <i class="pi pi-search search-icon"></i>
+          <input
+              type="text"
+              v-model="searchQuery"
+              placeholder="Buscar"
+              class="search-input"
+              @keyup.enter="handleSearch"
+          />
+          <button class="search-dropdown-button">
+            <i class="pi pi-chevron-down"></i>
+          </button>
+        </div>
+      </div>
+      <div class="action-buttons">
+        <AppButton
+            label="Filtro"
+            icon="pi pi-filter"
+            variant="primary"
+            size="normal"
+            type="filter"
+        />
+        <AppButton
+            icon="pi pi-download"
+            variant="primary"
+            size="normal"
+        />
+      </div>
+    </div>
 
     <!-- Contenido principal -->
-    <main class="main-content">
-      <div class="content-header">
-        <h1 class="welcome-message">Bienvenido, {{ userName }}</h1>
-      </div>
-
-      <div class="content-container">
-        <slot></slot>
-      </div>
+    <main class="project-content">
+      <slot></slot>
     </main>
+
+    <!-- Botón de regreso -->
+    <div class="back-button-container">
+      <AppButton
+          variant="back"
+          icon="pi pi-arrow-left"
+          @click="goBack"
+      />
+    </div>
   </div>
 </template>
 
 <style scoped>
-.main-layout {
-  display: flex;
+.project-layout {
   min-height: 100vh;
+  background-color: #f9f9f9;
+  position: relative;
 }
 
-.sidebar {
-  width: 250px;
-  background-color: white;
-  border-right: 1px solid #eaeaea;
+.project-header {
   display: flex;
-  flex-direction: column;
-  flex-shrink: 0;
+  align-items: center;
+  padding: 12px 20px;
+  background-color: white;
+  border-bottom: 1px solid #eaeaea;
 }
 
 .logo-container {
-  padding: 20px;
-  border-bottom: 1px solid #eaeaea;
-  display: flex;
-  justify-content: center;
+  margin-right: 20px;
 }
 
 /* Logo usando background-image */
 .logo {
-  width: 100%;
-  height: 80px;
-  background-image: url('src/assets/buildtruck-logo.svg');
-  background-size: cover; /* Ocupa completamente el div, puede recortar */
+  width: 80px;
+  height: 30px;
+  background-image: url('../../../assets/buildtruck-logo.svg');
+  background-position: center;
+  background-size: contain;
   background-repeat: no-repeat;
-
 }
 
-.sidebar-title {
-  padding: 15px 20px;
-  border-bottom: 1px solid #eaeaea;
-}
-
-.sidebar-title h2 {
-  margin: 0;
+.project-title {
   font-size: 1.1rem;
   font-weight: 500;
   color: #333;
-}
-
-.sidebar-menu,
-.sidebar-profile {
-  padding: 10px 0;
-}
-
-.menu-list {
-  list-style: none;
-  padding: 0;
   margin: 0;
 }
 
-.menu-item {
+.tabs-navigation {
+  display: flex;
+  overflow-x: auto;
+  background-color: white;
+  border-bottom: 1px solid #eaeaea;
+}
+
+.tab-item {
+  padding: 12px 16px;
+  cursor: pointer;
+  white-space: nowrap;
+  color: #555;
+  font-size: 0.9rem;
   display: flex;
   align-items: center;
-  padding: 12px 20px;
-  cursor: pointer;
-  transition: background-color 0.2s;
-  color: #555;
+  gap: 8px;
+  transition: all 0.2s;
+  border-bottom: 3px solid transparent;
 }
 
-.menu-item:hover {
-  background-color: #f5f5f5;
+.tab-item:hover {
+  color: #FF5F01;
 }
 
-.menu-item.active {
+.tab-item.active {
+  color: #FF5F01;
+  border-bottom: 3px solid #FF5F01;
+}
+
+.tab-counter {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   background-color: #FF5F01;
   color: white;
+  border-radius: 10px;
+  font-size: 0.7rem;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 6px;
 }
 
-.menu-item i {
-  margin-right: 12px;
-  font-size: 1.1rem;
-}
-
-.sidebar-divider {
-  height: 1px;
-  background-color: #eaeaea;
-  margin: 10px 0;
-}
-
-.main-content {
-  flex-grow: 1;
+.action-bar {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 20px;
   background-color: #f9f9f9;
+  border-bottom: 1px solid #eaeaea;
+}
+
+.search-container {
+  flex: 1;
+  max-width: 400px;
+}
+
+.search-input-wrapper {
+  display: flex;
+  align-items: center;
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.search-icon {
+  padding: 0 10px;
+  color: #777;
+}
+
+.search-input {
+  flex: 1;
+  border: none;
+  padding: 8px 0;
+  font-size: 0.9rem;
+  outline: none;
+}
+
+.search-dropdown-button {
+  background: none;
+  border: none;
+  border-left: 1px solid #ddd;
+  padding: 8px 10px;
+  cursor: pointer;
+  color: #777;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.project-content {
   padding: 20px;
+  height: calc(100vh - 170px);
   overflow-y: auto;
 }
 
-.content-header {
-  margin-bottom: 20px;
+.back-button-container {
+  position: fixed;
+  bottom: 30px;
+  left: 30px;
+  z-index: 100;
 }
 
-.welcome-message {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #333;
-  margin: 0;
-}
-
-.content-container {
-  background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  padding: 20px;
-}
-
+/* Estilos responsivos */
 @media (max-width: 768px) {
-  .sidebar {
-    width: 60px;
+  .tabs-navigation {
+    padding: 0 10px;
   }
 
-  .sidebar-title {
-    display: none;
+  .tab-item {
+    padding: 12px 10px;
+    font-size: 0.8rem;
   }
 
-  .menu-item span {
-    display: none;
+  .action-bar {
+    flex-direction: column;
+    gap: 10px;
   }
 
-  .menu-item i {
-    margin-right: 0;
-    font-size: 1.2rem;
+  .search-container {
+    max-width: 100%;
   }
 
-  .logo-container {
-    padding: 10px;
+  .project-content {
+    padding: 15px;
+    height: calc(100vh - 230px);
   }
 
-  .logo {
-    width: 40px;
-  }
-
-  .main-content {
-    padding: 10px;
+  .back-button-container {
+    bottom: 20px;
+    left: 20px;
   }
 }
 </style>

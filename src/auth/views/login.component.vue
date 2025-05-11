@@ -37,7 +37,7 @@ export default {
 
         // Redirección según el rol
         if (user.role === 'manager') {
-          this.$router.push(`/proyecto/${user.projects[0]}`)
+          this.$router.push('/proyectos') // Mostrar listado de proyectos primero
         } else if (user.role === 'supervisor') {
           this.$router.push(`/supervisor/${user.projectId}`)
         }

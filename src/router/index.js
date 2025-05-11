@@ -1,44 +1,57 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
+// Layout general
 import MainLayout from '../core/layouts/MainLayout.vue'
 
+// Rutas por contexto
 import SupervisorRoutes from '../context/supervisor/router/supervisor.routes.js'
 import ManagerRoutes from '../context/manager/router/manager.routes.js'
 
 const routes = [
-    // Ruta pública: Login
+    // Redirección raíz dinámica según sesión y rol
+    {
+        path: '/',
+        redirect: () => {
+            const user = JSON.parse(localStorage.getItem('user'))
+            if (!user) return '/login'
+            if (user.role === 'manager') return '/proyectos'
+            if (user.role === 'supervisor') return `/supervisor/${user.projectId}`
+            return '/login'
+        }
+    },
+
+    // Ruta pública
     {
         path: '/login',
         name: 'Login',
         component: () => import('../auth/views/login.component.vue')
     },
 
-    // Rutas bajo layout principal (privadas)
+    // Rutas privadas bajo MainLayout (solo para manager)
     {
-        path: '/',
+        path: '/layout',
         component: MainLayout,
         children: [
             {
-                path: '',
-                component: () => import('../context/projects/components/projects-manager.component.vue')
-            },
-            {
                 path: 'estadisticas',
+                name: 'Estadisticas',
                 component: () => import('../context/manager/components/stats-manager.component.vue')
             },
             {
                 path: 'reportes',
+                name: 'Reportes',
                 component: () => import('../context/manager/components/reports-manager.component.vue')
             },
             {
                 path: 'configuraciones',
+                name: 'Configuraciones',
                 component: () => import('../context/configuration/components/manager-configuration.component.vue')
             },
             {
                 path: 'perfil',
+                name: 'Perfil',
                 component: () => import('../context/configuration/components/manager-profile-configuration.component.vue')
             },
-            // Página 404 dentro del layout privado (solo luego del login)
             {
                 path: ':pathMatch(.*)*',
                 name: 'NotFound',
@@ -47,9 +60,11 @@ const routes = [
         ]
     },
 
-    // Rutas de supervisor y manager (también privadas)
-    ...SupervisorRoutes,
-    ...ManagerRoutes
+    // Rutas propias de manager (proyectos, etc.)
+    ...ManagerRoutes,
+
+    // Rutas propias de supervisor
+    ...SupervisorRoutes
 ]
 
 const router = createRouter({
@@ -57,13 +72,21 @@ const router = createRouter({
     routes
 })
 
-// Protección de rutas: solo permite acceso a rutas privadas si hay sesión activa
+// Protección global de rutas
 router.beforeEach((to, from, next) => {
-    const publicNames = ['Login']
+    const publicPaths = ['/login']
     const user = JSON.parse(localStorage.getItem('user'))
 
-    if (!publicNames.includes(to.name) && !user) {
+    const isPublic = publicPaths.includes(to.path)
+
+    if (!isPublic && !user) {
         return next('/login')
+    }
+
+    if (to.path === '/login' && user) {
+        return user.role === 'manager'
+            ? next('/proyectos')
+            : next(`/supervisor/${user.projectId}`)
     }
 
     next()

@@ -2,6 +2,10 @@
 export default {
   name: 'SupervisorLayout',
   props: {
+    title: {
+      type: String,
+      default: 'Personal'
+    },
     projectId: {
       type: String,
       default: ''
@@ -10,20 +14,24 @@ export default {
   data() {
     return {
       menuItems: [
-        { id: 'proyecto', label: 'Proyecto', icon: 'pi pi-home', route: '/proyecto', active: true },
-        { id: 'timeline', label: 'Timeline', icon: 'pi pi-calendar', route: '/timeline' },
-        { id: 'incidencias', label: 'Incidencias', icon: 'pi pi-exclamation-triangle', route: '/incidencias' },
+        { id: 'proyectos', label: 'Proyectos', icon: 'pi pi-home', route: '/proyectos' },
+        { id: 'personal', label: 'Personal', icon: 'pi pi-users', route: '/personal', active: true },
+        { id: 'inventario', label: 'Inventario', icon: 'pi pi-box', route: '/inventario' },
+        { id: 'maquinaria', label: 'Maquinaria', icon: 'pi pi-cog', route: '/maquinaria' },
+        { id: 'incidentes', label: 'Incidentes', icon: 'pi pi-exclamation-triangle', route: '/incidentes' },
         { id: 'documentacion', label: 'Documentación', icon: 'pi pi-file', route: '/documentacion' },
         { id: 'salir', label: 'Salir', icon: 'pi pi-sign-out', route: '/logout' }
-      ]
+      ],
+      activeMenuItem: 'personal'
     }
   },
   methods: {
-    navigateTo(route) {
+    navigateTo(item) {
+      this.activeMenuItem = item.id;
       if (this.projectId) {
-        this.$router.push(`/supervisor/${this.projectId}${route}`);
+        this.$router.push(`/supervisor/${this.projectId}${item.route}`);
       } else {
-        this.$router.push(`/supervisor${route}`);
+        this.$router.push(`/supervisor${item.route}`);
       }
     }
   }
@@ -38,18 +46,14 @@ export default {
         <img src="../../../assets/buildtruck-logo.svg" alt="BuildTruck" class="logo">
       </div>
 
-      <div class="sidebar-title">
-        <h2>Proyecto</h2>
-      </div>
-
       <!-- Menú de navegación -->
       <nav class="sidebar-menu">
         <ul class="menu-list">
           <li
               v-for="item in menuItems"
               :key="item.id"
-              :class="['menu-item', { active: $route.path.includes(item.route) }]"
-              @click="navigateTo(item.route)"
+              :class="['menu-item', { active: activeMenuItem === item.id }]"
+              @click="navigateTo(item)"
           >
             <i :class="item.icon"></i>
             <span>{{ item.label }}</span>
@@ -59,9 +63,26 @@ export default {
     </aside>
 
     <!-- Contenido principal -->
-    <main class="main-content">
-      <slot></slot>
-    </main>
+    <div class="content-wrapper">
+      <!-- Header con título -->
+      <header class="main-header">
+        <h1 class="page-title">{{ title }}</h1>
+        <div class="header-actions">
+          <button class="filter-button">
+            <i class="pi pi-filter"></i>
+            Filtro
+          </button>
+          <button class="download-button">
+            <i class="pi pi-download"></i>
+          </button>
+        </div>
+      </header>
+
+      <!-- Contenido principal -->
+      <main class="main-content">
+        <slot></slot>
+      </main>
+    </div>
   </div>
 </template>
 
@@ -77,7 +98,9 @@ export default {
   border-right: 1px solid #eaeaea;
   display: flex;
   flex-direction: column;
-  flex-shrink: 0;
+  position: fixed;
+  height: 100vh;
+  z-index: 10;
 }
 
 .logo-container {
@@ -90,21 +113,10 @@ export default {
   height: auto;
 }
 
-.sidebar-title {
-  padding: 15px 20px;
-  border-bottom: 1px solid #eaeaea;
-}
-
-.sidebar-title h2 {
-  margin: 0;
-  font-size: 1.1rem;
-  font-weight: 500;
-  color: #333;
-}
-
 .sidebar-menu {
   padding: 10px 0;
   flex-grow: 1;
+  overflow-y: auto;
 }
 
 .menu-list {
@@ -136,21 +148,64 @@ export default {
   font-size: 1.1rem;
 }
 
+.content-wrapper {
+  flex: 1;
+  margin-left: 220px;
+  width: calc(100% - 220px);
+}
+
+.main-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  background-color: white;
+  border-bottom: 1px solid #eaeaea;
+}
+
+.page-title {
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: #333;
+  margin: 0;
+}
+
+.header-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.filter-button, .download-button {
+  padding: 8px 12px;
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.download-button {
+  padding: 8px;
+}
+
+.filter-button:hover, .download-button:hover {
+  background-color: #f5f5f5;
+}
+
 .main-content {
-  flex-grow: 1;
-  background-color: #f9f9f9;
   padding: 20px;
-  overflow-y: auto;
+  background-color: #f9f9f9;
+  min-height: calc(100vh - 60px);
 }
 
 /* Estilos responsivos */
 @media (max-width: 768px) {
   .sidebar {
     width: 60px;
-  }
-
-  .sidebar-title {
-    display: none;
   }
 
   .menu-item span {
@@ -170,6 +225,19 @@ export default {
 
   .logo {
     max-width: 40px;
+  }
+
+  .content-wrapper {
+    margin-left: 60px;
+    width: calc(100% - 60px);
+  }
+
+  .main-header {
+    padding: 10px 15px;
+  }
+
+  .page-title {
+    font-size: 1.2rem;
   }
 
   .main-content {

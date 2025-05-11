@@ -3,7 +3,7 @@ import './style.css'
 import App from './App.vue'
 import PrimeVue from 'primevue/config'
 import i18n from "./i18n.js"
-//import router from './router'
+import router from './router'
 //import store from './store'
 
 // PrimeVue Styles
@@ -98,7 +98,7 @@ import Message from 'primevue/message'
 
 const app = createApp(App)
 
-//app.use(router)
+app.use(router)
 //app.use(store)
 app.use(PrimeVue)
 app.use(i18n)

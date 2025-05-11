@@ -11,10 +11,16 @@ import MachineryManager from '../../machinery/components/machinery-manager.compo
 import ConfigurationManager from '../../configuration/components/manager-configuration.component.vue'
 
 export default [
-    // NUEVA RUTA PARA VER TODOS LOS PROYECTOS DEL GERENTE
+    // RUTA PARA VER TODOS LOS PROYECTOS DEL GERENTE (Ahora usando ManagerLayout)
     {
         path: '/proyectos',
-        component: ProjectsManagerComponent,
+        component: ManagerLayout,
+        children: [
+            {
+                path: '',
+                component: ProjectsManagerComponent,
+            }
+        ]
     },
 
     // RUTA PARA UN PROYECTO ESPECÍFICO

@@ -103,6 +103,7 @@ export default {
   gap: 16px;
   width: 100%;
   padding: 16px;
+  align-items: flex-start;
 }
 
 .project-content {
@@ -110,7 +111,8 @@ export default {
   flex-direction: column;
   flex: 1;
   justify-content: flex-start;
-  align-items: flex-start;
+  align-items: flex-start; /* Muy importante para alinear todo a la izquierda */
+  text-align: left; /* Asegura que el texto también esté alineado */
 }
 
 .project-content h4 {

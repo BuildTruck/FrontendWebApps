@@ -1,36 +1,114 @@
 {
   "users": [
     {
-      "id": 1,
+      "id": "1",
       "name": "So Gerente",
       "email": "gerente@buildtruck.com",
       "password": "123456",
       "role": "manager",
-      "projects": ["p001", "p002"]
+      "projects": [
+        "p001",
+        "p002",
+        "p1746994145994",
+        "p1746995990812",
+        "p1746996479824",
+        "p1746997027350",
+        "p1746997457060"
+      ]
     },
     {
-      "id": 2,
+      "id": "2",
       "name": "Sofi Supervisora",
       "email": "supervisor@buildtruck.com",
       "password": "123456",
       "role": "supervisor",
       "projectId": "p001"
+    },
+    {
+      "id": "3",
+      "name": "Juan Pérez",
+      "email": "juan@buildtruck.com",
+      "password": "123456",
+      "role": "supervisor",
+      "projectId": ""
+    },
+    {
+      "id": "4",
+      "name": "María Torres",
+      "email": "maria@buildtruck.com",
+      "password": "123456",
+      "role": "supervisor",
+      "projectId": "p1746997027350"
+    },
+    {
+      "id": "5",
+      "name": "Maylhy Guti",
+      "email": "maylhy@buildtruck.com",
+      "password": "30092005",
+      "role": "supervisor",
+      "projectId": "p1746997457060"
     }
   ],
   "projects": [
     {
       "id": "p001",
       "name": "Residencial Las Palmeras",
-      "description": "Proyecto habitacional de 8 torres de departamentos en Lurín...",
+      "description": "Proyecto habitacional de 6 torres de departamentos en Lurín. Incluye supervisión de estructuras, acabados y control de materiales en tiempo real.",
       "image": "/images/proyecto1.jpg",
-      "managerId": 1
+      "managerId": "1",
+      "supervisorId": "2",
+      "location": "Lurín, Lima",
+      "startDate": "2023-05-15",
+      "endDate": "null",
+      "state": "En construcción",
+      "progress": 35,
+      "createdAt": "2023-01-01T00:00:00.000Z",
+      "updatedAt": "2023-05-15T00:00:00.000Z"
     },
     {
       "id": "p002",
       "name": "Edificio Corporativo EcoTower",
-      "description": "Edificio de oficinas de 12 pisos con sistema de eficiencia energética...",
+      "description": "Edificio de oficinas de 10 pisos con sistema de eficiencia energética. Seguimiento detallado de personal técnico, cronograma y gestión de insumos.",
       "image": "/images/proyecto2.jpg",
-      "managerId": 1
+      "managerId": "1",
+      "supervisorId": "3",
+      "location": "San Isidro, Lima",
+      "startDate": "2023-08-01",
+      "endDate": "null",
+      "state": "En estudio",
+      "progress": 0,
+      "createdAt": "2023-07-10T00:00:00.000Z",
+      "updatedAt": "2023-07-10T00:00:00.000Z"
+    },
+    {
+      "id": "p1746997027350",
+      "name": "asdassda",
+      "description": "assdaadsads",
+      "image": "/images/proyecto-default.jpg",
+      "managerId": "1",
+      "location": "asdasdsd",
+      "startDate": "2025-05-11",
+      "endDate": "",
+      "supervisorId": "4",
+      "state": "Planificado",
+      "progress": 0,
+      "createdAt": "2025-05-11T20:57:07.350Z",
+      "updatedAt": "2025-05-11T20:57:07.350Z"
+    },
+    {
+      "id": "p1746997457060",
+      "name": "Edificacion Zona A",
+      "description": "Edificio de 10 pisos en el valle del colca",
+      "image": "/images/proyecto-default.jpg",
+      "managerId": "1",
+      "location": "Arequipa",
+      "startDate": "2025-11-21",
+      "endDate": "",
+      "supervisorId": "5",
+      "state": "En ejecución",
+      "progress": 0,
+      "createdAt": "2025-05-11T21:04:17.060Z",
+      "updatedAt": "2025-05-11T21:04:17.060Z"
     }
   ],
   "documents": [],

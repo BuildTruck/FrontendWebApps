@@ -30,8 +30,9 @@ export default {
             ? new Manager(rawUser)
             : new Supervisor(rawUser)
 
-        localStorage.setItem('token', 'fake-token')
-        localStorage.setItem('user', JSON.stringify(user.toJSON()))
+        // CAMBIO: Usar sessionStorage en lugar de localStorage
+        sessionStorage.setItem('token', 'fake-token')
+        sessionStorage.setItem('user', JSON.stringify(user.toJSON()))
 
         console.log('Autenticado:', user)
 

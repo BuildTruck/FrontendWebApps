@@ -13,7 +13,8 @@
         "p1746995990812",
         "p1746996479824",
         "p1746997027350",
-        "p1746997457060"
+        "p1746997457060",
+        "p1747016115494"
       ]
     },
     {
@@ -47,6 +48,14 @@
       "password": "30092005",
       "role": "supervisor",
       "projectId": "p1746997457060"
+    },
+    {
+      "id": "6",
+      "name": "Raul",
+      "email": "raul@buildtruck.com",
+      "password": "8745",
+      "role": "supervisor",
+      "projectId": "p1747016115494"
     }
   ],
   "projects": [
@@ -109,6 +118,21 @@
       "progress": 0,
       "createdAt": "2025-05-11T21:04:17.060Z",
       "updatedAt": "2025-05-11T21:04:17.060Z"
+    },
+    {
+      "id": "p1747016115494",
+      "name": "sdawddwa",
+      "description": "awdadw",
+      "image": "/images/proyecto-default.jpg",
+      "managerId": 1,
+      "location": "awdawd",
+      "startDate": "2025-05-12",
+      "endDate": "2025-05-12T02:15:15.500Z",
+      "supervisorId": "6",
+      "state": "Finalizado",
+      "progress": 0,
+      "createdAt": "2025-05-12T02:15:15.494Z",
+      "updatedAt": "2025-05-12T02:15:15.494Z"
     }
   ],
   "documents": [],

@@ -35,12 +35,12 @@ const routes = [
             {
                 path: 'estadisticas',
                 name: 'Estadisticas',
-                component: () => import('../context/manager/components/stats-manager.component.vue')
+                component: () => import('../context/stats/components/stats-manager.component.vue')
             },
             {
                 path: 'reportes',
                 name: 'Reportes',
-                component: () => import('../context/manager/components/reports-manager.component.vue')
+                component: () => import('../context/reports/components/reports-manager.component.vue')
             },
             {
                 path: 'configuraciones',

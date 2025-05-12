@@ -15,12 +15,12 @@ export default {
       displayName: '',
       menuItems: [
         { id: 'proyectos', label: 'Proyectos', icon: 'pi pi-home', route: '/proyectos', active: true },
-        { id: 'estadisticas', label: 'Estadísticas generales', icon: 'pi pi-chart-bar', route: '/layout/estadisticas', active: false },
-        { id: 'reportes', label: 'Reportes globales', icon: 'pi pi-file', route: '/layout/reportes', active: false },
-        { id: 'configuraciones', label: 'Configuraciones', icon: 'pi pi-cog', route: '/layout/configuraciones', active: false }
+        { id: 'estadisticas', label: 'Estadísticas generales', icon: 'pi pi-chart-bar', route: '/estadisticas', active: false },
+        { id: 'reportes', label: 'Reportes globales', icon: 'pi pi-file', route: '/reportes', active: false },
+        { id: 'configuracion', label: 'Configuraciones', icon: 'pi pi-cog', route: '/configuracion', active: false }
       ],
       profileItems: [
-        { id: 'perfil', label: 'Mi perfil', icon: 'pi pi-user', route: '/layout/perfil', active: false },
+        { id: 'perfil', label: 'Mi perfil', icon: 'pi pi-user', route: '/perfil', active: false },
         { id: 'salir', label: 'Salir', icon: 'pi pi-sign-out', route: '/logout', active: false }
       ]
     }

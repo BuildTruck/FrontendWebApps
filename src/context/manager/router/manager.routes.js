@@ -8,10 +8,14 @@ import PersonnelManager from '../../personnel/components/personnel-manager.compo
 import MaterialsManager from '../../materials/components/materials-manager.component.vue'
 import IncidentsManager from '../../incidents/components/incidents-manager.component.vue'
 import MachineryManager from '../../machinery/components/machinery-manager.component.vue'
-import ConfigurationManager from '../../configuration/components/manager-configuration.component.vue'
+import ConfigurationManagerProject from '../../configuration/components/manager-project-configuration.vue'
+import StatsManagerComponentManager from '../../stats/components/stats-manager.component.vue'
+import ReportsManagerComponent from '../../reports/components/reports-manager.component.vue'
+import ConfigurationManagerComponent from '../../configuration/components/manager-configuration.component.vue'
+import ManagerProfileConfigurationComponent from '../../configuration/components/manager-profile-configuration.component.vue'
+
 
 export default [
-    // RUTA PARA VER TODOS LOS PROYECTOS DEL GERENTE (Ahora usando ManagerLayout)
     {
         path: '/proyectos',
         component: ManagerLayout,
@@ -19,6 +23,46 @@ export default [
             {
                 path: '',
                 component: ProjectsManagerComponent,
+            }
+        ]
+    },
+    {
+        path: '/estadisticas',
+        component: ManagerLayout,
+        children: [
+            {
+                path: '',
+                component: StatsManagerComponentManager,
+            }
+        ]
+    },
+    {
+        path: '/reportes',
+        component: ManagerLayout,
+        children: [
+            {
+                path: '',
+                component: ReportsManagerComponent,
+            }
+        ]
+    },
+    {
+        path: '/configuracion',
+        component: ManagerLayout,
+        children: [
+            {
+                path: '',
+                component: ConfigurationManagerComponent,
+            }
+        ]
+    },
+    {
+        path: '/perfil',
+        component: ManagerLayout,
+        children: [
+            {
+                path: '',
+                component: ManagerProfileConfigurationComponent,
             }
         ]
     },
@@ -54,8 +98,8 @@ export default [
                 component: MachineryManager
             },
             {
-                path: 'configuracion',
-                component: ConfigurationManager
+                path: 'configuracionProyecto',
+                component: ConfigurationManagerProject
             }
         ]
     }

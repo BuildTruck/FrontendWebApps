@@ -1,6 +1,6 @@
 <script>
 export default {
-  name: "manager-configuration.component"
+  name: "manager-project-configuration"
 }
 </script>
 

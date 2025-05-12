@@ -7,8 +7,8 @@ import router from './router'
 //import store from './store'
 
 // PrimeVue Styles
-import 'primeicons/primeicons.css';               // Iconos
-import 'primeflex/primeflex.css';                // PrimeFlex CSS utility
+import 'primeicons/primeicons.css';
+import 'primeflex/primeflex.css';
 
 // Form Components
 import InputText from 'primevue/inputtext'

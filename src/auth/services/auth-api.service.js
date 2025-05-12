@@ -37,7 +37,7 @@ export const AuthService = {
         }
 
         // Activar el auto-logout (para pruebas: 10 segundos)
-        this.setupAutoLogout(1/6);
+        //this.setupAutoLogout();
 
         return res.data[0]
     },

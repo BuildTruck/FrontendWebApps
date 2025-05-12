@@ -13,4 +13,8 @@ export class ManagerService extends BaseService {
     getProjects(managerId) {
         return http.get(`/projects?managerId=${managerId}`)
     }
+    updateSettings(managerId, settings) {
+        return this.update(managerId, settings)
+    }
+
 }

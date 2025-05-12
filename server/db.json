@@ -14,8 +14,14 @@
         "p1746996479824",
         "p1746997027350",
         "p1746997457060",
-        "p1747016115494"
-      ]
+        "p1747016115494",
+        "p1747029583731"
+      ],
+      "settings": {
+        "language": "es",
+        "theme": "dark",
+        "plan": "empresarial"
+      }
     },
     {
       "id": "2",
@@ -23,7 +29,12 @@
       "email": "supervisor@buildtruck.com",
       "password": "123456",
       "role": "supervisor",
-      "projectId": "p001"
+      "projectId": "p001",
+      "settings": {
+        "language": "es",
+        "theme": "dark",
+        "plan": "empresarial"
+      }
     },
     {
       "id": "3",
@@ -31,7 +42,12 @@
       "email": "juan@buildtruck.com",
       "password": "123456",
       "role": "supervisor",
-      "projectId": ""
+      "projectId": "",
+      "settings": {
+        "language": "es",
+        "theme": "dark",
+        "plan": "empresarial"
+      }
     },
     {
       "id": "4",
@@ -39,7 +55,12 @@
       "email": "maria@buildtruck.com",
       "password": "123456",
       "role": "supervisor",
-      "projectId": "p1746997027350"
+      "projectId": "p1746997027350",
+      "settings": {
+        "language": "es",
+        "theme": "dark",
+        "plan": "empresarial"
+      }
     },
     {
       "id": "5",
@@ -47,7 +68,12 @@
       "email": "maylhy@buildtruck.com",
       "password": "30092005",
       "role": "supervisor",
-      "projectId": "p1746997457060"
+      "projectId": "p1746997457060",
+      "settings": {
+        "language": "es",
+        "theme": "dark",
+        "plan": "empresarial"
+      }
     },
     {
       "id": "6",
@@ -55,7 +81,25 @@
       "email": "raul@buildtruck.com",
       "password": "8745",
       "role": "supervisor",
-      "projectId": "p1747016115494"
+      "projectId": "p1747016115494",
+      "settings": {
+        "language": "es",
+        "theme": "dark",
+        "plan": "empresarial"
+      }
+    },
+    {
+      "id": "7",
+      "name": "xd",
+      "email": "xd@buildtruck.com",
+      "password": "7777",
+      "role": "supervisor",
+      "projectId": "p1747029583731",
+      "settings": {
+        "language": "es",
+        "theme": "dark",
+        "plan": "empresarial"
+      }
     }
   ],
   "projects": [
@@ -133,6 +177,21 @@
       "progress": 0,
       "createdAt": "2025-05-12T02:15:15.494Z",
       "updatedAt": "2025-05-12T02:15:15.494Z"
+    },
+    {
+      "id": "p1747029583731",
+      "name": "xd",
+      "description": "xd",
+      "image": "/images/proyecto-default.jpg",
+      "managerId": 1,
+      "location": "xd",
+      "startDate": "2025-05-12",
+      "endDate": "2025-05-12T05:59:43.740Z",
+      "supervisorId": "7",
+      "state": "Finalizado",
+      "progress": 0,
+      "createdAt": "2025-05-12T05:59:43.731Z",
+      "updatedAt": "2025-05-12T05:59:43.731Z"
     }
   ],
   "documents": [],

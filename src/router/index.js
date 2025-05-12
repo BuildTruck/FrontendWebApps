@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
 // Layout general
-import MainLayout from '../core/layouts/MainLayout.vue'
+import ProjectLayoutManager from '../core/layouts/ProjectLayoutManager.vue'
 
 // Rutas por contexto
 import SupervisorRoutes from '../context/supervisor/router/supervisor.routes.js'
@@ -30,7 +30,7 @@ const routes = [
     // Rutas privadas bajo MainLayout (solo para manager)
     {
         path: '/layout',
-        component: MainLayout,
+        component: ProjectLayoutManager,
         children: [
             {
                 path: 'estadisticas',

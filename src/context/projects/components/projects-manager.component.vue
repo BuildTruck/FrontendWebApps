@@ -101,8 +101,7 @@ export default {
     },
 
     handleProjectClick(projectId) {
-      // Navegar al detalle del proyecto
-      this.$router.push(`/proyecto/${projectId}`);
+      this.$router.push(`/proyecto/${projectId}/documentacion`);
     },
 
     openModal() {

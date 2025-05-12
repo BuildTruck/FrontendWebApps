@@ -1,6 +1,6 @@
 <script>
 export default {
-  name: "incidents-manager.component"
+  name: "machinery-supervisor.component"
 }
 </script>
 

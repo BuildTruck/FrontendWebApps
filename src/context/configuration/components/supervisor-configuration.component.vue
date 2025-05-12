@@ -1,6 +1,6 @@
 <script>
 export default {
-  name: "IncidentsSupervision.component"
+  name: "supervisor-configuration.component"
 }
 </script>
 

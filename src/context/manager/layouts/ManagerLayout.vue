@@ -6,7 +6,7 @@ export default {
   props: {
     userName: {
       type: String,
-      default: 'So Gerente'
+      default: 'Gerente'
     }
   },
   data() {

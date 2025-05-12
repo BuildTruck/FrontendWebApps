@@ -2,7 +2,35 @@
 import http from '../../core/services/http.service'
 
 export const AuthService = {
+    // Variables para seguimiento del estado
+    autoLogoutTimer: null,
+    resetTimerHandler: null,
+    lastActivity: null,
+    timeoutMinutes: 60, // Valor por defecto
+
+    /**
+     * Limpia TODOS los almacenes de datos posibles del navegador
+     * Esta es una limpieza agresiva para asegurar compatibilidad entre navegadores
+     */
+    clearAllStorages() {
+        // Limpiar sessionStorage
+        sessionStorage.clear();
+
+        // Limpiar localStorage
+        localStorage.clear();
+
+        // Limpiar cookies (todas las cookies de este dominio)
+        document.cookie.split(";").forEach(function(c) {
+            document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+        });
+
+        console.log('Todos los almacenamientos del navegador han sido limpiados');
+    },
+
     async login(email, password) {
+        // Limpiar TODOS los almacenamientos posibles
+        this.clearAllStorages();
+
         const res = await http.get(`/users?email=${email}&password=${password}`)
         if (res.data.length === 0) {
             throw new Error('Credenciales inválidas')
@@ -11,90 +39,110 @@ export const AuthService = {
         // Activar el auto-logout (para pruebas: 10 segundos)
         this.setupAutoLogout(1/6);
 
-        return res.data[0] // El usuario encontrado
+        return res.data[0]
     },
 
-    /**
-     * Configura un temporizador para cerrar la sesión automáticamente
-     * @param {number} timeoutMinutes - Tiempo en minutos antes de cerrar sesión
-     */
     setupAutoLogout(timeoutMinutes = 60) {
-        // Eliminar cualquier temporizador existente
-        if (window.autoLogoutTimer) {
-            clearTimeout(window.autoLogoutTimer);
+        // Guardar el tiempo de timeout para uso posterior
+        this.timeoutMinutes = timeoutMinutes;
+
+        console.log(`Configurando auto-logout para ${timeoutMinutes} minutos (${timeoutMinutes * 60 * 1000}ms)`);
+
+        // Registrar la hora actual como último momento de actividad
+        this.lastActivity = new Date();
+
+        // Limpiar cualquier temporizador existente
+        if (this.autoLogoutTimer) {
+            clearTimeout(this.autoLogoutTimer);
+            console.log('Temporizador anterior eliminado');
         }
 
         // Convertir minutos a milisegundos
         const timeoutMs = timeoutMinutes * 60 * 1000;
 
-        console.log(`Auto-logout configurado para activarse en ${timeoutMinutes} minutos (${timeoutMs} ms)`);
-
-        // Establecer el temporizador
-        window.autoLogoutTimer = setTimeout(() => {
-            console.log(`Sesión cerrada automáticamente después de ${timeoutMinutes} minutos`);
+        // Establecer temporizador de logout
+        this.autoLogoutTimer = setTimeout(() => {
+            console.log(`Auto-logout activado después de ${timeoutMinutes} minutos`);
             this.logout();
         }, timeoutMs);
 
-        // Función para reiniciar el temporizador
-        const resetTimer = () => {
-            this.setupAutoLogout(timeoutMinutes);
+        console.log('Temporizador de logout configurado:', this.autoLogoutTimer);
+
+        // Remover los event listeners anteriores si existen
+        this.removeEventListeners();
+
+        // Crear una función para manejar la actividad del usuario
+        this.resetTimerHandler = () => {
+            // Solo reiniciar el temporizador si ha pasado al menos 1 segundo desde la última actividad
+            const now = new Date();
+            if ((now - this.lastActivity) > 1000) {  // 1 segundo en milisegundos
+                console.log('Actividad detectada, reiniciando temporizador');
+                this.lastActivity = now;
+
+                // Limpiar el temporizador existente
+                clearTimeout(this.autoLogoutTimer);
+
+                // Crear un nuevo temporizador
+                this.autoLogoutTimer = setTimeout(() => {
+                    console.log(`Auto-logout activado después de ${this.timeoutMinutes} minutos de inactividad`);
+                    this.logout();
+                }, this.timeoutMinutes * 60 * 1000);
+            }
         };
 
-        // Guardar referencia global para poder limpiar después
-        window.resetTimerFunction = resetTimer;
-
-        // Eliminar event listeners anteriores (para evitar duplicados)
-        ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(event => {
-            document.removeEventListener(event, window.resetTimerFunction);
-        });
-
-        // Añadir event listeners
-        ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(event => {
-            document.addEventListener(event, window.resetTimerFunction, { passive: true });
-        });
+        // Añadir los event listeners para detectar actividad
+        this.addEventListeners();
     },
 
-    /**
-     * Cierra la sesión del usuario
-     */
+    // Método separado para añadir event listeners
+    addEventListeners() {
+        const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
+
+        events.forEach(event => {
+            document.addEventListener(event, this.resetTimerHandler, { passive: true });
+        });
+
+        console.log('Event listeners añadidos');
+    },
+
+    // Método separado para remover event listeners
+    removeEventListeners() {
+        if (this.resetTimerHandler) {
+            const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
+
+            events.forEach(event => {
+                document.removeEventListener(event, this.resetTimerHandler);
+            });
+
+            console.log('Event listeners removidos');
+        }
+    },
+
     logout() {
         console.log('Ejecutando logout...');
 
-        // Limpiar datos de sesión - CAMBIO: Usar sessionStorage en lugar de localStorage
-        sessionStorage.removeItem('token');
-        sessionStorage.removeItem('user');
+        // Limpiar TODOS los almacenamientos posibles
+        this.clearAllStorages();
 
-        // Limpiar temporizador si existe
-        if (window.autoLogoutTimer) {
-            clearTimeout(window.autoLogoutTimer);
+        // Limpiar temporizador
+        if (this.autoLogoutTimer) {
+            clearTimeout(this.autoLogoutTimer);
+            this.autoLogoutTimer = null;
+            console.log('Temporizador de auto-logout eliminado');
         }
 
-        // Limpiar event listeners si existen
-        if (window.resetTimerFunction) {
-            ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(event => {
-                document.removeEventListener(event, window.resetTimerFunction);
-            });
-        }
+        // Eliminar event listeners
+        this.removeEventListeners();
+        this.resetTimerHandler = null;
 
-        // Para pruebas, mostrar alerta antes de redirigir
-        alert('Tu sesión ha expirado. Serás redirigido a la página de login.');
-
-        // Redirección (usando window.location para asegurar que funcione)
-        window.location.href = '/login';
+        // Redireccionar a la página de login con un parámetro para forzar recarga
+        window.location.href = '/login?fresh=' + new Date().getTime();
     },
 
-    /**
-     * Verifica si el usuario está autenticado
-     * @returns {boolean} - True si está autenticado
-     */
     isAuthenticated() {
         return sessionStorage.getItem('token') !== null;
     },
 
-    /**
-     * Obtiene los datos del usuario actual
-     * @returns {Object|null} - Datos del usuario o null si no está autenticado
-     */
     getCurrentUser() {
         const userData = sessionStorage.getItem('user');
         return userData ? JSON.parse(userData) : null;

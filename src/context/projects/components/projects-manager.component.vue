@@ -100,8 +100,12 @@ export default {
       }
     },
 
-    handleProjectClick(projectId) {
-      this.$router.push(`/proyecto/${projectId}/documentacion`);
+
+    handleProjectClick(project) {
+      this.$router.push({
+        path: `/proyecto/${project.id}/documentacion`,
+        query: { name: project.name }
+      });
     },
 
     openModal() {
@@ -282,18 +286,8 @@ export default {
     <div v-else class="projects-wrapper">
       <div class="project-list">
         <!-- Usando el componente AppCard para cada proyecto -->
-        <AppCard
-            v-for="project in projects"
-            :key="project.id"
-            :title="project.name"
-            :description="project.description"
-            :image="project.image || '/images/proyecto-default.jpg'"
-            variant="project"
-            @click="handleProjectClick(project.name)"
-        />
-
-        <!-- Botón de añadir proyecto -->
         <div class="add-project-button-container">
+          <!-- Botón de añadir proyecto -->
           <AppButton
               label="Añadir nuevo Proyecto"
               variant="primary"
@@ -301,6 +295,16 @@ export default {
               @click="openModal"
           />
         </div>
+
+        <AppCard
+            v-for="project in projects"
+            :key="project.id"
+            :title="project.name"
+            :description="project.description"
+            :image="project.image || '/images/proyecto-default.jpg'"
+            variant="project"
+            @click="handleProjectClick(project)"
+        />
       </div>
     </div>
 
@@ -450,7 +454,7 @@ export default {
 
 .welcome-header {
   padding: 20px;
-  text-align: center;
+  text-align: left;
 }
 
 .welcome-message {
@@ -489,9 +493,9 @@ export default {
 }
 
 .add-project-button-container {
-  text-align: center;
-  margin-top: 20px;
-  margin-bottom: 40px;
+  text-align: right;
+  margin-top: 10px;
+  margin-bottom: 20px;
 }
 
 /* Estilos para el modal rediseñado */

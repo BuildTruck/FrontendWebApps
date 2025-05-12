@@ -4,7 +4,7 @@
   font-weight: 400;
 
   color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
+  color: rgba(0, 0, 0, 0.87); /* Cambiado a color oscuro para tema claro */
   background-color: #FFFFFF;
 
   font-synthesis: none;
@@ -24,10 +24,10 @@ a:hover {
 
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
+  padding: 0;
   min-width: 320px;
   min-height: 100vh;
+  /* Quitar display: flex y place-items: center */
 }
 
 h1 {
@@ -59,10 +59,10 @@ button:focus-visible {
 }
 
 #app {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+  width: 100%; /* Cambiar max-width por width: 100% */
+  margin: 0; /* Quitar el auto-centering */
+  padding: 0; /* Quitar el padding */
+  /* text-align: center; - Solo descomenta esta línea si necesitas centrar el texto */
 }
 
 @media (prefers-color-scheme: light) {

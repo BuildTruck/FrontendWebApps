@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
 // Layout general
-import ProjectLayoutManager from '../core/layouts/ProjectLayoutManager.vue'
+import ProjectLayoutManager from '../context/manager/layouts/ProjectLayoutManager.vue'
 
 // Rutas por contexto
 import SupervisorRoutes from '../context/supervisor/router/supervisor.routes.js'

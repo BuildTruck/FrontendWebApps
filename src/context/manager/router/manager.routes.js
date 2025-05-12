@@ -1,5 +1,6 @@
 import ManagerAppView from '../components/ManagerAppView.vue'
 import ManagerLayout from '../layouts/ManagerLayout.vue'
+import ProjectLayoutManager from '../layouts/ProjectLayoutManager.vue'
 
 import ProjectsManagerComponent from '../../projects/components/projects-manager.component.vue'
 
@@ -16,6 +17,7 @@ import ManagerProfileConfigurationComponent from '../../configuration/components
 
 
 export default [
+    // Rutas que usan ManagerLayout
     {
         path: '/proyectos',
         component: ManagerLayout,
@@ -67,39 +69,48 @@ export default [
         ]
     },
 
-    // RUTA PARA UN PROYECTO ESPECÍFICO
+    // RUTA PARA UN PROYECTO ESPECÍFICO (FUERA del ManagerLayout)
     {
         path: '/proyecto/:projectId',
-        component: ManagerLayout,
-        props: true,
+        component: ProjectLayoutManager, // ProjectLayoutManager es ahora el componente raíz
+        props: route => ({
+            projectId: route.params.projectId,
+            projectName: route.query.name || 'Proyecto'
+        }),
         children: [
             {
-                path: '',
-                component: ManagerAppView
+                path: '', // Ruta por defecto
+                redirect: 'documentacion' // Redirige automáticamente a documentación
             },
             {
                 path: 'documentacion',
-                component: DocumentationManager
+                component: DocumentationManager,
+                props: true
             },
             {
                 path: 'personal',
-                component: PersonnelManager
+                component: PersonnelManager,
+                props: true
             },
             {
                 path: 'inventario',
-                component: MaterialsManager
+                component: MaterialsManager,
+                props: true
             },
             {
                 path: 'incidentes',
-                component: IncidentsManager
+                component: IncidentsManager,
+                props: true
             },
             {
                 path: 'maquinaria',
-                component: MachineryManager
+                component: MachineryManager,
+                props: true
             },
             {
-                path: 'configuracionProyecto',
-                component: ConfigurationManagerProject
+                path: 'configuracion',
+                component: ConfigurationManagerProject,
+                props: true
             }
         ]
     }

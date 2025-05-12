@@ -274,10 +274,11 @@ export default {
   .logo-container {
     padding: 15px 10px;
     height: 60px;
+    width: 60px;
   }
 
   .logo {
-    width: 40px;
+    width: 80px;
   }
 
   .main-wrapper {

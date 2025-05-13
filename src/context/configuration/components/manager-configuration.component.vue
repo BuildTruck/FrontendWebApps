@@ -100,6 +100,11 @@ export default {
           :loading="loading"
           @click="saveConfig"
       />
+      <AppButton
+          label="Cancelar"
+          variant="primary"
+          @click="cancelChanges"
+      />
     </div>
   </div>
 </template>

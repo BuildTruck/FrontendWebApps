@@ -16,17 +16,12 @@
         "p1746997457060",
         "p1747016115494",
         "p1747029583731"
-      ],
-      "settings": {
-        "language": "en",
-        "theme": "light",
-        "plan": "basic"
-      }
+      ]
     },
     {
       "id": "2",
-      "name": "Sofi Supervisora",
-      "email": "supervisor@buildtruck.com",
+      "name": "Sofis Supervisora",
+      "email": "supervisora@buildtruck.com",
       "password": "123456",
       "role": "supervisor",
       "projectId": "p001",

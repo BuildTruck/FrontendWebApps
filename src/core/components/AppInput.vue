@@ -238,7 +238,7 @@ export default {
   font-family: inherit;
   font-size: 1rem;
   padding: 0.5rem 0.75rem;
-  border: 2px solid #666;
+  border: 1px solid #e3e1e1;
   border-radius: 4px;
   background-color: #fff;
   box-sizing: border-box;

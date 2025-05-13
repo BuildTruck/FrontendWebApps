@@ -15,7 +15,10 @@
         "p1746997027350",
         "p1746997457060",
         "p1747016115494",
-        "p1747029583731"
+        "p1747029583731",
+        "p1747029583731",
+        "p1747105829155"
+
       ]
     },
     {
@@ -37,7 +40,7 @@
       "email": "juan@buildtruck.com",
       "password": "123456",
       "role": "supervisor",
-      "projectId": "",
+      "projectId": "p1747105829155",
       "settings": {
         "language": "es",
         "theme": "dark",
@@ -99,19 +102,14 @@
   ],
   "projects": [
     {
-      "id": "p001",
-      "name": "Residencial Las Palmeras",
-      "description": "Proyecto habitacional de 6 torres de departamentos en Lurín. Incluye supervisión de estructuras, acabados y control de materiales en tiempo real.",
-      "image": "/images/proyecto1.jpg",
-      "managerId": "1",
-      "supervisorId": "2",
+      "name": "Residencial Las Palmeritas",
+      "state": "Finalizado",
       "location": "Lurín, Lima",
+      "description": "Proyecto habitacional de 6 torres de departamentos en Lurín. Incluye supervisión de estructuras, acabados y control de materiales en tiempo real.",
       "startDate": "2023-05-15",
-      "endDate": "null",
-      "state": "En construcción",
-      "progress": 35,
-      "createdAt": "2023-01-01T00:00:00.000Z",
-      "updatedAt": "2023-05-15T00:00:00.000Z"
+      "supervisorId": "2",
+      "updatedAt": "2025-05-13T03:11:40.181Z",
+      "id": "p001"
     },
     {
       "id": "p002",
@@ -187,6 +185,16 @@
       "progress": 0,
       "createdAt": "2025-05-12T05:59:43.731Z",
       "updatedAt": "2025-05-12T05:59:43.731Z"
+    },
+    {
+      "name": "Centro de ayacuchito",
+      "state": "Planificado",
+      "location": "ayacucho",
+      "description": "Plaza de armas",
+      "startDate": "2025-05-13",
+      "supervisorId": "3",
+      "updatedAt": "2025-05-13T03:11:07.533Z",
+      "id": "p1747105829155"
     }
   ],
   "documents": [],

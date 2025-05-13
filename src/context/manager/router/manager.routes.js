@@ -9,7 +9,7 @@ import PersonnelManager from '../../personnel/components/personnel-manager.compo
 import MaterialsManager from '../../materials/components/materials-manager.component.vue'
 import IncidentsManager from '../../incidents/components/incidents-manager.component.vue'
 import MachineryManager from '../../machinery/components/machinery-manager.component.vue'
-import ConfigurationManagerProject from '../../configuration/components/manager-project-configuration.vue'
+import ConfigurationManagerProject from '../../projects/components/manager-project-configuration.vue'
 import StatsManagerComponentManager from '../../stats/components/stats-manager.component.vue'
 import ReportsManagerComponent from '../../reports/components/reports-manager.component.vue'
 import ConfigurationManagerComponent from '../../configuration/components/manager-configuration.component.vue'

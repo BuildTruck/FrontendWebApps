@@ -7,7 +7,7 @@ export class Supervisor {
         this.email = email
         this.password = password
         this.role = role
-        this.projectId = projectId // único proyecto asignado
+        this.projectId = projectId
     }
 
     get initials() {

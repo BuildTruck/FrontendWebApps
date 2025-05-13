@@ -1,180 +1,297 @@
 <script>
+import AppButton from '../../../core/components/AppButton.vue'
+import AppCard from '../../../core/components/AppCard.vue'
+import { DocumentationApiService } from '../services/documentation-api.service'
+
 export default {
-  name: "documentation-manager.component",
-  props: {
-    projectId: {
-      type: String,
-      required: true
-    },
-    projectName: {
-      type: String,
-      default: 'Proyecto'
-    }
+  name: 'DocumentationManagerComponent',
+  components: {
+    AppButton,
+    AppCard
   },
+  props: ['projectId'],
   data() {
     return {
-      documents: [
-        {
-          id: 1,
-          title: 'Armado de fierro para escalera principal',
-          description: 'Aún no se realiza el vaciado de concreto.',
-          date: '07/04/2025',
-          image: '/images/docs/escalera-fierro.jpg'
-        },
-        {
-          id: 2,
-          title: 'Muro de ladrillo en primera planta terminado',
-          description: 'Se verifica alineación y nivelación.',
-          date: '10/04/2025',
-          image: '/images/docs/muro-ladrillo.jpg'
-        },
-        {
-          id: 3,
-          title: 'Escalera principal con concreto recién vaciado',
-          description: 'Se encuentra en proceso de fraguado.',
-          date: '12/04/2025',
-          image: '/images/docs/escalera-concreto.jpg'
-        },
-        {
-          id: 4,
-          title: 'Vista panorámica del proyecto con columnas y techos de primer piso culminados',
-          description: '',
-          date: '14/04/2025',
-          image: '/images/docs/vista-panoramica.jpg'
-        }
-      ],
-      loading: false
+      documents: [],
+      loading: false,
+      showExportOptions: false,
+      exportFormat: 'pdf'
     }
   },
+  async mounted() {
+    await this.loadDocuments()
+  },
   methods: {
-    viewDocumentDetails(docId) {
-      console.log(`Ver detalles del documento ID: ${docId}`);
+    async loadDocuments() {
+      try {
+        this.loading = true
+        const documentationService = new DocumentationApiService()
+        this.documents = await documentationService.getByProjectId(this.projectId)
+      } catch (error) {
+        console.error('Error al cargar fotos de documentación:', error)
+      } finally {
+        this.loading = false
+      }
     },
-    addNewDocument() {
-      console.log('Añadir nuevo documento');
+
+    toggleExportOptions() {
+      this.showExportOptions = !this.showExportOptions
+    },
+
+    exportDocumentation() {
+      // Simular proceso de exportación
+      console.log('Exportando documentación en formato:', this.exportFormat)
+
+      // En un entorno real, aquí implementarías la lógica para generar
+      // un PDF o ZIP con las imágenes y descripciones
+
+      // Para esta simulación, mostraremos un alert
+      alert(`Documentación exportada en formato ${this.exportFormat.toUpperCase()}`)
+
+      // Ocultar opciones de exportación
+      this.showExportOptions = false
+    },
+
+    formatDate(dateString) {
+      if (!dateString) return ''
+
+      // Convertir la fecha a formato más amigable
+      const date = new Date(dateString)
+      return new Intl.DateTimeFormat('es-ES', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      }).format(date)
     }
   }
 }
 </script>
 
 <template>
-  <div class="documentation-container">
-    <!-- Documentos en formato de tarjetas -->
-    <div class="docs-grid">
-      <div
-          v-for="doc in documents"
-          :key="doc.id"
-          class="doc-card"
-          @click="viewDocumentDetails(doc.id)"
-      >
-        <div class="doc-image-container">
-          <img :src="doc.image" :alt="doc.title" class="doc-image" />
-        </div>
-        <div class="doc-content">
-          <p class="doc-title">{{ doc.title }}</p>
-          <p class="doc-description">{{ doc.description }}</p>
-          <p class="doc-date">Fecha: {{ doc.date }}</p>
+  <div class="documentation-manager">
+    <div class="documentation-header">
+
+      <div class="export-container">
+        <app-button
+            label="Exportar"
+            variant="primary"
+            @click="toggleExportOptions"
+            icon="pi pi-download"
+        />
+
+        <!-- Opciones de exportación -->
+        <div v-if="showExportOptions" class="export-options">
+          <div class="export-format">
+            <label>Formato:</label>
+            <div class="format-options">
+              <label class="format-option">
+                <input type="radio" v-model="exportFormat" value="pdf" />
+                <span>PDF</span>
+              </label>
+              <label class="format-option">
+                <input type="radio" v-model="exportFormat" value="zip" />
+                <span>ZIP (Imágenes)</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="export-actions">
+            <app-button
+                label="Cancelar"
+                variant="secondary"
+                size="small"
+                @click="toggleExportOptions"
+            />
+            <app-button
+                label="Exportar"
+                variant="primary"
+                size="small"
+                @click="exportDocumentation"
+            />
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Vista panorámica a ancho completo -->
+    <!-- Pantalla de carga -->
+    <div v-if="loading" class="loading-container">
+      <i class="pi pi-spin pi-spinner loading-icon"></i>
+      <p>Cargando documentos...</p>
+    </div>
 
+    <!-- Galería de documentos usando AppCard -->
+    <div v-else-if="documents.length > 0" class="documentation-grid">
+      <app-card
+          v-for="doc in documents"
+          :key="doc.id"
+          :title="doc.title"
+          :image="doc.imagePath"
+          :description="doc.description"
+          variant="post"
+          :footer="{
+          extra: formatDate(doc.date)
+        }"
+      />
+    </div>
+
+    <!-- Mensaje sin documentos -->
+    <div v-else class="empty-container">
+      <div class="empty-content">
+        <i class="pi pi-images empty-icon"></i>
+        <h3>No hay documentación disponible</h3>
+        <p>No hay documentos registrados para este proyecto.</p>
+        <p class="empty-note">La documentación es agregada por los supervisores del proyecto.</p>
+      </div>
+    </div>
   </div>
 </template>
 
 <style scoped>
-.documentation-container {
-  width: 100%;
-  max-width: 100%;
+.documentation-manager {
+  padding: 1.5rem;
 }
 
-.docs-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 20px;
-  margin-bottom: 30px;
+.documentation-header {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
 }
 
-.doc-card {
-  background-color: white;
+
+.export-container {
+  position: relative;
+}
+
+.export-options {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background-color: #fff;
   border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-  cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+  padding: 1rem;
+  z-index: 10;
+  min-width: 250px;
 }
 
-.doc-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+.export-format {
+  margin-bottom: 1rem;
 }
 
-.doc-image-container {
-  height: 200px;
-  overflow: hidden;
-}
-
-.doc-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.3s;
-}
-
-.doc-card:hover .doc-image {
-  transform: scale(1.05);
-}
-
-.doc-content {
-  padding: 15px;
-}
-
-.doc-title {
-  font-weight: 600;
-  font-size: 1rem;
+.export-format label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
   color: #333;
-  margin-bottom: 8px;
 }
 
-.doc-description {
-  font-size: 0.9rem;
-  color: #666;
-  margin-bottom: 12px;
+.format-options {
+  display: flex;
+  gap: 1rem;
 }
 
-.doc-date {
-  font-size: 0.8rem;
-  color: #888;
-  text-align: right;
+.format-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
 }
 
-.panoramic-view {
-  width: 100%;
-  background-color: white;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-  margin-top: 30px;
+.format-option input {
+  cursor: pointer;
 }
 
-.panoramic-image {
-  width: 100%;
-  max-height: 400px;
-  object-fit: contain;
+.export-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
 }
 
-.panoramic-caption {
-  padding: 15px;
-  color: #666;
-  font-size: 0.9rem;
+.documentation-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
   text-align: center;
 }
 
-/* Estilos responsivos */
+.loading-icon {
+  font-size: 2rem;
+  color: #FF5F01;
+  margin-bottom: 1rem;
+}
+
+.empty-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+}
+
+.empty-content {
+  text-align: center;
+  max-width: 500px;
+  padding: 3rem;
+  background-color: #f8f8f8;
+  border-radius: 8px;
+}
+
+.empty-icon {
+  font-size: 3rem;
+  color: #ccc;
+  margin-bottom: 1rem;
+}
+
+.empty-content h3 {
+  margin: 0 0 1rem;
+  color: #555;
+  font-weight: 500;
+}
+
+.empty-content p {
+  margin: 0;
+  color: #666;
+}
+
+.empty-note {
+  margin-top: 0.5rem !important;
+  font-size: 0.875rem;
+  color: #888;
+  font-style: italic;
+}
+
+/* Media Queries */
+@media (max-width: 1024px) {
+  .documentation-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 @media (max-width: 768px) {
-  .docs-grid {
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  .documentation-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .export-options {
+    position: static;
+    margin-top: 1rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .documentation-grid {
+    grid-template-columns: 1fr;
   }
 }
 </style>

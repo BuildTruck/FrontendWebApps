@@ -196,7 +196,17 @@
       "id": "p1747105829155"
     }
   ],
-  "documents": [],
+  "documents": [
+    {
+      "id": "doc_1747162121330_alo9",
+      "projectId": "p001",
+      "title": "aaaaaaa",
+      "description": "aaaaaaaaaaaaa",
+      "imagePath": "https://via.placeholder.com/800x600.png?text=handshake.png",
+      "date": "2025-05-13",
+      "updatedAt": "2025-05-13T18:48:41.330Z"
+    }
+  ],
   "materials": [
     {
       "id": "m001",

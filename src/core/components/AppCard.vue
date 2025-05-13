@@ -36,6 +36,10 @@ export default {
       // Emitir evento o ejecutar acción al hacer clic en "Ingresar"
       this.$emit('click');
       this.handleClick();
+    },
+    handleImageError(event) {
+      // Reemplazar con una imagen de placeholder
+      event.target.src = 'https://via.placeholder.com/800x600.png?text=Imagen+No+Disponible';
     }
   }
 };
@@ -64,12 +68,40 @@ export default {
       </div>
     </template>
 
-    <!-- VARIANTE: POST (Fotos de obra) -->
+    <!-- VARIANTE: POST (Fotos de obra - estilo Instagram) -->
     <template v-else-if="variant === 'post'">
-      <img :src="image" class="post-image" v-if="image" />
+      <!-- Cabecera del post -->
+      <div class="post-header" v-if="title">
+        <h3 class="post-title">{{ title }}</h3>
+      </div>
+
+      <!-- Imagen del post -->
+      <div class="post-image-container">
+        <img
+            :src="image"
+            class="post-image"
+            v-if="image"
+            @error="handleImageError"
+            :alt="title || 'Imagen de documentación'"
+        />
+      </div>
+
+      <!-- Contenido del post -->
       <div class="post-content">
         <p class="post-description">{{ description }}</p>
-        <p class="post-date" v-if="footer && footer.extra">{{ footer.extra }}</p>
+
+        <!-- Pie del post con fecha y metadata -->
+        <div class="post-footer">
+          <p class="post-date" v-if="footer && footer.extra">
+            <i class="pi pi-calendar"></i> {{ footer.extra }}
+          </p>
+          <p class="post-location" v-if="footer && footer.location">
+            <i class="pi pi-map-marker"></i> {{ footer.location }}
+          </p>
+          <p class="post-supervisor" v-if="footer && footer.supervisor">
+            <i class="pi pi-user"></i> {{ footer.supervisor }}
+          </p>
+        </div>
       </div>
     </template>
   </div>
@@ -83,11 +115,12 @@ export default {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   transition: 0.2s;
   overflow: hidden;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 .app-card:hover {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
 }
 
 /* VARIANTE: PROJECT */
@@ -111,8 +144,8 @@ export default {
   flex-direction: column;
   flex: 1;
   justify-content: flex-start;
-  align-items: flex-start; /* Muy importante para alinear todo a la izquierda */
-  text-align: left; /* Asegura que el texto también esté alineado */
+  align-items: flex-start;
+  text-align: left;
 }
 
 .project-content h4 {
@@ -141,7 +174,7 @@ export default {
   border-radius: 4px;
 }
 
-/* VARIANTE: POST */
+/* VARIANTE: POST (Estilo Instagram) */
 .app-card.post {
   width: 100%;
   border: 1px solid #eaeaea;
@@ -149,32 +182,73 @@ export default {
   flex-direction: column;
 }
 
+.post-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.post-title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.post-image-container {
+  position: relative;
+  width: 100%;
+  height: 240px;
+  overflow: hidden;
+  background-color: #f8f8f8;
+}
+
 .post-image {
   width: 100%;
-  height: 180px;
+  height: 100%;
   object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.app-card.post:hover .post-image {
+  transform: scale(1.03);
 }
 
 .post-content {
-  padding: 12px;
+  padding: 16px;
   flex-grow: 1;
   display: flex;
   flex-direction: column;
 }
 
 .post-description {
-  font-size: 1.0rem;
-  margin: 0 0 8px;
+  font-size: 0.95rem;
+  margin: 0 0 14px;
   color: #333;
-  line-height: 1.4;
+  line-height: 1.5;
   flex-grow: 1;
 }
 
-.post-date {
+.post-footer {
+  margin-top: auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
   font-size: 0.85rem;
-  text-align: right;
-  margin: 0;
   color: #777;
+  border-top: 1px solid #f5f5f5;
+  padding-top: 12px;
+}
+
+.post-date, .post-location, .post-supervisor {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0;
+}
+
+.post-date i, .post-location i, .post-supervisor i {
+  font-size: 0.9rem;
+  color: #FF5F01;
 }
 
 /* Media queries para responsividad */
@@ -187,6 +261,10 @@ export default {
     width: 100%;
     height: 160px;
     margin-bottom: 12px;
+  }
+
+  .post-image-container {
+    height: 200px;
   }
 }
 </style>

@@ -18,7 +18,6 @@
         "p1747029583731",
         "p1747029583731",
         "p1747105829155"
-
       ]
     },
     {
@@ -198,7 +197,84 @@
     }
   ],
   "documents": [],
-  "materials": [],
+  "materials": [
+    {
+      "id": "m001",
+      "projectId": "p001",
+      "name": "Alcan. Circular 0.9m",
+      "type": "MAT",
+      "unit": "MTR",
+      "quantity": 181.44,
+      "stock": 100,
+      "price": 410.82,
+      "total": 74539.18,
+      "provider": "Tecnología de Materiales SA",
+      "ruc": "20112233445",
+      "date": "2024-02-28",
+      "status": "Cancelado",
+      "payment": "Contado",
+      "comprobante": "Factura",
+      "comprobanteNumber": "FF01-15359",
+      "description": "Alcan. Sección Circular de 0.9 metros para columnas. Usado en estructuras metálicas del Edificio Torres."
+    },
+    {
+      "id": "m002",
+      "projectId": "p001",
+      "name": "Petróleo para maquinaria",
+      "type": "COMBUST.",
+      "unit": "GLN",
+      "quantity": 120,
+      "stock": 80,
+      "price": 17.49,
+      "total": 2098.8,
+      "provider": "Inversiones FRL SAC",
+      "ruc": "20155566677",
+      "date": "2024-03-05",
+      "status": "Cancelado",
+      "payment": "Contado",
+      "comprobante": "Factura",
+      "comprobanteNumber": "FF01-15360",
+      "description": "Combustible para maquinaria pesada en obra."
+    },
+    {
+      "id": "703d",
+      "projectId": "p001",
+      "name": "tubos",
+      "type": "MAT",
+      "unit": "cm",
+      "quantity": "20",
+      "stock": "15",
+      "price": "3",
+      "total": 60,
+      "provider": "martines",
+      "ruc": "1234",
+      "date": "2025-05-15",
+      "status": "Pendiente",
+      "payment": "Contado",
+      "comprobante": "Factura",
+      "comprobanteNumber": "f12",
+      "description": "se compro  20 tubos de 0.5 cm"
+    },
+    {
+      "id": "866c",
+      "projectId": "p001",
+      "name": "acero galbanizado",
+      "type": "MAT",
+      "unit": "cm",
+      "quantity": "40",
+      "stock": "5",
+      "price": "2",
+      "total": 80,
+      "provider": "martin",
+      "ruc": "1234",
+      "date": "2025-05-15",
+      "status": "Pendiente",
+      "payment": "Contado",
+      "comprobante": "Factura",
+      "comprobanteNumber": "f12",
+      "description": "se compro xddd"
+    }
+  ],
   "incidents": [],
   "machinery": [],
   "personnel": []

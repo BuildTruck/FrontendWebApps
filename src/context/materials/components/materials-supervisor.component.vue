@@ -1,64 +1,101 @@
 <script>
 import AppTable from '../../../core/components/AppTable.vue'
 import AppNotification from '../../../core/components/AppNotification.vue'
-import MaterialsForm from './materials-form.vue'
-import { materialsApiService } from '../services/materials-api.service.js'
 import AppButton from '../../../core/components/AppButton.vue'
+import MaterialsForm from './materials-form.vue'
+import MaterialsSupervisorEntries from './materials-supervisor-entries.vue'
+import { materialsApiService } from '../services/materials-api.service.js'
+import MaterialsSupervisorUsages from './materials-supervisor-usages.vue'
 
 export default {
   name: 'MaterialsSupervisor',
   components: {
     AppTable,
-    MaterialsForm,
     AppNotification,
-    AppButton
+    AppButton,
+    MaterialsForm,
+    MaterialsSupervisorEntries,
+    MaterialsSupervisorUsages
   },
   data() {
     return {
-      materials: [],
+      selectedTab: 'inventory',
+      inventory: [],
       selectedMaterial: null,
       showForm: false,
       isReadonly: false,
       isEditing: false,
-      showAddForm: false, // ✅ necesario para ocultar tabla cuando agregas
-      loading: false,     // ✅ para el estado de carga en la tabla
+      showAddForm: false,
+      loading: false,
       showNotification: false,
-      notificationMessage: '',
-      columns: [
-        { field: 'date', header: 'Fecha', dataType: 'date' },
+      notificationMessage: ''
+    }
+  },
+  computed: {
+    columns() {
+      const base = [
         { field: 'name', header: 'Nombre Material' },
         { field: 'type', header: 'Tipo' },
         { field: 'unit', header: 'Unidad' },
-        { field: 'quantity', header: 'Cantidad' },
-        { field: 'stock', header: 'Stock' },
-        { field: 'price', header: 'Precio Unitario', dataType: 'numeric' },
-        { field: 'provider', header: 'Proveedor' },
-        { field: 'total', header: 'Total', dataType: 'numeric' },
-        { field: 'status', header: 'Estado' }
+        { field: 'minimumStock', header: 'Stock Mínimo' },
+        { field: 'provider', header: 'Proveedor' }
       ]
+
+      const extra = [
+        { field: 'totalEntries', header: 'Ingresos' },
+        { field: 'totalUsages', header: 'Usos' },
+        { field: 'stockActual', header: 'Stock Actual' },
+        {
+          field: 'price',
+          header: 'Precio Unitario',
+          dataType: 'numeric',
+          body: row =>
+              row.price && row.price > 0 ? `S/ ${row.price.toFixed(2)}` : '-'
+        },
+        {
+          field: 'total',
+          header: 'Total',
+          dataType: 'numeric',
+          body: row =>
+              row.total && row.total > 0 ? `S/ ${row.total.toFixed(2)}` : '-'
+        }
+      ]
+
+      const hasData = this.inventory.some(
+          mat => mat.totalEntries > 0 || mat.totalUsages > 0
+      )
+
+      return hasData ? [...base, ...extra] : base
     }
   },
   async created() {
-    await this.loadMaterials()
+    await this.loadInventory()
   },
   methods: {
-    async loadMaterials() {
+    async loadInventory() {
       try {
         this.loading = true
         const user = JSON.parse(sessionStorage.getItem('user'))
-        const projectId = user?.projectId
-        this.materials = await materialsApiService.getByProject(projectId)
+        this.inventory = await materialsApiService.getInventorySummary(user.projectId)
       } catch (error) {
-        console.error('Error al cargar materiales:', error)
+        console.error('Error al cargar inventario:', error)
       } finally {
         this.loading = false
       }
     },
 
+    async handleUpdated(message = '') {
+      await this.loadInventory()
+      if (message) {
+        this.notificationMessage = message
+        this.showNotification = true
+      }
+    },
+
     handleAdd() {
       this.selectedMaterial = null
-      this.isReadonly = false
       this.showForm = true
+      this.isReadonly = false
       this.isEditing = false
       this.showAddForm = true
     },
@@ -79,7 +116,7 @@ export default {
         this.showForm = false
         this.showAddForm = false
         this.selectedMaterial = null
-        await this.loadMaterials()
+        await this.loadInventory()
       } catch (error) {
         console.error('Error al guardar material:', error)
       }
@@ -110,35 +147,74 @@ export default {
 
 <template>
   <div>
-    <!-- Formulario -->
-    <MaterialsForm
-        v-if="showForm"
-        :material="selectedMaterial || {}"
-        :readonly="isReadonly"
-        @confirm="handleConfirm"
-        @cancel="cancelView"
-    />
-
-    <!-- Botones al ver detalles -->
-    <div v-if="showForm && isReadonly" class="flex justify-end gap-2 mt-4">
-      <AppButton label="Editar" variant="primary" @click="handleEdit" />
-      <AppButton label="Cerrar" variant="secondary" @click="cancelView" />
-    </div>
-
-    <!-- Tabla (se oculta si estás viendo/agregando) -->
-    <div v-if="!showForm && !showAddForm">
-      <AppTable
-          :columns="columns"
-          :data="materials"
-          :loading="loading"
-          :showFilterButton="true"
-          :showAddButton="true"
-          @row-click="handleRowClick"
-          @add="handleAdd"
+    <!-- TABS -->
+    <div class="tabs-wrapper">
+      <AppButton
+          label="Inventario"
+          :variant="'text'"
+          :class="{ 'tab-active': selectedTab === 'inventory' }"
+          @click="selectedTab = 'inventory'"
+      />
+      <AppButton
+          label="Ingresos"
+          :variant="'text'"
+          :class="{ 'tab-active': selectedTab === 'entries' }"
+          @click="selectedTab = 'entries'"
+      />
+      <AppButton
+          label="Usos"
+          :variant="'text'"
+          :class="{ 'tab-active': selectedTab === 'usage' }"
+          @click="selectedTab = 'usage'"
       />
     </div>
 
-    <!-- Notificación -->
+
+    <!-- INVENTARIO -->
+    <div v-if="selectedTab === 'inventory'">
+      <!-- Formulario modo material -->
+      <MaterialsForm
+          v-if="showForm"
+          :material="selectedMaterial || {}"
+          :readonly="isReadonly"
+          :mode="'material'"
+          @confirm="handleConfirm"
+          @cancel="cancelView"
+          :materials-list="inventory"
+      />
+
+      <!-- Botones al ver detalles -->
+      <div v-if="showForm && isReadonly" class="flex justify-end gap-2 mt-4">
+        <AppButton label="Editar" variant="primary" @click="handleEdit" />
+        <AppButton label="Cerrar" variant="secondary" @click="cancelView" />
+      </div>
+
+      <!-- Tabla -->
+      <div v-if="!showForm && !showAddForm">
+        <AppTable
+            :columns="columns"
+            :data="inventory"
+            :loading="loading"
+            :showFilterButton="true"
+            :showAddButton="true"
+            :selectable="false"
+            @add="handleAdd"
+            @row-click="handleRowClick"
+        />
+      </div>
+    </div>
+
+    <!-- INGRESOS -->
+    <div v-else-if="selectedTab === 'entries'">
+      <MaterialsSupervisorEntries @updated="handleUpdated" />
+    </div>
+
+    <!-- USOS -->
+    <div v-else-if="selectedTab === 'usage'">
+      <MaterialsSupervisorUsages @updated="handleUpdated" />
+    </div>
+
+    <!-- NOTIFICACIÓN -->
     <AppNotification
         v-model="showNotification"
         :message="notificationMessage"
@@ -147,4 +223,46 @@ export default {
         :duration="2000"
     />
   </div>
+
+
 </template>
+<style scoped>
+.tabs-wrapper {
+  display: flex;
+  gap: 1.5rem;
+  border-bottom: 2px solid #ddd;
+  margin-bottom: 1.5rem;
+}
+
+/* Estilo base del botón-tab */
+.tabs-wrapper .p-button {
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
+  color: #555;
+  font-weight: 500;
+  padding-bottom: 0.5rem;
+  border-radius: 0 !important;
+  transition: none !important;
+}
+
+/* Hover limpio sin ningún cambio */
+.tabs-wrapper .p-button:hover,
+.tabs-wrapper .p-button:focus,
+.tabs-wrapper .p-button:active {
+  color: #FF5F01;
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+  outline: none !important;
+}
+
+/* Estilo del tab activo */
+.tabs-wrapper .tab-active {
+  color: #FF5F01 !important;
+  border-bottom: 3px solid #FF5F01;
+}
+</style>
+
+

@@ -2,7 +2,7 @@
 import AppButton from "../../../core/components/AppButton.vue";
 import AppInput from "../../../core/components/AppInput.vue";
 import { AuthService } from "../../../auth/services/auth-api.service.js";
-import { BaseService } from "../../../core/services/base.service.js";
+import { SupervisorService } from '../../supervisor/services/supervisor-api.service';
 
 export default {
   name: 'supervisor-profile-configuration',
@@ -25,39 +25,48 @@ export default {
   },
   mounted() {
     if (this.user) {
-      this.form.name = this.user.name
-      this.form.email = this.user.email
-      this.photoPreviewUrl = this.user.photo || ''
+      this.form.name = this.user.name;
+      this.form.email = this.user.email;
+      this.photoPreviewUrl = this.user.photo || '';
     }
   },
   methods: {
     updatePreview(file) {
       if (file && file instanceof File) {
-        this.photoPreviewUrl = URL.createObjectURL(file)
+        // Convertir a base64
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          this.photoPreviewUrl = e.target.result; // URL base64
+          console.log("Imagen convertida a base64");
+        };
+        reader.readAsDataURL(file);
       }
     },
     async saveProfile() {
-      this.loading = true
+      this.loading = true;
       try {
         const updatedUser = {
           ...this.user,
           name: this.form.name,
           email: this.form.email,
-          photo: this.photoPreviewUrl || this.user.photo
-        }
+          photo: this.photoPreviewUrl || this.user.photo || ''
+        };
 
-        const supervisorService = new BaseService('/users')
-        await supervisorService.update(this.user.id, updatedUser)
 
-        sessionStorage.setItem('user', JSON.stringify(updatedUser))
-        this.user = updatedUser
-        this.editMode = false
-        alert('Perfil actualizado correctamente.')
+        const supervisorService = new SupervisorService();
+        await supervisorService.update(this.user.id, updatedUser);
+
+        // Actualizar sessionStorage
+        sessionStorage.setItem('user', JSON.stringify(updatedUser));
+
+        this.user = updatedUser;
+        this.editMode = false;
+        alert('Perfil actualizado correctamente.');
       } catch (e) {
-        console.error('Error al actualizar perfil', e)
-        alert('Ocurrió un error.')
+        console.error('Error al actualizar perfil:', e);
+        alert('Ocurrió un error.');
       } finally {
-        this.loading = false
+        this.loading = false;
       }
     },
     cancelEdit() {
@@ -101,12 +110,11 @@ export default {
       />
       <AppInput
           v-model="form.photoFile"
-          label="Subir foto de Perfil"
+          label="Subir nueva foto"
           type="photo"
           fullWidth
-          @change="updatePreview"
+          @update:modelValue="updatePreview"
       />
-
       <div class="button-actions">
         <AppButton
             label="Guardar"

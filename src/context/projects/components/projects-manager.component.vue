@@ -188,6 +188,7 @@ export default {
     },
 
     handleImageChange(file) {
+      console.log("Archivo recibido en handleImageChange:", file);
       this.newProject.image = file;
     },
 
@@ -402,10 +403,10 @@ export default {
           <div class="form-row">
             <div class="form-group">
               <AppInput
+                  v-model="newProject.image"
                   type="photo"
                   label="Imagen del proyecto"
                   :error="errors.image"
-                  @change="handleImageChange"
                   required
                   fullWidth
               />

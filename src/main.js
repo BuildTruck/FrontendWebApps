@@ -190,5 +190,23 @@ app.component('pv-message', Message)
 
 // Directives
 app.directive('tooltip', Tooltip)
+if (process.env.NODE_ENV !== 'production') {
+    // Almacenar las imágenes subidas en memoria
+    window._uploadedImages = {};
 
+    // Interceptar las solicitudes de imágenes
+    const originalImageSrcDescriptor = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, 'src');
+    const originalImageSrcSetter = originalImageSrcDescriptor.set;
+
+    Object.defineProperty(HTMLImageElement.prototype, 'src', {
+        set: function(url) {
+            if (url && typeof url === 'string' && url.startsWith('/uploads/') && window._uploadedImages[url]) {
+                originalImageSrcSetter.call(this, window._uploadedImages[url]);
+            } else {
+                originalImageSrcSetter.call(this, url);
+            }
+        },
+        get: originalImageSrcDescriptor.get
+    });
+}
 app.mount('#app')

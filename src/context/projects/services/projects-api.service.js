@@ -46,6 +46,9 @@ class ProjectsService extends BaseService {
                 }
             }
 
+            const imageUrl = await projectService.uploadProjectImage(this.newProject.image);
+            console.log("URL de imagen después de procesar:", imageUrl);
+
             // Crear el proyecto
             const response = await this.create(project.toJSON());
             const newProject = new Projects(response.data);
@@ -96,14 +99,27 @@ class ProjectsService extends BaseService {
      * @returns {Promise<string>} - URL de la imagen
      */
     async uploadProjectImage(file) {
-        if (!file) {
+        console.log("uploadProjectImage recibió:", file);
+
+        if (!file || !(file instanceof File)) {
+            console.log("No hay archivo válido, usando imagen predeterminada");
             return '/images/proyecto-default.jpg';
         }
 
         try {
-            // Simular URL de imagen para demo
-            const imageUrl = URL.createObjectURL(file);
-            return imageUrl;
+            // Solución simple con base64
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    console.log("Imagen convertida a base64");
+                    resolve(e.target.result); // URL data:image/...
+                };
+                reader.onerror = () => {
+                    console.error("Error leyendo archivo");
+                    resolve('/images/proyecto-default.jpg');
+                };
+                reader.readAsDataURL(file);
+            });
         } catch (error) {
             console.error('Error procesando imagen:', error);
             return '/images/proyecto-default.jpg';

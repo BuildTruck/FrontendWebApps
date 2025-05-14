@@ -30,8 +30,13 @@ export default {
   methods: {
     updatePreview(file) {
       if (file && file instanceof File) {
-        this.photoPreviewUrl = URL.createObjectURL(file);
-        this.form.photoFile = file;
+        // Convertir a base64
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          this.photoPreviewUrl = e.target.result; // URL base64
+          console.log("Imagen convertida a base64");
+        };
+        reader.readAsDataURL(file);
       }
     },
     async saveProfile() {
@@ -41,18 +46,21 @@ export default {
           ...this.user,
           name: this.form.name,
           email: this.form.email,
-          photo: this.photoPreviewUrl || this.user.photo
+          photo: this.photoPreviewUrl || this.user.photo || ''
         };
 
+        // Usar el ManagerService que ya está importado
         const managerService = new ManagerService();
         await managerService.update(this.user.id, updatedUser);
 
+        // Actualizar sessionStorage
         sessionStorage.setItem('user', JSON.stringify(updatedUser));
+
         this.user = updatedUser;
         this.editMode = false;
         alert('Perfil actualizado correctamente.');
       } catch (e) {
-        console.error('Error al actualizar perfil', e);
+        console.error('Error al actualizar perfil:', e);
         alert('Ocurrió un error.');
       } finally {
         this.loading = false;
@@ -102,7 +110,7 @@ export default {
           label="Subir nueva foto"
           type="photo"
           fullWidth
-          @change="updatePreview"
+          @update:modelValue="updatePreview"
       />
       <div class="action-buttons">
         <AppButton

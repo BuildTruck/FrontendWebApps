@@ -118,6 +118,13 @@ export class DocumentationApiService extends BaseService {
      * @param {string|number} projectId - ID del proyecto
      * @returns {Promise<Object>} - Promesa con la URL de la imagen
      */
+    /**
+     * Sube una imagen para documentación
+     * @param {File} file - Imagen a subir
+     * @param {string|number} projectId - ID del proyecto
+     * @returns {Promise<Object>} - Promesa con la URL de la imagen
+     */
+
     async uploadImage(file, projectId) {
         try {
             // Validar que sea una imagen
@@ -125,29 +132,27 @@ export class DocumentationApiService extends BaseService {
                 throw new Error('El archivo debe ser una imagen (jpg, png, etc.)');
             }
 
-            // Simular la subida de imagen con formData
-            // En una implementación real, esto enviaría la imagen al servidor
-            const formData = new FormData()
-            formData.append('image', file)
-            formData.append('projectId', projectId)
+            // Convertir la imagen a base64 para almacenamiento persistente
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    console.log("Imagen convertida a base64");
 
-            // Para simular, vamos a retornar una URL falsa después de un delay
-            await new Promise(resolve => setTimeout(resolve, 500))
-
-            // Generar URL de imagen simulada
-            const timestamp = new Date().getTime()
-            const fileName = `${timestamp}_${file.name}`
-
-            // Usar imágenes de placeholder para pruebas
-            const imagePath = `https://via.placeholder.com/800x600.png?text=${encodeURIComponent(file.name)}`
-
-            return {
-                success: true,
-                imagePath
-            }
+                    // Devolver objeto con la imagen en base64
+                    resolve({
+                        success: true,
+                        imagePath: e.target.result // URL en formato base64
+                    });
+                };
+                reader.onerror = (error) => {
+                    console.error("Error al leer la imagen:", error);
+                    reject(error);
+                };
+                reader.readAsDataURL(file);
+            });
         } catch (error) {
-            console.error('Error al subir imagen:', error)
-            throw error
+            console.error('Error al subir imagen:', error);
+            throw error;
         }
     }
 }

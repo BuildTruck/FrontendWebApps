@@ -61,10 +61,8 @@ export default {
 
         this.user = updatedUser;
         this.editMode = false;
-        alert('Perfil actualizado correctamente.');
       } catch (e) {
         console.error('Error al actualizar perfil:', e);
-        alert('Ocurrió un error.');
       } finally {
         this.loading = false;
       }

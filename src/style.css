@@ -65,6 +65,26 @@ button:focus-visible {
   /* text-align: center; - Solo descomenta esta línea si necesitas centrar el texto */
 }
 
+::-webkit-scrollbar {
+  width: 10px;           /* vertical */
+  height: 10px;          /* horizontal */
+}
+
+::-webkit-scrollbar-track {
+  background: #f0f0f0;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--primary-color);
+  border-radius: 10px;
+  border: 2px solid #f0f0f0;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--primary-color-hover);
+}
+
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;
@@ -77,4 +97,3 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
-

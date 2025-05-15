@@ -4,17 +4,25 @@ import AppInput from "../../../core/components/AppInput.vue";
 import {Configuration} from "../models/configuration.entity.js";
 import {AuthService} from "../../../auth/services/auth-api.service.js";
 import {ManagerService} from "../../manager/services/manager-api.service.js";
+import AppNotification from "../../../core/components/AppNotification.vue"
 
 export default {
   name: 'manager-configuration.component',
   components: {
     AppInput,
-    AppButton
+    AppButton,
+    AppNotification
   },
   data() {
     return {
       settings: new Configuration(),
-      loading: false
+      loading: false,
+      notification: {
+        show: false,
+        message: '',
+        type: 'success',
+        autoClose: true
+      }
     }
   },
   mounted() {
@@ -24,6 +32,7 @@ export default {
     }
   },
   methods: {
+
     async saveConfig() {
       try {
         this.loading = true
@@ -42,15 +51,23 @@ export default {
         }
         sessionStorage.setItem('user', JSON.stringify(updatedUser))
 
-        alert('Configuración actualizada correctamente.')
-      } catch (error) {
-        console.error('Error al guardar configuración', error)
-        alert('Error al guardar la configuración.')
+        this.showNotification("Configuración actualizada correctamente.", "success", true);
+      } catch (err) {
+        console.error("Error al actualizar configuración", err)
+        // Reemplaza el alert con showNotification
+        this.showNotification("Hubo un error al guardar los cambios.", "error", false);
       } finally {
         this.loading = false
       }
-    }
-
+    },
+    showNotification(message, type = 'success', autoClose = true) {
+      this.notification = {
+        show: true,
+        message,
+        type,
+        autoClose
+      }
+    },
   }
 }
 </script>
@@ -106,6 +123,13 @@ export default {
           @click="cancelChanges"
       />
     </div>
+    <AppNotification
+        v-model="notification.show"
+        :message="notification.message"
+        :type="notification.type"
+        :auto-close="notification.autoClose"
+        button-text="Entendido"
+    />
   </div>
 </template>
 

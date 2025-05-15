@@ -4,18 +4,26 @@ import AppButton from "../../../core/components/AppButton.vue"
 import { AuthService } from "../../../auth/services/auth-api.service.js"
 import { Configuration } from "../models/configuration.entity.js"
 import { ConfigurationService } from "../services/configuration-api.service.js"
+import AppNotification from "../../../core/components/AppNotification.vue"
 
 export default {
   name: "SupervisorConfigurationComponent",
   components: {
     AppInput,
-    AppButton
+    AppButton,
+    AppNotification
   },
   data() {
     return {
       settings: new Configuration(),
       originalSettings: new Configuration(),
-      loading: false
+      loading: false,
+      notification: {
+        show: false,
+        message: '',
+        type: 'success',
+        autoClose: true
+      }
     }
   },
   mounted() {
@@ -41,17 +49,26 @@ export default {
         }
         sessionStorage.setItem("user", JSON.stringify(updatedUser))
 
-        alert("Configuración actualizada correctamente.")
+        this.showNotification("Configuración actualizada correctamente.", "success", true);
       } catch (err) {
         console.error("Error al actualizar configuración", err)
-        alert("Hubo un error al guardar los cambios.")
+        // Reemplaza el alert con showNotification
+        this.showNotification("Hubo un error al guardar los cambios.", "error", false);
       } finally {
         this.loading = false
       }
     },
     cancelChanges() {
       this.settings = new Configuration(this.originalSettings.toJSON())
-    }
+    },
+    showNotification(message, type = 'success', autoClose = true) {
+      this.notification = {
+        show: true,
+        message,
+        type,
+        autoClose
+      }
+    },
   }
 }
 </script>
@@ -107,6 +124,13 @@ export default {
           @click="cancelChanges"
       />
     </div>
+    <AppNotification
+        v-model="notification.show"
+        :message="notification.message"
+        :type="notification.type"
+        :auto-close="notification.autoClose"
+        button-text="Entendido"
+    />
   </div>
 </template>
 

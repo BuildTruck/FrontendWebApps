@@ -4,10 +4,12 @@ import AppNotification from '../../../core/components/AppNotification.vue'
 import AppButton from '../../../core/components/AppButton.vue'
 import {machineryApiService} from "../services/machinery-api.service.js";
 
+import MachineryForm from "./machinery-form.vue";
 
 export default {
   name: 'MachinerySupervisor',
   components: {
+    MachineryForm,
     AppTable,
     AppNotification,
     AppButton,
@@ -125,27 +127,20 @@ export default {
   <div>
     <!-- TABS -->
     <div v-if="selectedTab === 'machinery'">
-
-    <!-- MAQUINARIA -->
-    <!--
-
-       Formulario modo material
-    <MaterialsForm
-        v-if="showForm"
-        :material="selectedMaterial || {}"
-        :readonly="isReadonly"
-        :mode="'material'"
-        @confirm="handleConfirm"
-        @cancel="cancelView"
-        :materials-list="inventory"
-    />
-    -->
-
+      <!-- Formulario para maquinaria -->
+      <machinery-form
+          v-if="showForm || showAddForm"
+          :machinery="selectedMaterial || {}"
+          :readonly="isReadonly"
+          :machinery-list="inventory"
+          @confirm="handleConfirm"
+          @cancel="cancelView"
+      />
 
       <!-- Botones al ver detalles -->
       <div v-if="showForm && isReadonly" class="flex justify-end gap-2 mt-4">
-        <AppButton label="Editar" variant="primary" @click="handleEdit"/>
-        <AppButton label="Cerrar" variant="secondary" @click="cancelView"/>
+        <AppButton label="Editar" variant="primary" @click="handleEdit" />
+        <AppButton label="Cerrar" variant="secondary" @click="cancelView" />
       </div>
 
       <!-- Tabla -->
@@ -160,6 +155,9 @@ export default {
             @add="handleAdd"
             @row-click="handleRowClick"
         />
+        <div v-if="!loading && inventory.length === 0" class="text-center p-4">
+          No se encontraron máquinas.
+        </div>
       </div>
     </div>
 
@@ -172,8 +170,6 @@ export default {
         :duration="2000"
     />
   </div>
-
-
 </template>
 <style scoped>
 .tabs-wrapper {

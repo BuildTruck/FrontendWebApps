@@ -10,6 +10,8 @@ export class MachineryEntity {
         this.licensePlate = data.licensePlate || ''
         this.status = data.status || ''
         this.registerDate=data.registerDate||''
+        this.provider=data.provider||''
+        this.description = data.description || ''
     }
 
 

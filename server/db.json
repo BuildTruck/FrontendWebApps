@@ -428,6 +428,18 @@
     }
   ],
   "incidents": [],
-  "machinery": [],
+  "machinery": [
+
+    {
+      "projectId": "p001",
+      "name": "Excavadora",
+      "licensePlate": "ABC-123",
+      "registerDate":"12-12-25",
+      "status": "active",
+      "provider": "SAC",
+      "description": "xd."
+    }
+
+  ],
   "personnel": []
 }

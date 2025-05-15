@@ -1,8 +1,10 @@
 <script>
 import { AuthService } from '../../../auth/services/auth-api.service.js';
+import LanguageSwitcher from "../../../core/components/language-switcher.component.vue";
 
 export default {
   name: 'ManagerLayout',
+  components: {LanguageSwitcher},
   props: {
     userName: {
       type: String,
@@ -113,6 +115,9 @@ export default {
       <!-- Header bar fijo -->
       <header class="header-bar">
         <h1 class="page-title">{{ pageTitle }}</h1>
+
+        <language-switcher/>
+
       </header>
 
       <!-- Área de contenido -->
@@ -120,6 +125,7 @@ export default {
         <router-view></router-view>
       </div>
     </div>
+
   </div>
 </template>
 
@@ -254,6 +260,33 @@ export default {
   padding: 0;
   background-color: #ffffff;
   height: calc(100vh - 60px); /* Altura total menos la altura del header */
+}
+
+.header-bar {
+  justify-content: space-between; /* Distribuye los elementos en los extremos */
+  padding-right: 20px; /* Asegura espacio suficiente a la derecha */
+}
+
+
+.language-switcher {
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 210; /* Por encima del header-bar */
+}
+
+
+@media (max-width: 768px) {
+  .language-switcher {
+    right: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .language-switcher {
+    right: 10px;
+  }
 }
 
 /* Responsive para pantallas pequeñas */

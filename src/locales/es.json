@@ -1,1 +1,122 @@
-{}
+{
+  "general": {
+    "back": "Volver",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "add": "Añadir",
+    "search": "Buscar",
+    "loading": "Cargando...",
+    "noResults": "No se encontraron resultados",
+    "yes": "Sí",
+    "no": "No",
+    "confirm": "Confirmar",
+    "actions": "Acciones"
+  },
+  "navigation": {
+    "projects": "Proyectos",
+    "statistics": "Estadísticas generales",
+    "reports": "Reportes globales",
+    "settings": "Configuraciones",
+    "profile": "Mi perfil",
+    "logout": "Salir"
+  },
+  "project": {
+    "title": "Obra",
+    "back": "Volver a proyectos",
+    "tabs": {
+      "documentation": "Documentación",
+      "personnel": "Personal",
+      "inventory": "Inventario",
+      "incidents": "Incidentes",
+      "machinery": "Maquinaria",
+      "settings": "Configuración de la obra"
+    }
+  },
+  "documentation": {
+    "addDocument": "Añadir Documento",
+    "documentType": "Tipo de Documento",
+    "uploadDate": "Fecha de Subida",
+    "description": "Descripción",
+    "fileSize": "Tamaño del Archivo",
+    "downloadDocument": "Descargar Documento",
+    "deleteDocument": "Eliminar Documento",
+    "confirmDelete": "¿Está seguro de que desea eliminar este documento?"
+  },
+  "personnel": {
+    "addEmployee": "Añadir Empleado",
+    "name": "Nombre",
+    "position": "Cargo",
+    "email": "Correo",
+    "phone": "Teléfono",
+    "startDate": "Fecha de Inicio",
+    "status": "Estado",
+    "active": "Activo",
+    "inactive": "Inactivo"
+  },
+  "inventory": {
+    "addItem": "Añadir Artículo",
+    "itemName": "Nombre del Artículo",
+    "category": "Categoría",
+    "quantity": "Cantidad",
+    "unit": "Unidad",
+    "supplier": "Proveedor",
+    "lastUpdate": "Última Actualización",
+    "reorderLevel": "Nivel de Reorden",
+    "lowStock": "Poco Stock"
+  },
+  "incidents": {
+    "addIncident": "Reportar Incidente",
+    "date": "Fecha",
+    "type": "Tipo",
+    "severity": "Gravedad",
+    "description": "Descripción",
+    "reportedBy": "Reportado Por",
+    "status": "Estado",
+    "resolved": "Resuelto",
+    "pending": "Pendiente",
+    "resolveIncident": "Resolver Incidente"
+  },
+  "machinery": {
+    "addMachine": "Añadir Máquina",
+    "name": "Nombre",
+    "type": "Tipo",
+    "serialNumber": "Número de Serie",
+    "status": "Estado",
+    "available": "Disponible",
+    "inUse": "En Uso",
+    "underMaintenance": "En Mantenimiento",
+    "lastMaintenance": "Último Mantenimiento",
+    "scheduleMaintenance": "Programar Mantenimiento"
+  },
+  "settings": {
+    "projectName": "Nombre del Proyecto",
+    "location": "Ubicación",
+    "startDate": "Fecha de Inicio",
+    "estimatedEndDate": "Fecha Estimada de Finalización",
+    "budget": "Presupuesto",
+    "client": "Cliente",
+    "supervisor": "Supervisor",
+    "updateSettings": "Actualizar Configuración"
+  },
+  "auth": {
+    "signIn": "Iniciar Sesión",
+    "signOut": "Cerrar Sesión",
+    "email": "Correo",
+    "password": "Contraseña",
+    "forgotPassword": "¿Olvidó su contraseña?",
+    "rememberMe": "Recordarme",
+    "noAccount": "¿No tiene una cuenta?",
+    "createAccount": "Crear Cuenta",
+    "invalidCredentials": "Correo o contraseña incorrectos"
+  },
+  "errors": {
+    "required": "Este campo es obligatorio",
+    "invalidEmail": "Por favor ingrese un correo válido",
+    "minLength": "Este campo debe tener al menos {min} caracteres",
+    "maxLength": "Este campo no puede exceder los {max} caracteres",
+    "serverError": "Error del servidor. Por favor intente más tarde.",
+    "networkError": "Error de red. Por favor verifique su conexión."
+  }
+}

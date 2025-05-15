@@ -1,10 +1,12 @@
 <script>
 import AppButton from '../../../core/components/AppButton.vue';
+import LanguageSwitcher from "../../../core/components/language-switcher.component.vue";
 
 export default {
   name: 'ProjectLayoutManager',
   components: {
-    AppButton
+    AppButton,
+    LanguageSwitcher
   },
   props: {
     projectName: {
@@ -102,6 +104,7 @@ export default {
       <!-- Header -->
       <header class="project-header">
         <h1 class="project-title">Obra {{ projectName }}</h1>
+        <language-switcher/>
       </header>
 
       <!-- Tabs Navigation con contadores dinámicos -->
@@ -189,6 +192,9 @@ export default {
   padding: 16px 20px;
   background-color: #fff;
   border-bottom: 1px solid #eaeaea;
+  display: flex; /* Añade esta línea */
+  align-items: center; /* Añade esta línea */
+  justify-content: space-between; /* Añade esta línea */
 }
 
 .project-title {
@@ -271,6 +277,28 @@ export default {
 :deep(.large-back-button .pi) {
   font-size: 24px !important;
   color: white !important;
+}
+
+
+.language-switcher {
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 210; /* Por encima del header-bar */
+}
+
+
+@media (max-width: 768px) {
+  .language-switcher {
+    right: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .language-switcher {
+    right: 10px;
+  }
 }
 
 /* Estilos responsivos */

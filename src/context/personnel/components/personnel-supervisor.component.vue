@@ -159,13 +159,7 @@ export default {
     </div>
 
     <!-- NOTIFICACIÓN -->
-    <AppNotification
-        v-model="showNotification"
-        :message="notificationMessage"
-        type="success"
-        :autoClose="true"
-        :duration="2000"
-    />
+
   </div>
 
 

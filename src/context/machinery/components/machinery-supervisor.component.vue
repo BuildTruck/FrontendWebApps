@@ -81,7 +81,7 @@ export default {
     async handleConfirm(machinery) {
       try {
         const user = JSON.parse(sessionStorage.getItem('user'))
-        machinery.projectId = user?.projectId
+        machinery.projectId = user.projectId
 
         if (machinery.id) {
           await machineryApiService.updateMachinery(machinery.id, machinery)
@@ -94,7 +94,7 @@ export default {
         this.showForm = false
         this.showAddForm = false
         this.selectedMachine = null
-        await this.loadInventory()
+        await this.loadMachines()
       } catch (error) {
         console.error('Error al guardar maquinaria:', error)
       }
@@ -110,6 +110,8 @@ export default {
     handleEdit() {
       this.isReadonly = false
       this.isEditing = true
+      this.showForm = true
+      this.showAddForm = false
     },
 
     cancelView() {
@@ -130,13 +132,12 @@ export default {
       <!-- Formulario para maquinaria -->
       <machinery-form
           v-if="showForm || showAddForm"
-          :machinery="selectedMaterial || {}"
+          :machinery="selectedMachine || {}"
           :readonly="isReadonly"
           :machinery-list="inventory"
           @confirm="handleConfirm"
           @cancel="cancelView"
       />
-
       <!-- Botones al ver detalles -->
       <div v-if="showForm && isReadonly" class="flex justify-end gap-2 mt-4">
         <AppButton label="Editar" variant="primary" @click="handleEdit" />
@@ -169,6 +170,7 @@ export default {
         :autoClose="true"
         :duration="2000"
     />
+
   </div>
 </template>
 <style scoped>
@@ -190,9 +192,7 @@ export default {
   padding-bottom: 0.5rem;
   border-radius: 0 !important;
   transition: none !important;
-}
-
-/* Hover limpio sin ningún cambio */
+}/* Hover limpio sin ningún cambio */
 .tabs-wrapper .p-button:hover,
 .tabs-wrapper .p-button:focus,
 .tabs-wrapper .p-button:active {
@@ -201,11 +201,10 @@ export default {
   box-shadow: none !important;
   border: none !important;
   outline: none !important;
-}
-
-/* Estilo del tab activo */
+}/* Estilo del tab activo */
 .tabs-wrapper .tab-active {
   color: #FF5F01 !important;
   border-bottom: 3px solid #FF5F01;
 }
 </style>
+

@@ -460,17 +460,26 @@
     }
   ],
   "machinery": [
-
     {
       "projectId": "p001",
       "name": "Excavadora",
       "licensePlate": "ABC-123",
-      "registerDate":"12-12-25",
+      "registerDate": "12-12-25",
       "status": "active",
       "provider": "SAC",
-      "description": "xd."
+      "description": "xd.",
+      "id": "d184"
+    },
+    {
+      "id": "5f7f",
+      "projectId": "p1747029583731",
+      "name": "Grua",
+      "licensePlate": "FBD-D44-44D",
+      "status": "maintenance",
+      "registerDate": "05/24/20252",
+      "provider": "CATT",
+      "description": "Grua en mantenimiento"
     }
-
   ],
   "incidents": []
 }

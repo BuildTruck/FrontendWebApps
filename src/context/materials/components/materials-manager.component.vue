@@ -38,61 +38,65 @@ export default {
   computed: {
     inventoryColumns() {
       return [
-        { field: 'name', header: 'Nombre Material' },
-        { field: 'type', header: 'Tipo' },
-        { field: 'unit', header: 'Unidad' },
-        { field: 'minimumStock', header: 'Stock Mínimo' },
-        { field: 'provider', header: 'Proveedor' },
-        { field: 'totalEntries', header: 'Ingresos' },
-        { field: 'totalUsages', header: 'Usos' },
-        { field: 'stockActual', header: 'Stock Actual' },
+        { field: 'name', header: this.$t('inventory.name') },
+        { field: 'type', header: this.$t('inventory.type') },
+        { field: 'unit', header: this.$t('inventory.unit') },
+        { field: 'minimumStock', header: this.$t('inventory.minimumStock') },
+        { field: 'provider', header: this.$t('inventory.provider') },
+        { field: 'totalEntries', header: this.$t('inventory.totalEntries') },
+        { field: 'totalUsages', header: this.$t('inventory.totalUsages') },
+        { field: 'stockActual', header: this.$t('inventory.currentStock') },
         {
           field: 'price',
-          header: 'Precio Unitario',
+          header: this.$t('inventory.unitPrice'),
           dataType: 'numeric',
           body: row => row.price && row.price > 0 ? `S/ ${row.price.toFixed(2)}` : '-'
         },
         {
           field: 'total',
-          header: 'Total',
+          header: this.$t('inventory.total'),
           dataType: 'numeric',
           body: row => row.total && row.total > 0 ? `S/ ${row.total.toFixed(2)}` : '-'
         }
       ]
     },
+
+// Para entriesColumns
     entriesColumns() {
       return [
-        { field: 'date', header: 'Fecha' },
-        { field: 'materialName', header: 'Material' },
-        { field: 'quantity', header: 'Cantidad' },
+        { field: 'date', header: this.$t('inventory.date') },
+        { field: 'materialName', header: this.$t('inventory.material') },
+        { field: 'quantity', header: this.$t('inventory.quantity') },
         {
           field: 'unitCost',
-          header: 'Precio Unitario',
+          header: this.$t('inventory.unitPrice'),
           dataType: 'numeric',
           body: row => row.unitCost ? `S/ ${row.unitCost.toFixed(2)}` : '-'
         },
         {
           field: 'totalCost',
-          header: 'Total',
+          header: this.$t('inventory.total'),
           dataType: 'numeric',
           body: row => row.totalCost ? `S/ ${row.totalCost.toFixed(2)}` : '-'
         },
-        { field: 'provider', header: 'Proveedor' },
-        { field: 'comprobante', header: 'Tipo de Comprobante' },
-        { field: 'comprobanteNumber', header: 'N° Comprobante' },
-        { field: 'status', header: 'Estado' },
-        { field: 'observations', header: 'Observaciones' }
+        { field: 'provider', header: this.$t('inventory.provider') },
+        { field: 'comprobante', header: this.$t('inventory.documentType') },
+        { field: 'comprobanteNumber', header: this.$t('inventory.documentNumber') },
+        { field: 'status', header: this.$t('inventory.status') },
+        { field: 'observations', header: this.$t('inventory.observations') }
       ]
     },
+
+// Para usagesColumns
     usagesColumns() {
       return [
-        { field: 'date', header: 'Fecha' },
-        { field: 'materialName', header: 'Material' },
-        { field: 'quantity', header: 'Cantidad Usada' },
-        { field: 'area', header: 'Zona / Área' },
-        { field: 'worker', header: 'Obrero' },
-        { field: 'usageType', header: 'Tipo de Uso' },
-        { field: 'observations', header: 'Observaciones' }
+        { field: 'date', header: this.$t('inventory.date') },
+        { field: 'materialName', header: this.$t('inventory.material') },
+        { field: 'quantity', header: this.$t('inventory.usedQuantity') },
+        { field: 'area', header: this.$t('inventory.area') },
+        { field: 'worker', header: this.$t('inventory.worker') },
+        { field: 'usageType', header: this.$t('inventory.usageType') },
+        { field: 'observations', header: this.$t('inventory.observations') }
       ]
     },
     filteredEntries() {
@@ -361,25 +365,25 @@ export default {
             size="small"
         />
 
-        <h2 class="section-title">{{ viewTitle }}</h2>
+        <h2 class="section-title">{{ $t(`inventory.${activeView}`) }}</h2>
       </div>
 
       <div class="export-container">
         <AppButton
-            label="Exportar"
+            :label="$t('general.export')"
             icon="pi pi-download"
             variant="secondary"
             @click="toggleExportOptions"
         />
         <div v-if="exportOptions" class="export-menu">
           <div class="export-option" @click="exportData('csv')">
-            <i class="pi pi-file"></i> Exportar a CSV
+            <i class="pi pi-file"></i> {{ $t('general.exportToCSV') }}
           </div>
           <div class="export-option" @click="exportData('excel')">
-            <i class="pi pi-file-excel"></i> Exportar a Excel
+            <i class="pi pi-file-excel"></i> {{ $t('general.exportToExcel') }}
           </div>
           <div class="export-option" @click="exportData('pdf')">
-            <i class="pi pi-file-pdf"></i> Exportar a PDF
+            <i class="pi pi-file-pdf"></i> {{ $t('general.exportToPDF') }}
           </div>
         </div>
       </div>
@@ -401,13 +405,13 @@ export default {
         <div class="flex justify-between items-center">
           <div class="action-buttons">
             <AppButton
-                label="Ver Ingresos"
+                :label="$t('inventory.viewEntries')"
                 icon="pi pi-arrow-down"
                 variant="primary"
                 @click="navigateToEntries(selectedMaterial)"
             />
             <AppButton
-                label="Ver Usos"
+                :label="$t('inventory.viewUsages')"
                 icon="pi pi-arrow-up"
                 variant="primary"
                 @click="navigateToUsages(selectedMaterial)"
@@ -417,7 +421,7 @@ export default {
 
           <div class="control-buttons">
             <AppButton
-                label="Cerrar"
+                :label="$t('general.close')"
                 variant="secondary"
                 @click="cancelView"
             />
@@ -446,19 +450,19 @@ export default {
       <div v-if="selectedMaterial" class="material-info-banner">
         <div class="material-info-content">
           <div class="material-info-item">
-            <span class="label">Material:</span>
+            <span class="label">{{ $t('inventory.material') }}:</span>
             <span class="value">{{ selectedMaterial.name }}</span>
           </div>
           <div class="material-info-item">
-            <span class="label">Tipo:</span>
+            <span class="label">{{ $t('inventory.type') }}:</span>
             <span class="value">{{ selectedMaterial.type }}</span>
           </div>
           <div class="material-info-item">
-            <span class="label">Unidad:</span>
+            <span class="label">{{ $t('inventory.unit') }}:</span>
             <span class="value">{{ selectedMaterial.unit }}</span>
           </div>
           <div class="material-info-item">
-            <span class="label">Stock Actual:</span>
+            <span class="label">{{ $t('inventory.currentStock') }}:</span>
             <span class="value">{{ selectedMaterial.stockActual }}</span>
           </div>
         </div>
@@ -476,7 +480,7 @@ export default {
 
       <!-- Estado vacío -->
       <div v-if="filteredEntries.length === 0 && !loading.entries" class="empty-state">
-        <p>No hay ingresos registrados{{ selectedMaterial ? ' para este material' : '' }}.</p>
+        <p>{{ $t('inventory.noEntries', { material: selectedMaterial ? $t('inventory.forThisMaterial') : '' }) }}</p>
       </div>
     </div>
 
@@ -486,19 +490,19 @@ export default {
       <div v-if="selectedMaterial" class="material-info-banner">
         <div class="material-info-content">
           <div class="material-info-item">
-            <span class="label">Material:</span>
+            <span class="label">{{ $t('inventory.material') }}:</span>
             <span class="value">{{ selectedMaterial.name }}</span>
           </div>
           <div class="material-info-item">
-            <span class="label">Tipo:</span>
+            <span class="label">{{ $t('inventory.type') }}:</span>
             <span class="value">{{ selectedMaterial.type }}</span>
           </div>
           <div class="material-info-item">
-            <span class="label">Unidad:</span>
+            <span class="label">{{ $t('inventory.unit') }}:</span>
             <span class="value">{{ selectedMaterial.unit }}</span>
           </div>
           <div class="material-info-item">
-            <span class="label">Stock Actual:</span>
+            <span class="label">{{ $t('inventory.currentStock') }}:</span>
             <span class="value">{{ selectedMaterial.stockActual }}</span>
           </div>
         </div>
@@ -516,7 +520,7 @@ export default {
 
       <!-- Estado vacío -->
       <div v-if="filteredUsages.length === 0 && !loading.usages" class="empty-state">
-        <p>No hay usos registrados{{ selectedMaterial ? ' para este material' : '' }}.</p>
+        <p>{{ $t('inventory.noUsages', { material: selectedMaterial ? $t('inventory.forThisMaterial') : '' }) }}</p>
       </div>
     </div>
 

@@ -1,4 +1,3 @@
-import ManagerAppView from '../components/ManagerAppView.vue'
 import ManagerLayout from '../layouts/ManagerLayout.vue'
 import ProjectLayoutManager from '../layouts/ProjectLayoutManager.vue'
 
@@ -14,7 +13,7 @@ import StatsManagerComponentManager from '../../stats/components/stats-manager.c
 import ReportsManagerComponent from '../../reports/components/reports-manager.component.vue'
 import ConfigurationManagerComponent from '../../configuration/components/manager-configuration.component.vue'
 import ManagerProfileConfigurationComponent from '../../configuration/components/manager-profile-configuration.component.vue'
-
+import PageNotFound from "../../../views/PageNotFound.vue";
 
 export default [
     // Rutas que usan ManagerLayout
@@ -111,6 +110,11 @@ export default [
                 path: 'configuracion',
                 component: ConfigurationManagerProject,
                 props: true
+            },
+            {
+                path: '/:pathMatch(.*)*',
+                name: 'NotFound',
+                component: PageNotFound
             }
         ]
     }

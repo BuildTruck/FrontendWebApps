@@ -21,17 +21,17 @@ export default {
       displayName: '',
       // Menú principal según la imagen proporcionada, pero sin proyectos
       menuItems: [
-        { id: 'personal', label: 'Personal', icon: 'pi pi-users', route: `/supervisor/${this.projectId}/personal`, active: true },
-        { id: 'inventario', label: 'Inventario', icon: 'pi pi-inbox', route: `/supervisor/${this.projectId}/inventario`, active: false },
-        { id: 'maquinaria', label: 'Maquinaria', icon: 'pi pi-cog', route: `/supervisor/${this.projectId}/maquinaria`, active: false },
-        { id: 'incidentes', label: 'Incidentes', icon: 'pi pi-exclamation-triangle', route: `/supervisor/${this.projectId}/incidentes`, active: false },
-        { id: 'documentacion', label: 'Documentación', icon: 'pi pi-file', route: `/supervisor/${this.projectId}/documentacion`, active: false },
+        { id: 'personal', label: 'project.tabs.personal', icon: 'pi pi-users', route: `/supervisor/${this.projectId}/personal`, active: true },
+        { id: 'inventario', label: 'project.tabs.inventario', icon: 'pi pi-inbox', route: `/supervisor/${this.projectId}/inventario`, active: false },
+        { id: 'maquinaria', label: 'project.tabs.maquinaria', icon: 'pi pi-cog', route: `/supervisor/${this.projectId}/maquinaria`, active: false },
+        { id: 'incidentes', label: 'project.tabs.incidentes', icon: 'pi pi-exclamation-triangle', route: `/supervisor/${this.projectId}/incidentes`, active: false },
+        { id: 'documentacion', label: 'project.tabs.documentacion', icon: 'pi pi-file', route: `/supervisor/${this.projectId}/documentacion`, active: false },
       ],
-      // Opciones de perfil según la imagen proporcionada
+// Opciones de perfil según la imagen proporcionada
       profileItems: [
-        { id: 'salir', label: 'Salir', icon: 'pi pi-sign-out', route: '/logout', active: false },
-        { id: 'configuraciones', label: 'Configuraciones', icon: 'pi pi-cog', route: `/supervisor/${this.projectId}/configuraciones`, active: false },
-        { id: 'perfil', label: 'Mi perfil', icon: 'pi pi-user', route: `/supervisor/${this.projectId}/perfil`, active: false }
+        { id: 'salir', label: 'navigation.salir', icon: 'pi pi-sign-out', route: '/logout', active: false },
+        { id: 'configuraciones', label: 'project.tabs.configuracion', icon: 'pi pi-cog', route: `/supervisor/${this.projectId}/configuraciones`, active: false },
+        { id: 'perfil', label: 'navigation.perfil', icon: 'pi pi-user', route: `/supervisor/${this.projectId}/perfil`, active: false }
       ]
     }
   },
@@ -99,7 +99,7 @@ export default {
               @click="navigateTo(item.route)"
           >
             <i :class="item.icon"></i>
-            <span>{{ item.label }}</span>
+            <span>{{ $t(item.label) }}</span>
           </li>
         </ul>
       </nav>
@@ -117,7 +117,7 @@ export default {
               @click="navigateTo(item.route)"
           >
             <i :class="item.icon"></i>
-            <span>{{ item.label }}</span>
+            <span>{{ $t(item.label) }}</span>
           </li>
         </ul>
       </nav>
@@ -127,7 +127,7 @@ export default {
     <div class="main-wrapper">
       <!-- Header bar fijo -->
       <header class="header-bar">
-        <h1 class="page-title">{{ pageTitle }}</h1>
+        <h1 class="page-title">{{ $t(pageTitle) }}</h1>
         <language-switcher/>
       </header>
 

@@ -2,6 +2,7 @@
 import AppInput from '../../core/components/AppInput.vue'
 import AppButton from '../../core/components/AppButton.vue'
 import { AuthService } from '../services/auth-api.service'
+import LanguageSwitcher from "../../core/components/language-switcher.component.vue"
 
 // Importa los modelos
 import { Manager } from '../../context/manager/models/manager.entity.js'
@@ -11,7 +12,8 @@ export default {
   name: 'LoginComponent',
   components: {
     AppInput,
-    AppButton
+    AppButton,
+    LanguageSwitcher,
   },
   data() {
     return {
@@ -157,20 +159,23 @@ export default {
       <div class="form-section">
         <div class="logo-container">
           <img src="../../assets/buildtruck-logo.svg" alt="Logo" class="logo" />
+          <div class="language-switcher-container">
+            <language-switcher />
+          </div>
         </div>
 
         <div class="form-content">
-          <h1>Bienvenido de nuevo</h1>
-          <p>Introduce tus datos para acceder a tu cuenta</p>
+          <h1>{{ $t('auth.welcomeBack') }}</h1>
+          <p>{{ $t('auth.enterCredentials') }}</p>
 
           <!-- Cambiado de form a div para evitar comportamientos automáticos -->
           <div class="login-form">
             <div class="form-group">
-              <label>Email</label>
+              <label>{{ $t('auth.email') }}</label>
               <AppInput
                   v-model="email"
                   type="email"
-                  placeholder="Ingresa tu email"
+                  :placeholder="$t('auth.emailPlaceholder')"
                   fullWidth
               />
               <div v-if="emailError" class="error-message">{{ emailError }}</div>
@@ -178,13 +183,13 @@ export default {
 
             <div class="form-group">
               <div class="password-header">
-                <label>Contraseña</label>
-                <a href="#" class="forgot-link">¿Olvidaste tu contraseña?</a>
+                <label>{{ $t('auth.password') }}</label>
+                <a href="#" class="forgot-link">{{ $t('auth.forgotPassword') }}</a>
               </div>
               <AppInput
                   v-model="password"
                   type="password"
-                  placeholder="Ingresa tu contraseña"
+                  :placeholder="$t('auth.passwordPlaceholder')"
                   fullWidth
               />
               <div v-if="passwordError" class="error-message">{{ passwordError }}</div>
@@ -199,13 +204,13 @@ export default {
             <div class="remember-option">
               <label class="checkbox-container">
                 <input type="checkbox" v-model="rememberMe" />
-                <span class="checkbox-text">Recordar durante 30 días</span>
+                <span class="checkbox-text">{{ $t('auth.rememberMe') }}</span>
               </label>
             </div>
 
             <!-- Botón normal en lugar de type submit -->
             <AppButton
-                label="Iniciar sesión"
+                :label="$t('auth.signIn')"
                 variant="primary"
                 fullWidth
                 @click="handleLogin"
@@ -256,6 +261,15 @@ export default {
   left: 0;
   padding: 20px 0 0 20px;
   z-index: 100;
+  display: flex;
+  justify-content: space-between;
+  width: 55%;
+}
+
+.language-switcher-container {
+  position: absolute;
+  top: 20px;
+  right: 20px;
 }
 
 .logo {
@@ -277,14 +291,14 @@ h1 {
   font-weight: 600;
   margin-bottom: 8px;
   color: #2A1905;
-  text-align: left; /* asegúrate de esto */
+  text-align: left;
 }
 
 p {
-  text-align: left; /* añade esto */
+  text-align: left;
   margin-bottom: 32px;
   color: #000;
-  font-size: 16px; /* antes 16px */
+  font-size: 16px;
 }
 
 .form-group {
@@ -303,7 +317,7 @@ p {
 input[type="email"],
 input[type="password"],
 .login-button {
-  width: 100%;       /* Ocupa todo el ancho disponible */
+  width: 100%;
 }
 
 /* Estilos para los inputs */
@@ -414,6 +428,10 @@ input[type="password"],
   .form-section {
     width: 60%;
   }
+
+  .logo-container {
+    width: 60%;
+  }
 }
 
 @media (max-width: 768px) {
@@ -437,7 +455,14 @@ input[type="password"],
     position: relative;
     padding: 20px 0;
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .language-switcher-container {
+    position: relative;
+    top: 0;
+    right: 10px;
   }
 
   .image-section {

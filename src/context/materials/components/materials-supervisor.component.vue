@@ -34,27 +34,27 @@ export default {
   computed: {
     columns() {
       const base = [
-        { field: 'name', header: 'Nombre Material' },
-        { field: 'type', header: 'Tipo' },
-        { field: 'unit', header: 'Unidad' },
-        { field: 'minimumStock', header: 'Stock Mínimo' },
-        { field: 'provider', header: 'Proveedor' }
+        { field: 'name', header: this.$t('inventory.name') },
+        { field: 'type', header: this.$t('inventory.type') },
+        { field: 'unit', header: this.$t('inventory.unit') },
+        { field: 'minimumStock', header: this.$t('inventory.minimumStock') },
+        { field: 'provider', header: this.$t('inventory.provider') }
       ]
 
       const extra = [
-        { field: 'totalEntries', header: 'Ingresos' },
-        { field: 'totalUsages', header: 'Usos' },
-        { field: 'stockActual', header: 'Stock Actual' },
+        { field: 'totalEntries', header: this.$t('inventory.totalEntries') },
+        { field: 'totalUsages', header: this.$t('inventory.totalUsages') },
+        { field: 'stockActual', header: this.$t('inventory.currentStock') },
         {
           field: 'price',
-          header: 'Precio Unitario',
+          header: this.$t('inventory.unitPrice'),
           dataType: 'numeric',
           body: row =>
               row.price && row.price > 0 ? `S/ ${row.price.toFixed(2)}` : '-'
         },
         {
           field: 'total',
-          header: 'Total',
+          header: this.$t('inventory.total'),
           dataType: 'numeric',
           body: row =>
               row.total && row.total > 0 ? `S/ ${row.total.toFixed(2)}` : '-'
@@ -150,19 +150,19 @@ export default {
     <!-- TABS -->
     <div class="tabs-wrapper">
       <AppButton
-          label="Inventario"
+          :label="$t('inventory.inventory')"
           :variant="'text'"
           :class="{ 'tab-active': selectedTab === 'inventory' }"
           @click="selectedTab = 'inventory'"
       />
       <AppButton
-          label="Ingresos"
+          :label="$t('inventory.entries')"
           :variant="'text'"
           :class="{ 'tab-active': selectedTab === 'entries' }"
           @click="selectedTab = 'entries'"
       />
       <AppButton
-          label="Usos"
+          :label="$t('inventory.usages')"
           :variant="'text'"
           :class="{ 'tab-active': selectedTab === 'usage' }"
           @click="selectedTab = 'usage'"
@@ -185,8 +185,8 @@ export default {
 
       <!-- Botones al ver detalles -->
       <div v-if="showForm && isReadonly" class="flex justify-end gap-2 mt-4">
-        <AppButton label="Editar" variant="primary" @click="handleEdit" />
-        <AppButton label="Cerrar" variant="secondary" @click="cancelView" />
+        <AppButton :label="$t('general.edit')" variant="primary" @click="handleEdit" />
+        <AppButton :label="$t('general.close')" variant="secondary" @click="cancelView" />
       </div>
 
       <!-- Tabla -->
@@ -223,9 +223,8 @@ export default {
         :duration="2000"
     />
   </div>
-
-
 </template>
+
 <style scoped>
 .tabs-wrapper {
   display: flex;

@@ -50,21 +50,19 @@ export default {
     <div v-if="!selectedIncident">
       <div class="header">
         <div class="actionss">
-          <button class="busq">Buscar</button>
-
+          <button class="busq">{{ $t('incidents.search') }}</button>
         </div>
         <div class="actions">
-          <button class="filter">Filtro</button>
-
+          <button class="filter">{{ $t('incidents.filter') }}</button>
         </div>
       </div>
       <table class="incident-table">
         <thead>
         <tr>
-          <th>Fecha</th>
-          <th>Tipo de Incidente</th>
-          <th>Gravedad</th>
-          <th>Estado</th>
+          <th>{{ $t('incidents.date') }}</th>
+          <th>{{ $t('incidents.type') }}</th>
+          <th>{{ $t('incidents.severity') }}</th>
+          <th>{{ $t('incidents.status') }}</th>
         </tr>
         </thead>
         <tbody>
@@ -88,40 +86,39 @@ export default {
 
     <!-- Vista detalle -->
     <div v-else class="detail-view">
-      <button class="back-btn" @click="selectedIncident = null">⬅ Volver</button>
-
+      <button class="back-btn" @click="selectedIncident = null">⬅ {{ $t('general.back') }}</button>
 
       <div class="form-grid">
         <AppInput
-            label="Tipo de incidente"
+            :label="$t('incidents.incidentType')"
             v-model="selectedIncident.tipo"
             :disabled="true"
         />
         <AppInput
-            label="Gravedad"
+            :label="$t('incidents.severity')"
             v-model="selectedIncident.gravedad"
             :disabled="true"
         />
         <AppInput
-            label="Fecha del incidente"
+            :label="$t('incidents.incidentDate')"
             type="date"
             v-model="selectedIncident.fecha"
             :disabled="true"
         />
         <AppInput
-            label="Estado"
+            :label="$t('incidents.status')"
             v-model="selectedIncident.estado"
             :disabled="true"
         />
         <AppInput
-            label="Descripción detallada"
+            :label="$t('incidents.detailedDescription')"
             type="textarea"
             v-model="selectedIncident.descripcion"
             :disabled="true"
             class="full-width"
         />
         <AppInput
-            label="Medidas tomadas"
+            :label="$t('incidents.measuresTaken')"
             type="textarea"
             v-model="selectedIncident.medidas"
             :disabled="true"

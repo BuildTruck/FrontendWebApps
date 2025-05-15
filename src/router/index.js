@@ -27,44 +27,17 @@ const routes = [
         component: () => import('../auth/views/login.component.vue')
     },
 
-    // Rutas privadas bajo MainLayout (solo para manager)
-    {
-        path: '/layout',
-        component: ProjectLayoutManager,
-        children: [
-            {
-                path: 'estadisticas',
-                name: 'Estadisticas',
-                component: () => import('../context/stats/components/stats-manager.component.vue')
-            },
-            {
-                path: 'reportes',
-                name: 'Reportes',
-                component: () => import('../context/reports/components/reports-manager.component.vue')
-            },
-            {
-                path: 'configuraciones',
-                name: 'Configuraciones',
-                component: () => import('../context/configuration/components/manager-configuration.component.vue')
-            },
-            {
-                path: 'perfil',
-                name: 'Perfil',
-                component: () => import('../context/configuration/components/manager-profile-configuration.component.vue')
-            },
-            {
-                path: ':pathMatch(.*)*',
-                name: 'NotFound',
-                component: () => import('../views/PageNotFound.vue')
-            }
-        ]
-    },
-
     // Rutas propias de manager (proyectos, etc.)
     ...ManagerRoutes,
 
     // Rutas propias de supervisor
-    ...SupervisorRoutes
+    ...SupervisorRoutes,
+
+    {
+        path: '/:pathMatch(.*)*',
+        name: 'NotFound',
+        component: () => import('../views/PageNotFound.vue')
+    }
 ]
 
 const router = createRouter({

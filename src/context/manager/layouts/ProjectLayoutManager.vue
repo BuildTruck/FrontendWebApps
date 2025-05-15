@@ -103,7 +103,7 @@ export default {
     <div class="main-content">
       <!-- Header -->
       <header class="project-header">
-        <h1 class="project-title">Obra {{ projectName }}</h1>
+        <h1 class="project-title">{{ $t('project.title') }} {{ projectName }}</h1>
         <language-switcher/>
       </header>
 
@@ -115,7 +115,7 @@ export default {
             :class="['tab', { active: activeTab === tab.id }]"
             @click="setActiveTab(tab.id)"
         >
-          {{ tab.label }}
+          {{ $t(`project.tabs.${tab.id}`) }}
           <span
               v-if="tab.count !== null"
               :class="['tab-count', tab.count > 0 ? 'highlight' : 'neutral']"

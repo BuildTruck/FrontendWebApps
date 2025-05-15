@@ -80,13 +80,13 @@ export default {
 <template>
   <div class="profile-wrapper">
     <div class="profile-header">
-      <img :src="photoPreviewUrl || user.photo" alt="Foto de perfil" class="profile-image" />
+      <img :src="photoPreviewUrl || user.photo" :alt="$t('profile.profilePhoto')" class="profile-image" />
       <h2>{{ user.name }}</h2>
       <p>{{ user.email }}</p>
 
       <AppButton
           v-if="!editMode"
-          label="Editar perfil"
+          :label="$t('profile.editProfile')"
           variant="text"
           @click="editMode = true"
       />
@@ -95,33 +95,33 @@ export default {
     <div v-if="editMode" class="profile-form">
       <AppInput
           v-model="form.name"
-          label="Nombre"
-          placeholder="Edita tu nombre"
+          :label="$t('profile.name')"
+          :placeholder="$t('profile.editName')"
           fullWidth
       />
       <AppInput
           v-model="form.email"
-          label="Email"
-          placeholder="Edita tu correo"
+          :label="$t('profile.email')"
+          :placeholder="$t('profile.editEmail')"
           type="email"
           fullWidth
       />
       <AppInput
           v-model="form.photoFile"
-          label="Subir nueva foto"
+          :label="$t('profile.uploadNewPhoto')"
           type="photo"
           fullWidth
           @update:modelValue="updatePreview"
       />
       <div class="button-actions">
         <AppButton
-            label="Guardar"
+            :label="$t('general.save')"
             variant="primary"
             @click="saveProfile"
             :loading="loading"
         />
         <AppButton
-            label="Cancelar"
+            :label="$t('general.cancel')"
             variant="secondary"
             @click="cancelEdit"
         />

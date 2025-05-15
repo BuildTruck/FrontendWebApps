@@ -1,20 +1,20 @@
 <template>
   <div class="estadisticas-container">
-    <h1>Estadísticas Generales</h1>
+    <h1>{{ $t('statistics.generalStatistics') }}</h1>
 
     <section class="grafico">
-      <h2>Resumen de asistencia por obra</h2>
+      <h2>{{ $t('statistics.attendanceSummaryByProject') }}</h2>
       <pv-chart type="bar" :data="asistenciaData" :options="barOptions" />
     </section>
 
     <div class="graficos-dobles">
       <section class="grafico">
-        <h2>Obras con más personal</h2>
+        <h2>{{ $t('statistics.projectsWithMostPersonnel') }}</h2>
         <pv-chart type="doughnut" :data="personalData" :options="doughnutOptions" />
       </section>
 
       <section class="grafico">
-        <h2>Tasa de ausencia laboral</h2>
+        <h2>{{ $t('statistics.absenteeismRate') }}</h2>
         <pv-chart type="doughnut" :data="ausenciaData" :options="doughnutOptions" />
       </section>
     </div>

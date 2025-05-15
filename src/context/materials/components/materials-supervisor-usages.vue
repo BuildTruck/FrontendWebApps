@@ -19,13 +19,13 @@ export default {
       loading: false,
       selection: [],
       columns: [
-        { field: 'date', header: 'Fecha' },
-        { field: 'materialName', header: 'Material' },
-        { field: 'quantity', header: 'Cantidad usada' },
-        { field: 'area', header: 'Zona / Área' },
-        { field: 'worker', header: 'Obrero' },
-        { field: 'usageType', header: 'Tipo de Uso' },
-        { field: 'observations', header: 'Observaciones' }
+        { field: 'date', header: this.$t('inventory.date') },
+        { field: 'materialName', header: this.$t('inventory.material') },
+        { field: 'quantity', header: this.$t('inventory.usedQuantity') },
+        { field: 'area', header: this.$t('inventory.area') },
+        { field: 'worker', header: this.$t('inventory.worker') },
+        { field: 'usageType', header: this.$t('inventory.usageType') },
+        { field: 'observations', header: this.$t('inventory.observations') }
       ]
     }
   },

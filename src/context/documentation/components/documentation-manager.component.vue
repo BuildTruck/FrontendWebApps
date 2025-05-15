@@ -73,7 +73,7 @@ export default {
 
       <div class="export-container">
         <app-button
-            label="Exportar"
+            :label="$t('documentation.export')"
             variant="primary"
             @click="toggleExportOptions"
             icon="pi pi-download"
@@ -82,7 +82,7 @@ export default {
         <!-- Opciones de exportación -->
         <div v-if="showExportOptions" class="export-options">
           <div class="export-format">
-            <label>Formato:</label>
+            <label>{{ $t('documentation.format') }}:</label>
             <div class="format-options">
               <label class="format-option">
                 <input type="radio" v-model="exportFormat" value="pdf" />
@@ -90,20 +90,20 @@ export default {
               </label>
               <label class="format-option">
                 <input type="radio" v-model="exportFormat" value="zip" />
-                <span>ZIP (Imágenes)</span>
+                <span>{{ $t('documentation.zipImages') }}</span>
               </label>
             </div>
           </div>
 
           <div class="export-actions">
             <app-button
-                label="Cancelar"
+                :label="$t('general.cancel')"
                 variant="secondary"
                 size="small"
                 @click="toggleExportOptions"
             />
             <app-button
-                label="Exportar"
+                :label="$t('documentation.export')"
                 variant="primary"
                 size="small"
                 @click="exportDocumentation"
@@ -116,7 +116,7 @@ export default {
     <!-- Pantalla de carga -->
     <div v-if="loading" class="loading-container">
       <i class="pi pi-spin pi-spinner loading-icon"></i>
-      <p>Cargando documentos...</p>
+      <p>{{ $t('general.loading') }}</p>
     </div>
 
     <!-- Galería de documentos usando AppCard -->
@@ -138,9 +138,9 @@ export default {
     <div v-else class="empty-container">
       <div class="empty-content">
         <i class="pi pi-images empty-icon"></i>
-        <h3>No hay documentación disponible</h3>
-        <p>No hay documentos registrados para este proyecto.</p>
-        <p class="empty-note">La documentación es agregada por los supervisores del proyecto.</p>
+        <h3>{{ $t('documentation.noDocumentationAvailable') }}</h3>
+        <p>{{ $t('documentation.noDocuments') }}</p>
+        <p class="empty-note">{{ $t('documentation.addedBySupervisors') }}</p>
       </div>
     </div>
   </div>

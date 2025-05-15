@@ -19,22 +19,22 @@ export default {
       isEditingEntry: false,
       selection: [],
       columns: [
-        { field: 'date', header: 'Fecha' },
-        { field: 'materialName', header: 'Material' },
-        { field: 'quantity', header: 'Cantidad' },
+        { field: 'date', header: this.$t('inventory.date') },
+        { field: 'materialName', header: this.$t('inventory.material') },
+        { field: 'quantity', header: this.$t('inventory.quantity') },
         {
           field: 'unitCost',
-          header: 'Precio Unitario',
+          header: this.$t('inventory.unitPrice'),
           dataType: 'numeric',
           body: row => row.unitCost ? `S/ ${row.unitCost.toFixed(2)}` : '-'
         },
-        { field: 'provider', header: 'Proveedor' },
-        { field: 'comprobante', header: 'Tipo de Comprobante' },
-        { field: 'comprobanteNumber', header: 'N° Comprobante' },
-        { field: 'status', header: 'Estado' },
-        { field: 'ruc', header: 'RUC' },
-        { field: 'payment', header: 'Forma de Pago' },
-        { field: 'observations', header: 'Observaciones' }
+        { field: 'provider', header: this.$t('inventory.provider') },
+        { field: 'comprobante', header: this.$t('inventory.documentType') },
+        { field: 'comprobanteNumber', header: this.$t('inventory.documentNumber') },
+        { field: 'status', header: this.$t('inventory.status') },
+        { field: 'ruc', header: this.$t('inventory.ruc') },
+        { field: 'payment', header: this.$t('inventory.paymentMethod') },
+        { field: 'observations', header: this.$t('inventory.observations') }
       ]
     }
   },

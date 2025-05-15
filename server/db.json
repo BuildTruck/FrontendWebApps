@@ -317,6 +317,25 @@
       "comprobante": "",
       "comprobanteNumber": "",
       "description": ""
+    },
+    {
+      "id": "4bad",
+      "projectId": "p1747029583731",
+      "name": "aaaaaaa",
+      "type": "MAT",
+      "unit": "aaaaaaaaaaaaaa",
+      "stock": 0,
+      "minimumStock": 5,
+      "provider": "aaaaaaaaaaaaa",
+      "price": 0,
+      "total": 0,
+      "ruc": "",
+      "date": "",
+      "status": "Pendiente",
+      "payment": "",
+      "comprobante": "",
+      "comprobanteNumber": "",
+      "description": ""
     }
   ],
   "material-entries": [

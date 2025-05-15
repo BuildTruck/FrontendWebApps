@@ -9,7 +9,7 @@ import DocumentationSupervisorComponent from '../../documentation/components/doc
 import ConfigurationSupervisorComponent from '../../configuration/components/supervisor-configuration.component.vue'
 import ProfileSupervisorComponent from '../../configuration/components/supervisor-profile-configuration.component.vue'
 import MaterialsSupervisorComponent from "../../materials/components/materials-supervisor.component.vue";
-
+import PageNotFound from "../../../views/PageNotFound.vue";
 export default [
     // Ruta principal para supervisores con su proyecto asignado
     {
@@ -58,6 +58,11 @@ export default [
                 path: 'perfil',
                 component: ProfileSupervisorComponent,
                 props: true
+            },
+            {
+                path: '/:pathMatch(.*)*',
+                name: 'NotFound',
+                component: PageNotFound
             }
         ]
     }

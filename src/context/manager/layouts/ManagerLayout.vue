@@ -16,14 +16,14 @@ export default {
       // Añadimos displayName para mostrar en lugar de la prop
       displayName: '',
       menuItems: [
-        { id: 'proyectos', label: 'Proyectos', icon: 'pi pi-home', route: '/proyectos', active: true },
-        { id: 'estadisticas', label: 'Estadísticas generales', icon: 'pi pi-chart-bar', route: '/estadisticas', active: false },
-        { id: 'reportes', label: 'Reportes globales', icon: 'pi pi-file', route: '/reportes', active: false },
-        { id: 'configuracion', label: 'Configuraciones', icon: 'pi pi-cog', route: '/configuracion', active: false }
+        { id: 'proyectos', label: 'navigation.proyectos', icon: 'pi pi-home', route: '/proyectos', active: true },
+        { id: 'estadisticas', label: 'navigation.estadisticas', icon: 'pi pi-chart-bar', route: '/estadisticas', active: false },
+        { id: 'reportes', label: 'navigation.reportes', icon: 'pi pi-file', route: '/reportes', active: false },
+        { id: 'configuracion', label: 'navigation.configuracion', icon: 'pi pi-cog', route: '/configuracion', active: false }
       ],
       profileItems: [
-        { id: 'perfil', label: 'Mi perfil', icon: 'pi pi-user', route: '/perfil', active: false },
-        { id: 'salir', label: 'Salir', icon: 'pi pi-sign-out', route: '/logout', active: false }
+        { id: 'perfil', label: 'navigation.perfil', icon: 'pi pi-user', route: '/perfil', active: false },
+        { id: 'salir', label: 'navigation.salir', icon: 'pi pi-sign-out', route: '/logout', active: false }
       ]
     }
   },
@@ -86,7 +86,7 @@ export default {
               @click="navigateTo(item.route)"
           >
             <i :class="item.icon"></i>
-            <span>{{ item.label }}</span>
+            <span>{{ $t(item.label) }}</span>
           </li>
         </ul>
       </nav>
@@ -104,7 +104,7 @@ export default {
               @click="navigateTo(item.route)"
           >
             <i :class="item.icon"></i>
-            <span>{{ item.label }}</span>
+            <span>{{ $t(item.label) }}</span>
           </li>
         </ul>
       </nav>
@@ -114,7 +114,7 @@ export default {
     <div class="main-wrapper">
       <!-- Header bar fijo -->
       <header class="header-bar">
-        <h1 class="page-title">{{ pageTitle }}</h1>
+        <h1 class="page-title">{{ $t(pageTitle) }}</h1>
 
         <language-switcher/>
 

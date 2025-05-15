@@ -77,48 +77,48 @@ export default {
     <AppInput
         v-model="settings.language"
         type="select"
-        label="Idioma"
+        :label="$t('settings.language')"
         :options="[
-        { label: 'Español', value: 'es' },
-        { label: 'Inglés', value: 'en' }
+        { label: $t('settings.languages.spanish'), value: 'es' },
+        { label: $t('settings.languages.english'), value: 'en' }
       ]"
-        placeholder="Selecciona un idioma"
+        :placeholder="$t('settings.selectLanguage')"
         fullWidth
     />
 
     <AppInput
         v-model="settings.theme"
         type="select"
-        label="Modo de vista"
+        :label="$t('settings.theme')"
         :options="[
-        { label: 'Claro', value: 'light' },
-        { label: 'Oscuro', value: 'dark' }
+        { label: $t('settings.themes.light'), value: 'light' },
+        { label: $t('settings.themes.dark'), value: 'dark' }
       ]"
-        placeholder="Selecciona un tema"
+        :placeholder="$t('settings.selectTheme')"
         fullWidth
     />
 
     <AppInput
         v-model="settings.plan"
         type="select"
-        label="Plan"
+        :label="$t('settings.plan')"
         :options="[
-        { label: 'Básico', value: 'basic' },
-        { label: 'Empresarial', value: 'empresarial' }
+        { label: $t('settings.plans.basic'), value: 'basic' },
+        { label: $t('settings.plans.business'), value: 'empresarial' }
       ]"
-        placeholder="Selecciona un plan"
+        :placeholder="$t('settings.selectPlan')"
         fullWidth
     />
 
     <div class="actions">
       <AppButton
-          label="Guardar"
+          :label="$t('general.save')"
           variant="primary"
           :loading="loading"
           @click="saveConfig"
       />
       <AppButton
-          label="Cancelar"
+          :label="$t('general.cancel')"
           variant="primary"
           @click="cancelChanges"
       />
@@ -128,7 +128,7 @@ export default {
         :message="notification.message"
         :type="notification.type"
         :auto-close="notification.autoClose"
-        button-text="Entendido"
+        :button-text="$t('general.understood')"
     />
   </div>
 </template>

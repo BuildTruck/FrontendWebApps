@@ -95,42 +95,42 @@ export default {
   <div class="config-container">
     <div class="form-box">
       <div class="form-row">
-        <AppInput v-model="form.name" :disabled="!isEditing" label="Nombre del Proyecto" />
+        <AppInput v-model="form.name" :disabled="!isEditing" :label="$t('projects.projectName')" />
         <AppInput
             v-model="form.state"
             type="select"
             :disabled="!isEditing"
-            label="Estado del proyecto"
+            :label="$t('projects.projectStatus')"
             :options="[
-            { value: 'En estudio', label: 'En estudio' },
-            { value: 'Planificado', label: 'Planificado' },
-            { value: 'En ejecución', label: 'En ejecución' },
-            { value: 'Finalizado', label: 'Finalizado' }
+            { value: 'En estudio', label: $t('projects.status.inStudy') },
+            { value: 'Planificado', label: $t('projects.status.planned') },
+            { value: 'En ejecución', label: $t('projects.status.inProgress') },
+            { value: 'Finalizado', label: $t('projects.status.completed') }
           ]"
         />
       </div>
 
       <div class="form-row">
-        <AppInput v-model="form.location" :disabled="!isEditing" label="Ubicación" />
-        <AppInput v-model="form.description" :disabled="!isEditing" label="Descripción breve" type="textarea" />
+        <AppInput v-model="form.location" :disabled="!isEditing" :label="$t('projects.location')" />
+        <AppInput v-model="form.description" :disabled="!isEditing" :label="$t('projects.description')" type="textarea" />
       </div>
 
       <div class="form-row">
-        <AppInput v-model="form.startDate" :disabled="!isEditing" label="Fecha de inicio estimada" type="date" />
+        <AppInput v-model="form.startDate" :disabled="!isEditing" :label="$t('projects.estimatedStartDate')" type="date" />
         <AppInput
             v-model="form.supervisorId"
             :disabled="!isEditing"
-            label="Supervisor asignado"
+            :label="$t('projects.assignedSupervisor')"
             type="select"
             :options="supervisors"
         />
       </div>
 
       <div class="actions">
-        <AppButton v-if="!isEditing" label="Configurar" variant="primary" @click="startEdit" />
+        <AppButton v-if="!isEditing" :label="$t('projects.configure')" variant="primary" @click="startEdit" />
         <template v-else>
-          <AppButton label="Guardar" variant="primary" @click="saveChanges" />
-          <AppButton label="Cancelar" variant="secondary" @click="cancelChanges" />
+          <AppButton :label="$t('general.save')" variant="primary" @click="saveChanges" />
+          <AppButton :label="$t('general.cancel')" variant="secondary" @click="cancelChanges" />
         </template>
       </div>
     </div>
@@ -140,6 +140,7 @@ export default {
         :message="notification.message"
         :type="notification.type"
         :auto-close="notification.autoClose"
+        :button-text="$t('general.confirm')"
     />
   </div>
 </template>

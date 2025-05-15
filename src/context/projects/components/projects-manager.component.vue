@@ -276,12 +276,12 @@ export default {
 <template>
   <div class="projects-container">
     <div class="welcome-header">
-      <h2 class="welcome-message">Bienvenido, {{ managerName }}</h2>
+      <h2 class="welcome-message">{{ $t('projects.welcome') }}, {{ managerName }}</h2>
     </div>
 
     <div v-if="loading" class="loading-container">
       <i class="pi pi-spin pi-spinner loading-icon"></i>
-      <span>Cargando proyectos...</span>
+      <span>{{ $t('general.loading') }}</span>
     </div>
 
     <div v-else class="projects-wrapper">
@@ -290,7 +290,7 @@ export default {
         <div class="add-project-button-container">
           <!-- Botón de añadir proyecto -->
           <AppButton
-              label="Añadir nuevo Proyecto"
+              :label="$t('projects.addNewProject')"
               variant="primary"
               size="large"
               @click="openModal"
@@ -318,8 +318,8 @@ export default {
             <div class="form-group">
               <AppInput
                   v-model="newProject.name"
-                  label="Nombre del Proyecto"
-                  placeholder="Ingrese el nombre del Proyecto"
+                  :label="$t('projects.projectName')"
+                  :placeholder="$t('projects.enterProjectName')"
                   :error="errors.name"
                   required
                   fullWidth
@@ -329,13 +329,13 @@ export default {
             <div class="form-group">
               <AppInput
                   v-model="newProject.state"
-                  label="Estado del proyecto"
+                  :label="$t('projects.projectStatus')"
                   type="select"
                   :options="[
-                    { value: 'En estudio', label: 'En estudio' },
-                    { value: 'Planificado', label: 'Planificado' },
-                    { value: 'En ejecución', label: 'En ejecución' },
-                    { value: 'Finalizado', label: 'Finalizado' }
+                    { value: 'En estudio', label: $t('projects.status.inStudy') },
+                    { value: 'Planificado', label: $t('projects.status.planned') },
+                    { value: 'En ejecución', label: $t('projects.status.inProgress') },
+                    { value: 'Finalizado', label: $t('projects.status.completed') }
                   ]"
                   required
                   fullWidth
@@ -348,8 +348,8 @@ export default {
             <div class="form-group">
               <AppInput
                   v-model="newProject.location"
-                  label="Ubicación"
-                  placeholder="Dirección exacta o distrito/provincia"
+                  :label="$t('projects.location')"
+                  :placeholder="$t('projects.locationPlaceholder')"
                   :error="errors.location"
                   required
                   fullWidth
@@ -359,8 +359,8 @@ export default {
             <div class="form-group">
               <AppInput
                   v-model="newProject.description"
-                  label="Descripción breve"
-                  placeholder="Ingrese la Descripción"
+                  :label="$t('projects.description')"
+                  :placeholder="$t('projects.enterDescription')"
                   type="textarea"
                   :error="errors.description"
                   required
@@ -374,8 +374,8 @@ export default {
             <div class="form-group">
               <AppInput
                   v-model="newProject.startDate"
-                  label="Fecha de inicio estimada"
-                  placeholder="Escoja la fecha"
+                  :label="$t('projects.estimatedStartDate')"
+                  :placeholder="$t('projects.selectDate')"
                   type="date"
                   :error="errors.startDate"
                   required
@@ -389,8 +389,8 @@ export default {
             <div class="form-group">
               <AppInput
                   v-model="newProject.supervisorEmail"
-                  label="Supervisor asignado"
-                  placeholder="Ingrese el correo del supervisor"
+                  :label="$t('projects.assignedSupervisor')"
+                  :placeholder="$t('projects.enterSupervisorEmail')"
                   type="email"
                   :error="errors.supervisorEmail"
                   required
@@ -405,7 +405,7 @@ export default {
               <AppInput
                   v-model="newProject.image"
                   type="photo"
-                  label="Imagen del proyecto"
+                  :label="$t('projects.projectImage')"
                   :error="errors.image"
                   required
                   fullWidth
@@ -416,12 +416,12 @@ export default {
           <!-- Botones de acción -->
           <div class="button-container">
             <AppButton
-                label="Cancelar"
+                :label="$t('general.cancel')"
                 variant="secondary"
                 @click="closeModal"
             />
             <AppButton
-                label="Crear"
+                :label="$t('projects.create')"
                 variant="primary"
                 @click="createProject"
             />
@@ -436,7 +436,7 @@ export default {
         :message="notification.message"
         :type="notification.type"
         :auto-close="notification.autoClose"
-        button-text="Entendido"
+        :button-text="$t('general.confirm')"
     />
   </div>
 </template>

@@ -116,7 +116,7 @@ export default {
           v-if="mode !== 'material'"
           v-model="localMaterial.id"
           :disabled="readonly"
-          label="Selecciona Material"
+          :label="$t('inventory.selectMaterial')"
           type="select"
           :options="materialsList.map(m => ({ label: m.name, value: m.id }))"
       />
@@ -126,19 +126,19 @@ export default {
           v-if="mode === 'material'"
           v-model="localMaterial.name"
           :disabled="readonly"
-          label="Nombre de Material"
-          placeholder="Ej: Acero, Plástico"
+          :label="$t('inventory.materialName')"
+          :placeholder="$t('inventory.materialNamePlaceholder')"
       />
 
       <AppInput
           v-if="mode === 'material'"
           v-model="localMaterial.type"
           :disabled="readonly"
-          label="Tipo de Material"
+          :label="$t('inventory.materialType')"
           type="select"
           :options="[
-          { label: 'Material', value: 'MAT' },
-          { label: 'Combustible', value: 'COMBUST.' }
+          { label: $t('inventory.material'), value: 'MAT' },
+          { label: $t('inventory.fuel'), value: 'COMBUST.' }
         ]"
       />
 
@@ -146,35 +146,23 @@ export default {
           v-if="mode === 'material'"
           v-model="localMaterial.unit"
           :disabled="readonly"
-          label="Unidad de medida"
-          placeholder="Ej: KG, MTR"
+          :label="$t('inventory.unit')"
+          :placeholder="$t('inventory.unitPlaceholder')"
       />
 
       <AppInput
           v-if="mode === 'material'"
           v-model="localMaterial.minimumStock"
           :disabled="readonly"
-          label="Stock Mínimo"
+          :label="$t('inventory.minimumStock')"
           type="number"
       />
-
-      <!-- Eliminar este campo, el stock inicial será 0 -->
-      <!--
-      <AppInput
-        v-if="mode === 'material'"
-        v-model="localMaterial.stock"
-        :disabled="readonly"
-        label="Stock Inicial"
-        type="number"
-      />
-      -->
-
 
       <AppInput
           v-if="mode === 'material'"
           v-model="localMaterial.provider"
           :disabled="readonly"
-          label="Proveedor Principal"
+          :label="$t('inventory.mainProvider')"
       />
 
       <!-- INGRESOS -->
@@ -182,15 +170,15 @@ export default {
           v-if="mode === 'entry'"
           v-model="localMaterial.provider"
           :disabled="readonly"
-          label="Proveedor"
-          placeholder="Ej: Maestro"
+          :label="$t('inventory.provider')"
+          :placeholder="$t('inventory.providerPlaceholder')"
       />
 
       <AppInput
           v-if="mode === 'entry'"
           v-model="localMaterial.quantity"
           :disabled="readonly"
-          label="Cantidad"
+          :label="$t('inventory.quantity')"
           type="number"
       />
 
@@ -198,7 +186,7 @@ export default {
           v-if="mode === 'entry'"
           v-model="localMaterial.date"
           :disabled="readonly"
-          label="Fecha de Ingreso"
+          :label="$t('inventory.entryDate')"
           type="date"
       />
 
@@ -206,7 +194,7 @@ export default {
           v-if="mode === 'entry'"
           v-model="localMaterial.price"
           :disabled="readonly"
-          label="Precio Unitario"
+          :label="$t('inventory.unitPrice')"
           type="number"
       />
 
@@ -214,12 +202,12 @@ export default {
           v-if="mode === 'entry'"
           v-model="localMaterial.comprobante"
           :disabled="readonly"
-          label="Tipo de Comprobante"
+          :label="$t('inventory.documentType')"
           type="select"
           :options="[
-          { label: 'Factura', value: 'Factura' },
-          { label: 'Boleta', value: 'Boleta' },
-          { label: 'Guía', value: 'Guía' }
+          { label: $t('inventory.invoice'), value: 'Factura' },
+          { label: $t('inventory.receipt'), value: 'Boleta' },
+          { label: $t('inventory.guide'), value: 'Guía' }
         ]"
       />
 
@@ -227,19 +215,19 @@ export default {
           v-if="mode === 'entry'"
           v-model="localMaterial.comprobanteNumber"
           :disabled="readonly"
-          label="Número de Comprobante"
-          placeholder="Ej: F001-00123"
+          :label="$t('inventory.documentNumber')"
+          :placeholder="$t('inventory.documentNumberPlaceholder')"
       />
 
       <AppInput
           v-if="mode === 'entry'"
           v-model="localMaterial.status"
           :disabled="readonly"
-          label="Estado"
+          :label="$t('inventory.status')"
           type="select"
           :options="[
-          { label: 'Pendiente', value: 'Pendiente' },
-          { label: 'Cancelado', value: 'Cancelado' }
+          { label: $t('inventory.pending'), value: 'Pendiente' },
+          { label: $t('inventory.canceled'), value: 'Cancelado' }
         ]"
       />
 
@@ -247,18 +235,18 @@ export default {
           v-if="mode === 'entry'"
           v-model="localMaterial.ruc"
           :disabled="readonly"
-          label="RUC"
+          :label="$t('inventory.ruc')"
       />
 
       <AppInput
           v-if="mode === 'entry'"
           v-model="localMaterial.payment"
           :disabled="readonly"
-          label="Forma de Pago"
+          :label="$t('inventory.paymentMethod')"
           type="select"
           :options="[
-          { label: 'Contado', value: 'Contado' },
-          { label: 'Crédito', value: 'Crédito' }
+          { label: $t('inventory.cash'), value: 'Contado' },
+          { label: $t('inventory.credit'), value: 'Crédito' }
         ]"
       />
 
@@ -266,7 +254,7 @@ export default {
           v-if="mode === 'entry'"
           v-model="localMaterial.description"
           :disabled="readonly"
-          label="Observaciones"
+          :label="$t('inventory.observations')"
           type="textarea"
       />
 
@@ -275,7 +263,7 @@ export default {
           v-if="mode === 'usage'"
           v-model="localMaterial.quantity"
           :disabled="readonly"
-          label="Cantidad Usada"
+          :label="$t('inventory.usedQuantity')"
           type="number"
       />
 
@@ -283,7 +271,7 @@ export default {
           v-if="mode === 'usage'"
           v-model="localMaterial.date"
           :disabled="readonly"
-          label="Fecha de Uso"
+          :label="$t('inventory.usageDate')"
           type="date"
       />
 
@@ -291,19 +279,19 @@ export default {
           v-if="mode === 'usage'"
           v-model="localMaterial.area"
           :disabled="readonly"
-          label="Zona / Área de uso"
+          :label="$t('inventory.usageArea')"
       />
 
       <AppInput
           v-if="mode === 'usage'"
           v-model="localMaterial.usageType"
           :disabled="readonly"
-          label="Tipo de Uso"
+          :label="$t('inventory.usageType')"
           type="select"
           :options="[
-          { label: 'Normal', value: 'Normal' },
-          { label: 'Urgente', value: 'Urgente' },
-          { label: 'Desperdicio', value: 'Desperdicio' }
+          { label: $t('inventory.normal'), value: 'Normal' },
+          { label: $t('inventory.urgent'), value: 'Urgente' },
+          { label: $t('inventory.waste'), value: 'Desperdicio' }
         ]"
       />
 
@@ -311,14 +299,14 @@ export default {
           v-if="mode === 'usage'"
           v-model="localMaterial.description"
           :disabled="readonly"
-          label="Observaciones"
+          :label="$t('inventory.observations')"
           type="textarea"
       />
     </div>
 
     <div class="flex justify-end mt-4 gap-2" v-if="!readonly">
-      <AppButton label="Confirmar" variant="primary" @click="confirm" />
-      <AppButton label="Cancelar" variant="secondary" @click="cancel" />
+      <AppButton :label="$t('general.confirm')" variant="primary" @click="confirm" />
+      <AppButton :label="$t('general.cancel')" variant="secondary" @click="cancel" />
     </div>
   </div>
 </template>

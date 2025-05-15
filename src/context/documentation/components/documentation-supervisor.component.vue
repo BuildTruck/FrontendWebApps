@@ -159,7 +159,7 @@ export default {
 
       <div class="gallery-header">
         <app-button
-            label="Nuevo"
+            :label="$t('documentation.new')"
             variant="primary"
             size="small"
             @click="openAddForm"
@@ -170,7 +170,7 @@ export default {
       <!-- Pantalla de carga -->
       <div v-if="loading" class="loading-container">
         <i class="pi pi-spin pi-spinner loading-icon"></i>
-        <p>Cargando documentos...</p>
+        <p>{{ $t('general.loading') }}</p>
       </div>
 
       <!-- Galería de documentos usando AppCard -->
@@ -190,9 +190,9 @@ export default {
 
       <!-- Mensaje sin documentos -->
       <div v-else class="empty-gallery">
-        <p>No hay documentos registrados para este proyecto.</p>
+        <p>{{ $t('documentation.noDocuments') }}</p>
         <app-button
-            label="Agregar"
+            :label="$t('documentation.add')"
             variant="primary"
             size="small"
             @click="openAddForm"
@@ -205,7 +205,7 @@ export default {
     <div v-else class="documentation-form">
       <div class="form-wrapper">
         <div class="form-header">
-          <h2 class="form-title">Agregar Documentación</h2>
+          <h2 class="form-title">{{ $t('documentation.addDocumentation') }}</h2>
           <div>
             <i class="pi pi-file-o file-icon"></i>
           </div>
@@ -215,8 +215,8 @@ export default {
           <div class="form-group">
             <app-input
                 v-model="currentDocument.title"
-                label="Título"
-                placeholder="Ej: Armado de hierro para escalera principal"
+                :label="$t('documentation.title')"
+                :placeholder="$t('documentation.titlePlaceholder')"
                 required
                 fullWidth
             />
@@ -225,8 +225,8 @@ export default {
           <div class="form-group">
             <app-input
                 v-model="currentDocument.description"
-                label="Descripción"
-                placeholder="Ej: Armado de hierro para escalera principal. Acero de refuerzo en iniciación de concreto."
+                :label="$t('documentation.description')"
+                :placeholder="$t('documentation.descriptionPlaceholder')"
                 type="textarea"
                 required
                 fullWidth
@@ -234,17 +234,17 @@ export default {
           </div>
 
           <div class="form-group">
-            <label class="image-upload-label">Imagen <span class="required">*</span></label>
+            <label class="image-upload-label">{{ $t('documentation.image') }} <span class="required">*</span></label>
             <div class="image-upload-container">
               <div
                   class="image-preview"
                   :class="{ 'has-image': imagePreview }"
                   @click="$refs.imageInput.click()"
               >
-                <img v-if="imagePreview" :src="imagePreview" alt="Vista previa" />
+                <img v-if="imagePreview" :src="imagePreview" :alt="$t('documentation.preview')" />
                 <div v-else class="upload-placeholder">
                   <i class="pi pi-camera"></i>
-                  <span>Haga clic para seleccionar</span>
+                  <span>{{ $t('documentation.clickToSelect') }}</span>
                 </div>
               </div>
               <input
@@ -260,7 +260,7 @@ export default {
           <div class="form-group">
             <app-input
                 v-model="currentDocument.date"
-                label="Fecha"
+                :label="$t('documentation.date')"
                 type="date"
                 required
                 fullWidth
@@ -275,14 +275,14 @@ export default {
 
         <div class="form-actions">
           <app-button
-              label="Cancelar"
+              :label="$t('general.cancel')"
               variant="secondary"
               @click="closeForm"
               :disabled="loading"
           />
 
           <app-button
-              label="Guardar"
+              :label="$t('general.save')"
               variant="primary"
               @click="saveDocument"
               :loading="loading"

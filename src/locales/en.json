@@ -1,1 +1,122 @@
-{}
+{
+  "general": {
+    "back": "Back",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "add": "Add",
+    "search": "Search",
+    "loading": "Loading...",
+    "noResults": "No results found",
+    "yes": "Yes",
+    "no": "No",
+    "confirm": "Confirm",
+    "actions": "Actions"
+  },
+  "navigation": {
+    "projects": "Projects",
+    "statistics": "General Statistics",
+    "reports": "Global Reports",
+    "settings": "Settings",
+    "profile": "My Profile",
+    "logout": "Logout"
+  },
+  "project": {
+    "title": "Construction site",
+    "back": "Back to projects",
+    "tabs": {
+      "documentation": "Documentation",
+      "personnel": "Personnel",
+      "inventory": "Inventory",
+      "incidents": "Incidents",
+      "machinery": "Machinery",
+      "settings": "Construction Settings"
+    }
+  },
+  "documentation": {
+    "addDocument": "Add Document",
+    "documentType": "Document Type",
+    "uploadDate": "Upload Date",
+    "description": "Description",
+    "fileSize": "File Size",
+    "downloadDocument": "Download Document",
+    "deleteDocument": "Delete Document",
+    "confirmDelete": "Are you sure you want to delete this document?"
+  },
+  "personnel": {
+    "addEmployee": "Add Employee",
+    "name": "Name",
+    "position": "Position",
+    "email": "Email",
+    "phone": "Phone",
+    "startDate": "Start Date",
+    "status": "Status",
+    "active": "Active",
+    "inactive": "Inactive"
+  },
+  "inventory": {
+    "addItem": "Add Item",
+    "itemName": "Item Name",
+    "category": "Category",
+    "quantity": "Quantity",
+    "unit": "Unit",
+    "supplier": "Supplier",
+    "lastUpdate": "Last Update",
+    "reorderLevel": "Reorder Level",
+    "lowStock": "Low Stock"
+  },
+  "incidents": {
+    "addIncident": "Report Incident",
+    "date": "Date",
+    "type": "Type",
+    "severity": "Severity",
+    "description": "Description",
+    "reportedBy": "Reported By",
+    "status": "Status",
+    "resolved": "Resolved",
+    "pending": "Pending",
+    "resolveIncident": "Resolve Incident"
+  },
+  "machinery": {
+    "addMachine": "Add Machine",
+    "name": "Name",
+    "type": "Type",
+    "serialNumber": "Serial Number",
+    "status": "Status",
+    "available": "Available",
+    "inUse": "In Use",
+    "underMaintenance": "Under Maintenance",
+    "lastMaintenance": "Last Maintenance",
+    "scheduleMaintenance": "Schedule Maintenance"
+  },
+  "settings": {
+    "projectName": "Project Name",
+    "location": "Location",
+    "startDate": "Start Date",
+    "estimatedEndDate": "Estimated End Date",
+    "budget": "Budget",
+    "client": "Client",
+    "supervisor": "Supervisor",
+    "updateSettings": "Update Settings"
+  },
+  "auth": {
+    "signIn": "Sign In",
+    "signOut": "Sign Out",
+    "email": "Email",
+    "password": "Password",
+    "forgotPassword": "Forgot Password?",
+    "rememberMe": "Remember Me",
+    "noAccount": "Don't have an account?",
+    "createAccount": "Create Account",
+    "invalidCredentials": "Invalid email or password"
+  },
+  "errors": {
+    "required": "This field is required",
+    "invalidEmail": "Please enter a valid email",
+    "minLength": "This field must be at least {min} characters",
+    "maxLength": "This field cannot exceed {max} characters",
+    "serverError": "Server error. Please try again later.",
+    "networkError": "Network error. Please check your connection."
+  }
+}

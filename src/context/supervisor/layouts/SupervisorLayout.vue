@@ -1,8 +1,10 @@
 <script>
 import { AuthService } from '../../../auth/services/auth-api.service.js';
+import LanguageSwitcher from "../../../core/components/language-switcher.component.vue";
 
 export default {
   name: 'SupervisorLayout',
+  components: {LanguageSwitcher},
   props: {
     userName: {
       type: String,
@@ -126,6 +128,7 @@ export default {
       <!-- Header bar fijo -->
       <header class="header-bar">
         <h1 class="page-title">{{ pageTitle }}</h1>
+        <language-switcher/>
       </header>
 
       <!-- Área de contenido -->
@@ -252,8 +255,29 @@ export default {
   position: sticky;
   top: 0;
   z-index: 200; /* Z-index menor que el sidebar pero aún por encima del contenido */
+  justify-content: space-between;
 }
 
+.language-switcher {
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 210; /* Por encima del header-bar */
+}
+
+
+@media (max-width: 768px) {
+  .language-switcher {
+    right: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .language-switcher {
+    right: 10px;
+  }
+}
 .page-title {
   font-size: 1.4rem;
   font-weight: 500;

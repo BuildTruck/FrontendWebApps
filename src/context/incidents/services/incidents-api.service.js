@@ -33,13 +33,26 @@ const incidentes = [
 export const incidentsApi = {
     async fetchAll() {
         return new Promise(resolve => {
-            setTimeout(() => resolve(incidentes), 300); // simula delay
+            setTimeout(() => resolve(incidentes), 300); // Simula delay
         });
     },
+
     async fetchById(id) {
         return new Promise(resolve => {
             const incidente = incidentes.find(i => i.id === id);
             setTimeout(() => resolve(incidente), 200);
+        });
+    },
+
+    async add(newIncidentData) {
+        return new Promise((resolve) => {
+            const newIncident = new Incident({
+                ...newIncidentData,
+                id: incidentes.length + 1, // asignar nuevo id automáticamente
+            });
+            incidentes.push(newIncident);
+
+            setTimeout(() => resolve(newIncident), 300); // Simula un delay como si fuera una API real
         });
     }
 };

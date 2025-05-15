@@ -17,3 +17,4 @@ export class Incident {
         this.medidas = medidas;
     }
 }
+

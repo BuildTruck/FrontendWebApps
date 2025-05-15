@@ -427,7 +427,19 @@
       "observations": "jefecito se desperdicio"
     }
   ],
+  "personnel": [
+    {
+      "id": "p354768798063",
+      "projectId": "p001",
+      "name": "David Ramírez",
+      "dni": 72473890,
+      "rol": "Obrero",
+      "status": "Activo",
+      "startDate": "12-01-24",
+      "phoneNumber": 943281743,
+      "email": "david.ramirez@constructora.com"
+    }
+  ],
   "incidents": [],
-  "machinery": [],
-  "personnel": []
+  "machinery": []
 }

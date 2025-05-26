@@ -28,7 +28,6 @@ export const AuthService = {
     },
 
     async login(email, password) {
-        // Limpiar TODOS los almacenamientos posibles
         this.clearAllStorages();
 
         const res = await http.get(`/users?email=${email}&password=${password}`)
@@ -36,10 +35,34 @@ export const AuthService = {
             throw new Error('Credenciales inválidas')
         }
 
-        // Activar el auto-logout (para pruebas: 10 segundos)
-        //this.setupAutoLogout();
+        const user = res.data[0];
 
-        return res.data[0]
+        const peruTime = new Date().toLocaleString("en-US", {
+            timeZone: "America/Lima"
+        });
+
+        const updatedUserData = {
+            ...user,
+            lastLogin: new Date(peruTime).toISOString()
+        };
+
+        await http.put(`/users/${user.id}`, updatedUserData);
+        return updatedUserData;
+    },
+
+    /**
+     * Busca el proyecto asignado a un supervisor
+     * @param {string|number} supervisorId - ID del supervisor
+     * @returns {Promise} - Proyecto asignado o null
+     */
+    async getAssignedProject(supervisorId) {
+        try {
+            const res = await http.get(`/projects?supervisorId=${supervisorId}`);
+            return res.data && res.data.length > 0 ? res.data[0] : null;
+        } catch (error) {
+            console.error('Error buscando proyecto del supervisor:', error);
+            return null;
+        }
     },
 
     setupAutoLogout(timeoutMinutes = 60) {
@@ -147,4 +170,6 @@ export const AuthService = {
         const userData = sessionStorage.getItem('user');
         return userData ? JSON.parse(userData) : null;
     }
+
+
 }

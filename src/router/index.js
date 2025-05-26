@@ -6,6 +6,7 @@ import ProjectLayoutManager from '../context/manager/layouts/ProjectLayoutManage
 // Rutas por contexto
 import SupervisorRoutes from '../context/supervisor/router/supervisor.routes.js'
 import ManagerRoutes from '../context/manager/router/manager.routes.js'
+import AdminRoutes from "../core/admin/router/admin.routes.js";
 
 const routes = [
     // Redirección raíz dinámica según sesión y rol
@@ -16,6 +17,7 @@ const routes = [
             if (!user) return '/login'
             if (user.role === 'manager') return '/proyectos'
             if (user.role === 'supervisor') return `/supervisor/${user.projectId}`
+            if (user.role === 'admin') return '/admin'
             return '/login'
         }
     },
@@ -32,6 +34,9 @@ const routes = [
 
     // Rutas propias de supervisor
     ...SupervisorRoutes,
+
+    // Rutas propias de admin
+    ...AdminRoutes,
 
     {
         path: '/:pathMatch(.*)*',
@@ -69,6 +74,9 @@ router.beforeEach((to, from, next) => {
         } else if (user.role === 'supervisor') {
             console.log('Redirigiendo supervisor a /supervisor/' + user.projectId);
             return next(`/supervisor/${user.projectId}`)
+        } else if (user.role === 'admin') {
+            console.log('Redirigiendo admin a /admin');
+            return next('/admin')
         } else {
             console.warn('Rol desconocido, redirigiendo a login');
             // Si hay un rol desconocido, mejor eliminar la sesión
@@ -77,15 +85,34 @@ router.beforeEach((to, from, next) => {
         }
     }
 
-    // Verificar si un usuario está intentando acceder a una ruta que no corresponde a su rol
-    if (user && to.path.startsWith('/supervisor') && user.role !== 'supervisor') {
-        console.warn('Manager intentando acceder a ruta de supervisor');
-        return next('/proyectos');
-    }
+    // Verificar protección de rutas por rol
+    if (user) {
+        // Supervisor solo puede acceder a sus rutas
+        if (to.path.startsWith('/supervisor') && user.role !== 'supervisor') {
+            console.warn('Usuario no supervisor intentando acceder a ruta de supervisor');
+            if (user.role === 'manager') return next('/proyectos');
+            if (user.role === 'admin') return next('/admin');
+        }
 
-    if (user && !to.path.startsWith('/supervisor') && to.path !== '/login' && user.role === 'supervisor') {
-        console.warn('Supervisor intentando acceder a ruta de manager');
-        return next(`/supervisor/${user.projectId}`);
+        // Manager solo puede acceder a sus rutas
+        if (to.path.startsWith('/proyectos') && user.role !== 'manager') {
+            console.warn('Usuario no manager intentando acceder a ruta de manager');
+            if (user.role === 'supervisor') return next(`/supervisor/${user.projectId}`);
+            if (user.role === 'admin') return next('/admin');
+        }
+
+        // Admin solo puede acceder a sus rutas
+        if (to.path.startsWith('/admin') && user.role !== 'admin') {
+            console.warn('Usuario no admin intentando acceder a ruta de admin');
+            if (user.role === 'manager') return next('/proyectos');
+            if (user.role === 'supervisor') return next(`/supervisor/${user.projectId}`);
+        }
+
+        // Redirigir usuarios no autorizados según su rol
+        if (user.role === 'supervisor' && !to.path.startsWith('/supervisor') && to.path !== '/login') {
+            console.warn('Supervisor intentando acceder a ruta no autorizada');
+            return next(`/supervisor/${user.projectId}`);
+        }
     }
 
     next()

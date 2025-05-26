@@ -1,4 +1,3 @@
-// src/context/supervisor/services/supervisor-api.service.js
 import { BaseService } from '../../../core/services/base.service'
 
 export class SupervisorService extends BaseService {

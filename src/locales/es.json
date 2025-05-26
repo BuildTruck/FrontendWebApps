@@ -183,8 +183,6 @@
     "totalUsages": "Uso",
     "total": "Total",
     "date": "Fecha",
-    "documentType": "Tipo de Documento",
-    "documentNumber": "Número de Documento",
     "area": "Área / Zona",
     "worker": "Trabajador"
   },
@@ -217,5 +215,90 @@
     "attendanceSummaryByProject": "Resumen de Asistencia por Proyecto",
     "projectsWithMostPersonnel": "Proyectos con Mayor Personal",
     "absenteeismRate": "Tasa de Ausentismo"
+  },
+  "admin": {
+    "tabs": {
+      "dashboard": "Dashboard",
+      "usuarios": "Usuarios",
+      "configuraciones": "Configuraciones"
+    },
+    "dashboard": {
+      "welcome": "Bienvenido al Panel de Administración",
+      "subtitle": "Gestiona usuarios, proyectos y configuraciones del sistema",
+      "totalUsers": "Total Usuarios",
+      "managers": "Managers",
+      "supervisores": "Supervisores",
+      "projects": "Proyectos",
+      "quickActions": "Acciones Rápidas",
+      "manageUsers": "Gestionar Usuarios",
+      "recentUsers": "Usuarios Recientes"
+    },
+    "users": {
+      "title": "Gestión de Usuarios",
+      "createUser": "Crear Usuario",
+      "editUser": "Editar Usuario",
+      "noUsers": "No hay usuarios registrados",
+      "confirmDelete": "¿Confirmar eliminación?",
+      "confirmDeleteMessage": "¿Estás seguro de que deseas eliminar este usuario?",
+      "table": {
+        "user": "Usuario",
+        "email": "Email",
+        "role": "Rol",
+        "created": "Creado",
+        "actions": "Acciones"
+      },
+      "roles": {
+        "admin": "Administrador",
+        "manager": "Manager",
+        "supervisor": "Supervisor"
+      },
+      "form": {
+        "email": "Email Corporativo",
+        "emailPlaceholder": "usuario@buildtruck.com",
+        "password": "Contraseña",
+        "passwordPlaceholder": "Ingresa una contraseña segura",
+        "name": "Nombre",
+        "namePlaceholder": "Ingresa el nombre",
+        "lastname": "Apellido",
+        "lastnamePlaceholder": "Ingresa el apellido",
+        "personalEmail": "Email Personal",
+        "personalEmailPlaceholder": "usuario@gmail.com",
+        "phone": "Teléfono",
+        "phonePlaceholder": "+51 999 999 999",
+        "role": "Rol",
+        "selectRole": "Selecciona un rol"
+      },
+      "validation": {
+        "emailRequired": "El email es requerido",
+        "nameRequired": "El nombre es requerido",
+        "lastnameRequired": "El apellido es requerido",
+        "passwordRequired": "La contraseña es requerida",
+        "roleRequired": "El rol es requerido"
+      },
+      "messages": {
+        "userCreated": "Usuario creado exitosamente",
+        "userUpdated": "Usuario actualizado exitosamente",
+        "userDeleted": "Usuario eliminado exitosamente"
+      },
+      "errors": {
+        "loadUsers": "Error al cargar la lista de usuarios",
+        "saveUser": "Error al guardar el usuario",
+        "deleteUser": "Error al eliminar el usuario"
+      }
+    },
+    "actions": {
+      "loading": "Cargando...",
+      "cancel": "Cancelar",
+      "save": "Guardar",
+      "delete": "Eliminar",
+      "edit": "Editar",
+      "create": "Crear",
+      "actions": "Acciones",
+      "yes": "Sí",
+      "no": "No",
+      "confirm": "Confirmar",
+      "close": "Cerrar",
+      "search": "Buscar por nombre, email, rol o teléfono..."
+    }
   }
 }

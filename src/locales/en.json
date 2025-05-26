@@ -192,10 +192,14 @@
     "projectName": "Project Name",
     "enterProjectName": "Enter Project Name",
     "projectStatus": "Project Status",
+    "noProjectsAvailable": "You don't have projects available",
+    "noProjects": "You haven't create a project.",
+    "createFirstProject": "Start to create your own projects!",
+    "createNewProject": "Create a new project",
     "status": {
       "inStudy": "In Study",
       "planned": "Planned",
-      "inProgress": "In Progress",
+      "inProgress": "Active",
       "completed": "Completed"
     },
     "location": "Location",

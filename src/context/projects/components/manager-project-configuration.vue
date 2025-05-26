@@ -2,7 +2,9 @@
 import AppInput from '../../../core/components/AppInput.vue'
 import AppButton from '../../../core/components/AppButton.vue'
 import AppNotification from '../../../core/components/AppNotification.vue'
+import LocationInput from '../../../core/components/LocationInput.vue'
 import { projectService } from '../services/projects-api.service.js'
+import { Projects } from '../models/projects.entity.js'
 
 export default {
   name: 'manager-project-configuration',
@@ -10,7 +12,8 @@ export default {
   components: {
     AppInput,
     AppButton,
-    AppNotification
+    AppNotification,
+    LocationInput
   },
   data() {
     return {
@@ -18,11 +21,13 @@ export default {
         name: '',
         state: '',
         location: '',
+        locationData: null,
         description: '',
-        startDate: '',
+        start_date: '',
         supervisorId: ''
       },
       originalData: {},
+      currentSupervisor: null,
       isEditing: false,
       supervisors: [],
       notification: {
@@ -38,47 +43,102 @@ export default {
     await this.fetchSupervisors()
   },
   methods: {
+    getStateOptions() {
+      return Projects.getStateOptions(this.$t);
+    },
+
     async fetchProject() {
       try {
-        const project = await projectService.getProjectById(this.projectId)
-        this.form = { ...project }
-        this.originalData = { ...project }
+        console.log('🔍 [fetchProject] Obteniendo proyecto ID:', this.projectId)
+        const response = await projectService.getProjectById(this.projectId)
+        const project = response.data || response
+
+        console.log('🔍 [fetchProject] Proyecto obtenido:', project)
+        console.log('🔍 [fetchProject] SupervisorId del proyecto:', project.supervisorId)
+
+        this.form = {
+          name: project.name || '',
+          state: project.state || '',
+          location: project.location || '',
+          locationData: project.coordinates ? { coordinates: project.coordinates } : null,
+          description: project.description || '',
+          start_date: project.start_date || '',
+          supervisorId: project.supervisorId || ''
+        }
+        this.originalData = { ...this.form }
+
+        // ✅ Obtener datos del supervisor actual
+        if (project.supervisorId) {
+          console.log('🔍 [fetchProject] Intentando obtener supervisor ID:', project.supervisorId)
+          try {
+            const supervisorResponse = await projectService.getSupervisorById(project.supervisorId)
+            console.log('🔍 [fetchProject] Respuesta del supervisor:', supervisorResponse)
+            this.currentSupervisor = supervisorResponse.data
+            console.log('🔍 [fetchProject] CurrentSupervisor asignado:', this.currentSupervisor)
+          } catch (supervisorErr) {
+            console.error('❌ Error al cargar supervisor actual:', supervisorErr)
+            this.currentSupervisor = null
+          }
+        } else {
+          console.log('🔍 [fetchProject] El proyecto NO tiene supervisorId asignado')
+          this.currentSupervisor = null
+        }
       } catch (err) {
         console.error('Error al cargar el proyecto', err)
+        this.showNotification('Error al cargar el proyecto', 'error')
       }
     },
+
     async fetchSupervisors() {
       try {
-        const response = await fetch('http://localhost:3500/users?role=supervisor')
-        const result = await response.json()
-        this.supervisors = result.map(s => ({ value: s.id, label: s.name }))
+        const response = await projectService.getAvailableSupervisors()
+        this.supervisors = (response.data || []).map(s => ({
+          value: s.id,
+          label: s.name
+        }))
       } catch (err) {
         console.error('Error al cargar supervisores', err)
+        this.showNotification('Error al cargar supervisores', 'error')
       }
     },
+
+    handleLocationSelected(locationData) {
+      console.log('Ubicación seleccionada:', locationData);
+      this.form.locationData = locationData;
+    },
+
     startEdit() {
       this.isEditing = true
     },
+
     async saveChanges() {
       try {
-        await projectService.updateProject(this.projectId, {
+        const updateData = {
           name: this.form.name,
           state: this.form.state,
           location: this.form.location,
+          coordinates: this.form.locationData?.coordinates || null,
           description: this.form.description,
-          startDate: this.form.startDate,
+          start_date: this.form.start_date,
           supervisorId: this.form.supervisorId
-        })
+        }
+
+        await projectService.updateProject(this.projectId, updateData)
+
+        this.originalData = { ...this.form }
         this.showNotification('Los cambios se guardaron correctamente')
         this.isEditing = false
       } catch (err) {
+        console.error('Error al guardar:', err)
         this.showNotification('Hubo un error al guardar los cambios', 'error')
       }
     },
+
     cancelChanges() {
       this.form = { ...this.originalData }
       this.isEditing = false
     },
+
     showNotification(message, type = 'success') {
       this.notification = {
         show: true,
@@ -95,31 +155,53 @@ export default {
   <div class="config-container">
     <div class="form-box">
       <div class="form-row">
-        <AppInput v-model="form.name" :disabled="!isEditing" :label="$t('projects.projectName')" />
+        <AppInput
+            v-model="form.name"
+            :disabled="!isEditing"
+            :label="$t('projects.projectName')"
+        />
         <AppInput
             v-model="form.state"
             type="select"
             :disabled="!isEditing"
             :label="$t('projects.projectStatus')"
-            :options="[
-            { value: 'En estudio', label: $t('projects.status.inStudy') },
-            { value: 'Planificado', label: $t('projects.status.planned') },
-            { value: 'En ejecución', label: $t('projects.status.inProgress') },
-            { value: 'Finalizado', label: $t('projects.status.completed') }
-          ]"
+            :options="getStateOptions()"
         />
       </div>
 
       <div class="form-row">
-        <AppInput v-model="form.location" :disabled="!isEditing" :label="$t('projects.location')" />
-        <AppInput v-model="form.description" :disabled="!isEditing" :label="$t('projects.description')" type="textarea" />
+        <LocationInput
+            v-model="form.location"
+            :disabled="!isEditing"
+            :label="$t('projects.location')"
+            :placeholder="$t('projects.locationPlaceholder')"
+            @location-selected="handleLocationSelected"
+        />
+        <AppInput
+            v-model="form.description"
+            :disabled="!isEditing"
+            :label="$t('projects.description')"
+            type="textarea"
+        />
       </div>
 
       <div class="form-row">
-        <AppInput v-model="form.startDate" :disabled="!isEditing" :label="$t('projects.estimatedStartDate')" type="date" />
         <AppInput
-            v-model="form.supervisorId"
+            v-model="form.start_date"
             :disabled="!isEditing"
+            :label="$t('projects.estimatedStartDate')"
+            type="date"
+        />
+        <!-- ✅ Mostrar supervisor actual o select de opciones -->
+        <AppInput
+            v-if="!isEditing"
+            :value="currentSupervisor ? currentSupervisor.name : 'Sin supervisor asignado'"
+            :disabled="true"
+            :label="$t('projects.assignedSupervisor')"
+        />
+        <AppInput
+            v-else
+            v-model="form.supervisorId"
             :label="$t('projects.assignedSupervisor')"
             type="select"
             :options="supervisors"
@@ -127,10 +209,23 @@ export default {
       </div>
 
       <div class="actions">
-        <AppButton v-if="!isEditing" :label="$t('projects.configure')" variant="primary" @click="startEdit" />
+        <AppButton
+            v-if="!isEditing"
+            :label="$t('projects.configure')"
+            variant="primary"
+            @click="startEdit"
+        />
         <template v-else>
-          <AppButton :label="$t('general.save')" variant="primary" @click="saveChanges" />
-          <AppButton :label="$t('general.cancel')" variant="secondary" @click="cancelChanges" />
+          <AppButton
+              :label="$t('general.save')"
+              variant="primary"
+              @click="saveChanges"
+          />
+          <AppButton
+              :label="$t('general.cancel')"
+              variant="secondary"
+              @click="cancelChanges"
+          />
         </template>
       </div>
     </div>
@@ -157,10 +252,9 @@ export default {
   width: 1114px;
   height: 668px;
   flex-shrink: 0;
-  border-radius: 12px; /* Ejemplo: var(--sds-size-radius-200) ~ 12px */
-  border: 1px solid #DCDCDC; /* Ejemplo: color borde neutro */
-  background: rgba(255, 255, 255, 0.56); /* Ejemplo: fondo blanco neutro */
-
+  border-radius: 12px;
+  border: 1px solid #DCDCDC;
+  background: rgba(255, 255, 255, 0.56);
   padding: 40px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
   display: flex;
@@ -187,4 +281,3 @@ export default {
   margin-top: 20px;
 }
 </style>
-

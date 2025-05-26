@@ -2,9 +2,11 @@
 import AppCard from "../../../core/components/AppCard.vue";
 import AppButton from "../../../core/components/AppButton.vue";
 import AppInput from "../../../core/components/AppInput.vue";
-import AppNotification from "../../../core/components/AppNotification.vue"; // Importar componente de notificación
+import AppNotification from "../../../core/components/AppNotification.vue";
+import LocationInput from "../../../core/components/LocationInput.vue";
 import { projectService } from '../services/projects-api.service.js'
 import { Projects } from '../models/projects.entity.js'
+import { AuthService } from "../../../auth/services/auth-api.service.js"
 
 export default {
   name: 'ProjectsManager',
@@ -12,12 +14,14 @@ export default {
     AppCard,
     AppButton,
     AppInput,
-    AppNotification
+    AppNotification,
+    LocationInput
   },
   data() {
     return {
       projects: [],
       loading: true,
+      creating: false,
       managerName: '',
       showModal: false,
       supervisors: [],
@@ -25,7 +29,8 @@ export default {
         name: '',
         description: '',
         location: '',
-        startDate: '',
+        locationData: null,
+        start_date: '',
         supervisorEmail: '',
         state: 'En estudio',
         image: null
@@ -34,11 +39,10 @@ export default {
         name: '',
         description: '',
         location: '',
-        startDate: '',
+        start_date: '',
         supervisorEmail: '',
         image: ''
       },
-      // Añadir estado para las notificaciones
       notification: {
         show: false,
         message: '',
@@ -48,11 +52,22 @@ export default {
     }
   },
   async mounted() {
+    console.log('🔍 [ProjectsManager] ProjectId:', this.projectId)
+    console.log('🔍 [ProjectsManager] Props:', this.$props)
+
+    if (this.$route.path !== '/proyectos') {
+      console.log('🚫 ProjectsManager no debería ejecutarse en esta ruta')
+      return
+    }
+
     await this.loadProjects();
     await this.loadSupervisors();
   },
   methods: {
-    // Método para mostrar notificaciones
+
+    getStateOptions() {
+      return Projects.getStateOptions(this.$t);
+    },
     showNotification(message, type = 'success', autoClose = true) {
       this.notification = {
         show: true,
@@ -65,10 +80,14 @@ export default {
     async loadProjects() {
       this.loading = true;
       try {
-        const user = JSON.parse(localStorage.getItem('user')) || { id: 1, name: 'So Gerente' };
-        this.managerName = user?.name || 'So Gerente';
+        // ✅ Usar AuthService
+        const user = AuthService.getCurrentUser();
+        if (!user) {
+          this.$router.push('/login');
+          return;
+        }
 
-        // Usar el servicio para obtener proyectos
+        this.managerName = user.name;
         const res = await projectService.getProjectsByManager(user.id);
         this.projects = res.data || [];
       } catch (error) {
@@ -82,24 +101,14 @@ export default {
 
     async loadSupervisors() {
       try {
-        // Utilizamos un fetch para obtener supervisores disponibles
-        const response = await fetch('http://localhost:3500/users?role=supervisor');
-        const supervisors = await response.json();
-
-        // Filtramos para obtener solo los que están disponibles (sin proyecto asignado)
-        this.supervisors = supervisors
-            .filter(supervisor => !supervisor.projectId)
-            .map(supervisor => ({
-              value: supervisor.id.toString(),
-              label: supervisor.name
-            }));
+        const response = await projectService.getAvailableSupervisors();
+        this.supervisors = response.data || [];
       } catch (error) {
         console.error('Error al obtener supervisores:', error);
         this.supervisors = [];
         this.showNotification('Error al cargar lista de supervisores', 'error');
       }
     },
-
 
     handleProjectClick(project) {
       this.$router.push({
@@ -115,7 +124,8 @@ export default {
         name: '',
         description: '',
         location: '',
-        startDate: new Date().toISOString().split('T')[0], // Fecha actual como valor predeterminado
+        locationData: null,
+        start_date: new Date().toISOString().split('T')[0],
         supervisorEmail: '',
         state: 'En estudio',
         image: null
@@ -124,7 +134,7 @@ export default {
         name: '',
         description: '',
         location: '',
-        startDate: '',
+        start_date: '',
         supervisorEmail: '',
         image: ''
       };
@@ -132,6 +142,7 @@ export default {
 
     closeModal() {
       this.showModal = false;
+      this.creating = false; // ✅ Reset estado de creación
     },
 
     validateForm() {
@@ -162,11 +173,11 @@ export default {
       }
 
       // Fecha de inicio
-      if (!this.newProject.startDate) {
-        this.errors.startDate = 'La fecha de inicio es obligatoria';
+      if (!this.newProject.start_date) {
+        this.errors.start_date = 'La fecha de inicio es obligatoria';
         isValid = false;
       } else {
-        this.errors.startDate = '';
+        this.errors.start_date = '';
       }
 
       // Supervisor (email)
@@ -189,7 +200,38 @@ export default {
 
     handleImageChange(file) {
       console.log("Archivo recibido en handleImageChange:", file);
+
+      // ✅ Validaciones adicionales del lado del cliente
+      if (file) {
+        // Validar tipo
+        if (!file.type.startsWith('image/')) {
+          this.errors.image = 'El archivo debe ser una imagen (JPG, PNG, etc.)';
+          this.newProject.image = null;
+          return;
+        }
+
+        // Validar tamaño (10MB máximo)
+        const maxSize = 10 * 1024 * 1024; // 10MB
+        if (file.size > maxSize) {
+          this.errors.image = 'La imagen es demasiado grande. Máximo 10MB permitido.';
+          this.newProject.image = null;
+          return;
+        }
+
+        // Limpiar error si todo está bien
+        this.errors.image = '';
+      }
+
       this.newProject.image = file;
+    },
+
+    handleLocationSelected(locationData) {
+      console.log('Ubicación seleccionada:', locationData);
+      this.newProject.locationData = locationData;
+
+      if (locationData && locationData.coordinates) {
+        console.log('Coordenadas:', locationData.coordinates);
+      }
     },
 
     async createProject() {
@@ -198,23 +240,32 @@ export default {
         return;
       }
 
-      try {
-        const user = JSON.parse(localStorage.getItem('user')) || { id: 1 };
+      // ✅ Prevenir múltiples clicks
+      if (this.creating) {
+        return;
+      }
 
-        // Validar supervisor por correo electrónico
+      this.creating = true; // ✅ Activar estado de carga
+
+      try {
+        const user = AuthService.getCurrentUser();
+        if (!user) {
+          this.$router.push('/login');
+          return;
+        }
+
+
         let supervisorId = null;
         try {
-          // Buscar el supervisor por correo electrónico
-          const supervisorResponse = await fetch(`http://localhost:3500/users?email=${encodeURIComponent(this.newProject.supervisorEmail)}&role=supervisor`);
-          const supervisors = await supervisorResponse.json();
+          const supervisorResponse = await projectService.getSupervisorByEmail(this.newProject.supervisorEmail);
 
-          if (supervisors.length === 0) {
+          if (!supervisorResponse.data) {
             this.errors.supervisorEmail = 'No existe un supervisor con este correo';
             this.showNotification(`No existe un supervisor con el correo ${this.newProject.supervisorEmail}`, 'error', false);
             return;
           }
 
-          const supervisor = supervisors[0];
+          const supervisor = supervisorResponse.data;
           if (supervisor.projectId) {
             this.errors.supervisorEmail = 'Este supervisor ya está asignado a otro proyecto';
             this.showNotification(`El supervisor ${supervisor.name} ya está asignado a otro proyecto`, 'error', false);
@@ -229,23 +280,48 @@ export default {
           return;
         }
 
-        // Subir imagen usando el servicio
-        const imageUrl = await projectService.uploadProjectImage(this.newProject.image);
+        // ✅ Subir imagen con mejor manejo de errores
+        let imageUrl;
+        try {
+          this.showNotification('Procesando imagen...', 'info', false);
+          imageUrl = await projectService.uploadProjectImage(this.newProject.image);
+          console.log('Imagen procesada exitosamente');
+        } catch (imageError) {
+          console.error('Error procesando imagen:', imageError);
 
-        // Crear una instancia de Projects usando la entidad
+          // Mostrar error específico de imagen
+          if (imageError.message.includes('demasiado grande')) {
+            this.errors.image = 'La imagen es demasiado grande. Prueba con una imagen más pequeña.';
+            this.showNotification('La imagen es demasiado grande. Prueba con una imagen más pequeña.', 'error', false);
+          } else if (imageError.message.includes('imagen')) {
+            this.errors.image = imageError.message;
+            this.showNotification(imageError.message, 'error', false);
+          } else {
+            this.showNotification('Error procesando la imagen. Se usará imagen predeterminada.', 'warning');
+            imageUrl = '/images/proyecto-default.jpg';
+          }
+
+          if (this.errors.image) {
+            return; // Detener si hay error de imagen
+          }
+        }
+
+
         const project = new Projects({
           name: this.newProject.name,
           description: this.newProject.description,
           image: imageUrl,
           managerId: user.id,
           location: this.newProject.location,
-          startDate: this.newProject.startDate,
+          coordinates: this.newProject.locationData?.coordinates || null,
+          start_date: this.newProject.start_date,
           supervisorId: supervisorId,
-          state: this.newProject.state,
-          progress: 0 // Agregar progreso explícitamente
+          state: this.newProject.state
         });
 
-        // CAMBIAR ESTA LÍNEA: Usar el nuevo método createFullProject en lugar de createProject
+        this.showNotification('Creando proyecto...', 'info', false);
+
+        // Crear proyecto usando el servicio
         await projectService.createFullProject(project);
 
         // Mostrar notificación de éxito
@@ -256,17 +332,28 @@ export default {
 
         // Cerrar modal
         this.closeModal();
+
       } catch (error) {
         console.error('Error al crear el proyecto:', error);
 
-        // Mostrar notificación de error con mensaje personalizado
+        // ✅ Manejo específico de errores
         let errorMessage = 'Error al crear el proyecto';
 
-        if (error.message.includes('supervisor')) {
-          errorMessage = `Error: ${error.message}`;
+        if (error.message) {
+          if (error.message.includes('supervisor')) {
+            errorMessage = `Error: ${error.message}`;
+          } else if (error.message.includes('413') || error.message.includes('Payload Too Large')) {
+            errorMessage = 'El proyecto es demasiado grande. Prueba con una imagen más pequeña.';
+          } else if (error.message.includes('imagen')) {
+            errorMessage = error.message;
+          } else {
+            errorMessage = error.message;
+          }
         }
 
         this.showNotification(errorMessage, 'error', false);
+      } finally {
+        this.creating = false; // ✅ Desactivar estado de carga
       }
     }
   }
@@ -286,15 +373,32 @@ export default {
 
     <div v-else class="projects-wrapper">
       <div class="project-list">
-        <!-- Usando el componente AppCard para cada proyecto -->
         <div class="add-project-button-container">
-          <!-- Botón de añadir proyecto -->
           <AppButton
               :label="$t('projects.addNewProject')"
               variant="primary"
               size="large"
               @click="openModal"
           />
+        </div>
+
+        <div v-if="projects.length === 0" class="empty-container">
+          <div class="empty-content">
+            <i class="pi pi-briefcase empty-icon"></i>
+            <h3>{{ $t('projects.noProjectsAvailable') }}</h3>
+            <p>{{ $t('projects.noProjects') }}</p>
+            <p class="empty-note">{{ $t('projects.createFirstProject') }}</p>
+
+            <!-- Botón adicional para crear proyecto -->
+            <div class="empty-actions">
+              <AppButton
+                  :label="$t('projects.createNewProject')"
+                  variant="primary"
+                  @click="openModal"
+                  icon="pi pi-plus"
+              />
+            </div>
+          </div>
         </div>
 
         <AppCard
@@ -331,12 +435,7 @@ export default {
                   v-model="newProject.state"
                   :label="$t('projects.projectStatus')"
                   type="select"
-                  :options="[
-                    { value: 'En estudio', label: $t('projects.status.inStudy') },
-                    { value: 'Planificado', label: $t('projects.status.planned') },
-                    { value: 'En ejecución', label: $t('projects.status.inProgress') },
-                    { value: 'Finalizado', label: $t('projects.status.completed') }
-                  ]"
+                  :options="getStateOptions()"
                   required
                   fullWidth
               />
@@ -346,13 +445,14 @@ export default {
           <!-- Segunda fila: Ubicación y Descripción -->
           <div class="form-row">
             <div class="form-group">
-              <AppInput
+              <LocationInput
                   v-model="newProject.location"
                   :label="$t('projects.location')"
                   :placeholder="$t('projects.locationPlaceholder')"
                   :error="errors.location"
                   required
                   fullWidth
+                  @location-selected="handleLocationSelected"
               />
             </div>
 
@@ -373,11 +473,11 @@ export default {
           <div class="form-row">
             <div class="form-group">
               <AppInput
-                  v-model="newProject.startDate"
+                  v-model="newProject.start_date"
                   :label="$t('projects.estimatedStartDate')"
                   :placeholder="$t('projects.selectDate')"
                   type="date"
-                  :error="errors.startDate"
+                  :error="errors.start_date"
                   required
                   fullWidth
               />
@@ -407,8 +507,8 @@ export default {
                   type="photo"
                   :label="$t('projects.projectImage')"
                   :error="errors.image"
-                  required
                   fullWidth
+                  @file-selected="handleImageChange"
               />
             </div>
           </div>
@@ -419,11 +519,14 @@ export default {
                 :label="$t('general.cancel')"
                 variant="secondary"
                 @click="closeModal"
+                :disabled="creating"
             />
             <AppButton
-                :label="$t('projects.create')"
+                :label="creating ? 'Creando...' : $t('projects.create')"
                 variant="primary"
                 @click="createProject"
+                :disabled="creating"
+                :loading="creating"
             />
           </div>
         </div>
@@ -442,6 +545,54 @@ export default {
 </template>
 
 <style scoped>
+.empty-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+  margin-top: 2rem;
+}
+
+.empty-content {
+  text-align: center;
+  max-width: 500px;
+  padding: 3rem 2rem;
+  background-color: #f8f9fa;
+  border-radius: 12px;
+  border: 2px dashed #e0e0e0;
+}
+
+.empty-icon {
+  font-size: 4rem;
+  color: #FF5F01;
+  margin-bottom: 1.5rem;
+  opacity: 0.7;
+}
+
+.empty-content h3 {
+  margin: 0 0 1rem;
+  color: #333;
+  font-weight: 600;
+  font-size: 1.5rem;
+}
+
+.empty-content p {
+  margin: 0 0 0.5rem;
+  color: #666;
+  line-height: 1.5;
+}
+
+.empty-note {
+  margin-bottom: 2rem !important;
+  font-size: 0.875rem;
+  color: #888;
+  font-style: italic;
+}
+
+.empty-actions {
+  margin-top: 1.5rem;
+}
+
 .projects-container {
   display: flex;
   flex-direction: column;
@@ -520,6 +671,8 @@ export default {
   max-width: 700px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   padding: 30px;
+  max-height: 90vh;
+  overflow-y: auto;
 }
 
 .form-container {
@@ -553,6 +706,7 @@ export default {
 
   .modal-content {
     padding: 20px;
+    margin: 10px;
   }
 
   .welcome-message {

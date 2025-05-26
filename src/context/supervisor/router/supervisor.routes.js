@@ -1,4 +1,4 @@
-// context/supervisor/router/supervisor.routes.js
+// context/supervisor/router/supervisor.router.js
 
 import SupervisorLayout from '../layouts/SupervisorLayout.vue'
 

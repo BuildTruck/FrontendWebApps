@@ -7,6 +7,7 @@ import LanguageSwitcher from "../../core/components/language-switcher.component.
 // Importa los modelos
 import { Manager } from '../../context/manager/models/manager.entity.js'
 import { Supervisor } from '../../context/supervisor/models/supervisor.entity.js'
+import { Admin} from "../../core/admin/models/admin.entity.js";
 
 export default {
   name: 'LoginComponent',
@@ -93,10 +94,21 @@ export default {
           return;
         }
 
-        // Procesar usuario
-        const user = rawUser.role === 'manager'
-            ? new Manager(rawUser)
-            : new Supervisor(rawUser);
+        // Procesar usuario según rol
+        let user;
+        switch (rawUser.role) {
+          case 'manager':
+            user = new Manager(rawUser);
+            break;
+          case 'supervisor':
+            user = new Supervisor(rawUser);
+            break;
+          case 'admin':
+            user = new Admin(rawUser);
+            break;
+          default:
+            throw new Error(`Rol desconocido: ${rawUser.role}`);
+        }
 
         console.log('Usuario autenticado:', user);
         console.log('Rol del usuario:', user.role);
@@ -112,37 +124,61 @@ export default {
         console.log('Rol guardado:', storedUser.role);
         console.log('Nombre guardado:', storedUser.name);
 
+        // Detectar Opera para redirección
+        const isOpera = (!!window.opr && !!opr.addons) ||
+            !!window.opera ||
+            navigator.userAgent.indexOf(' OPR/') >= 0;
+
         // Redireccionar según rol
         if (user.role === 'manager') {
           console.log('Redirigiendo a vista de manager: /proyectos');
 
-          // Detectar si es Opera y usar una redirección más fuerte si es necesario
-          const isOpera = (!!window.opr && !!opr.addons) ||
-              !!window.opera ||
-              navigator.userAgent.indexOf(' OPR/') >= 0;
-
           if (isOpera) {
-            // En Opera, usar location.href para una redirección más fuerte
             window.location.href = '/proyectos';
           } else {
             this.$router.push('/proyectos');
           }
-        } else if (user.role === 'supervisor') {
-          console.log(`Redirigiendo a vista de supervisor: /supervisor/${user.projectId}`);
+        }
+        else if (user.role === 'supervisor') {
+          console.log('Buscando proyecto asignado al supervisor...');
 
-          // Detectar si es Opera y usar una redirección más fuerte si es necesario
-          const isOpera = (!!window.opr && !!opr.addons) ||
-              !!window.opera ||
-              navigator.userAgent.indexOf(' OPR/') >= 0;
+          try {
+            // Buscar proyecto asignado al supervisor usando AuthService
+            const project = await AuthService.getAssignedProject(user.id);
+
+            if (project) {
+              console.log(`Redirigiendo a vista de supervisor: /supervisor/${project.id}`);
+
+              if (isOpera) {
+                window.location.href = `/supervisor/${project.id}`;
+              } else {
+                this.$router.push(`/supervisor/${project.id}`);
+              }
+            } else {
+              console.log('Supervisor sin proyecto asignado');
+              this.authError = 'Aún no tienes un proyecto asignado. Contacta con tu manager para más información.';
+
+              // Limpiar la sesión ya que no puede acceder
+              AuthService.clearAllStorages();
+              return;
+            }
+          } catch (projectError) {
+            console.error('Error buscando proyecto del supervisor:', projectError);
+            this.authError = 'Error al verificar tu proyecto asignado. Intenta nuevamente.';
+
+            // Limpiar la sesión en caso de error
+            AuthService.clearAllStorages();
+            return;
+          }
+        }
+        else if (user.role === 'admin') {
+          console.log('Redirigiendo a vista de admin: /admin');
 
           if (isOpera) {
-            // En Opera, usar location.href para una redirección más fuerte
-            window.location.href = `/supervisor/${user.projectId}`;
+            window.location.href = '/admin';
           } else {
-            this.$router.push(`/supervisor/${user.projectId}`);
+            this.$router.push('/admin');
           }
-        } else {
-          console.error('Rol desconocido:', user.role);
         }
       } catch (error) {
         console.error('Error de autenticación:', error);

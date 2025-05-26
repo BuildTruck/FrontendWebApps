@@ -183,8 +183,6 @@
     "totalUsages": "Usage",
     "total": "Total",
     "date": "Date",
-    "documentType": "Document Type",
-    "documentNumber": "Document Number",
     "area": "Area / Zone",
     "worker": "Worker"
   },
@@ -194,10 +192,14 @@
     "projectName": "Project Name",
     "enterProjectName": "Enter Project Name",
     "projectStatus": "Project Status",
+    "noProjectsAvailable": "You don't have projects available",
+    "noProjects": "You haven't create a project.",
+    "createFirstProject": "Start to create your own projects!",
+    "createNewProject": "Create a new project",
     "status": {
       "inStudy": "In Study",
       "planned": "Planned",
-      "inProgress": "In Progress",
+      "inProgress": "Active",
       "completed": "Completed"
     },
     "location": "Location",
@@ -217,5 +219,90 @@
     "attendanceSummaryByProject": "Attendance Summary by Project",
     "projectsWithMostPersonnel": "Projects with Most Personnel",
     "absenteeismRate": "Absenteeism Rate"
+  },
+  "admin": {
+    "tabs": {
+      "dashboard": "Dashboard",
+      "usuarios": "Users",
+      "configuraciones": "Settings"
+    },
+    "dashboard": {
+      "welcome": "Welcome to Admin Panel",
+      "subtitle": "Manage users, projects and system settings",
+      "totalUsers": "Total Users",
+      "managers": "Managers",
+      "supervisors": "Supervisors",
+      "projects": "Projects",
+      "quickActions": "Quick Actions",
+      "manageUsers": "Manage Users",
+      "recentUsers": "Recent Users"
+    },
+    "users": {
+      "title": "User Management",
+      "createUser": "Create User",
+      "editUser": "Edit User",
+      "noUsers": "No users registered",
+      "confirmDelete": "Confirm deletion?",
+      "confirmDeleteMessage": "Are you sure you want to delete this user?",
+      "table": {
+        "user": "User",
+        "email": "Email",
+        "role": "Role",
+        "created": "Created",
+        "actions": "Actions"
+      },
+      "roles": {
+        "admin": "Administrator",
+        "manager": "Manager",
+        "supervisor": "Supervisor"
+      },
+      "form": {
+        "email": "Corporate Email",
+        "emailPlaceholder": "user@buildtruck.com",
+        "password": "Password",
+        "passwordPlaceholder": "Enter a secure password",
+        "name": "First Name",
+        "namePlaceholder": "Enter first name",
+        "lastname": "Last Name",
+        "lastnamePlaceholder": "Enter last name",
+        "personalEmail": "Personal Email",
+        "personalEmailPlaceholder": "user@gmail.com",
+        "phone": "Phone",
+        "phonePlaceholder": "+51 999 999 999",
+        "role": "Role",
+        "selectRole": "Select a role"
+      },
+      "validation": {
+        "emailRequired": "Email is required",
+        "nameRequired": "First name is required",
+        "lastnameRequired": "Last name is required",
+        "passwordRequired": "Password is required",
+        "roleRequired": "Role is required"
+      },
+      "messages": {
+        "userCreated": "User created successfully",
+        "userUpdated": "User updated successfully",
+        "userDeleted": "User deleted successfully"
+      },
+      "errors": {
+        "loadUsers": "Error loading user list",
+        "saveUser": "Error saving user",
+        "deleteUser": "Error deleting user"
+      }
+    },
+    "actions": {
+      "loading": "Loading...",
+      "cancel": "Cancel",
+      "save": "Save",
+      "delete": "Delete",
+      "edit": "Edit",
+      "create": "Create",
+      "actions": "Actions",
+      "yes": "Yes",
+      "no": "No",
+      "confirm": "Confirm",
+      "close": "Close",
+      "search": "Search by name, email, role or phone..."
+    }
   }
 }

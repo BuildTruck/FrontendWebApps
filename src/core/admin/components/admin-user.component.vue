@@ -488,6 +488,20 @@ export default {
                 {{ modalMode === 'create' ? 'Se generará automáticamente' : 'Email corporativo actual' }}
               </small>
             </div>
+
+            <app-input
+                v-if="modalMode === 'create'"
+                v-model="currentUser.password"
+                :label="$t('admin.users.form.password')"
+                type="password"
+                :placeholder="$t('admin.users.form.passwordPlaceholder')"
+                :error="errors.password"
+                :disabled="isSubmitting"
+                required
+                full-width
+            />
+
+
           </div>
         </div>
 

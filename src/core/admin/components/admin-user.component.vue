@@ -509,6 +509,15 @@ export default {
                 required
                 full-width
             />
+            <app-input
+                v-model="currentUser.lastName"
+                :label="$t('admin.users.form.lastname')"
+                :placeholder="$t('admin.users.form.lastnamePlaceholder')"
+                :error="errors.lastName"
+                :disabled="isSubmitting"
+                required
+                full-width
+            />
 
           </div>
         </div>

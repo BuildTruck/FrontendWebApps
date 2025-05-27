@@ -466,7 +466,6 @@ export default {
           <button class="modal-close" @click="closeModal">×</button>
         </div>
         <div class="modal-body">
-          <!-- 🔍 TEST 2: Un solo AppInput -->
           <app-input
               v-model="currentUser.name"
               label="Nombre"
@@ -474,8 +473,17 @@ export default {
               full-width
           />
 
-          <!-- Mantén un input HTML normal para comparar -->
-          <input type="text" placeholder="Test HTML input" style="width: 100%; margin: 10px 0; padding: 8px;" />
+          <app-input
+              v-model="currentUser.lastName"
+              label="Apellido"
+              placeholder="Ingresa el apellido"
+              full-width
+          />
+
+          <!-- 🔍 TEST 3: emailPreview (sospechoso principal) -->
+          <div style="background: #f0f0f0; padding: 10px; margin: 10px 0;">
+            <strong>Email Preview:</strong> {{ emailPreview }}
+          </div>
         </div>
         <div class="modal-footer">
           <button @click="closeModal" style="padding: 10px 20px; margin: 5px;">Cancelar</button>

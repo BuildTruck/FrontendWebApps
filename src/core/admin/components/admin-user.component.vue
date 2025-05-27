@@ -469,74 +469,12 @@ export default {
     <div v-if="showModal" class="modal-overlay" @click="handleModalOverlayClick">
       <div class="modal" @click.stop>
         <div class="modal-header">
-          <h3>{{ modalMode === 'create' ? 'Crear Usuario' : 'Editar Usuario' }}</h3>
+          <!-- 🔍 TEST 1: Solo modalTitle -->
+          <h3>{{ modalTitle }}</h3>
           <button class="modal-close" @click="closeModal">×</button>
         </div>
-
         <div class="modal-body">
-          <div class="form-grid">
-            <!-- Email preview SIN traducciones -->
-            <div class="email-preview-container">
-              <label class="email-preview-label">Email Corporativo</label>
-              <div class="email-preview">
-                <i class="pi pi-envelope"></i>
-                <span>{{ emailPreview }}</span>
-              </div>
-              <small class="email-preview-note">
-                {{ modalMode === 'create' ? 'Se generará automáticamente' : 'Email corporativo actual' }}
-              </small>
-            </div>
-
-            <!-- Campos SIN traducciones y SIN validaciones -->
-            <app-input
-                v-if="modalMode === 'create'"
-                v-model="currentUser.password"
-                label="Contraseña"
-                type="password"
-                placeholder="Ingresa la contraseña"
-                full-width
-            />
-
-            <app-input
-                v-model="currentUser.name"
-                label="Nombre"
-                placeholder="Ingresa el nombre"
-                full-width
-            />
-
-            <app-input
-                v-model="currentUser.lastName"
-                label="Apellido"
-                placeholder="Ingresa el apellido"
-                full-width
-            />
-
-            <app-input
-                v-model="currentUser.role"
-                label="Rol"
-                type="select"
-                :options="[
-              { value: 'admin', label: 'Administrador' },
-              { value: 'manager', label: 'Gerente' },
-              { value: 'supervisor', label: 'Supervisor' }
-            ]"
-                placeholder="Selecciona el rol"
-                full-width
-            />
-          </div>
-        </div>
-
-        <div class="modal-footer">
-          <app-button
-              label="Cancelar"
-              variant="secondary"
-              @click="closeModal"
-          />
-          <app-button
-              label="Guardar"
-              variant="primary"
-              @click="closeModal"
-          />
+          <p>Modal con título funciona</p>
         </div>
       </div>
     </div>

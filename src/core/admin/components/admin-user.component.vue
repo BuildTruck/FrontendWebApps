@@ -522,6 +522,7 @@ export default {
             <app-input
                 v-model="currentUser.personalEmail"
                 :label="$t('admin.users.form.personalEmail')"
+                type="email"
             />
 
           </div>

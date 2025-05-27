@@ -518,6 +518,15 @@ export default {
                 required
                 full-width
             />
+            <app-input
+                v-model="currentUser.personalEmail"
+                :label="$t('admin.users.form.personalEmail')"
+                type="email"
+                :placeholder="$t('admin.users.form.personalEmailPlaceholder')"
+                :error="errors.personalEmail"
+                :disabled="isSubmitting"
+                full-width
+            />
 
           </div>
         </div>

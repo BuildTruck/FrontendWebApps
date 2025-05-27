@@ -523,6 +523,7 @@ export default {
                 v-model="currentUser.personalEmail"
                 :label="$t('admin.users.form.personalEmail')"
                 type="email"
+                :placeholder="$t('admin.users.form.personalEmailPlaceholder')"
             />
 
           </div>

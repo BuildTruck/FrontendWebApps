@@ -495,37 +495,66 @@ export default {
                 :label="$t('admin.users.form.password')"
                 type="password"
                 :placeholder="$t('admin.users.form.passwordPlaceholder')"
-                :error="errors.password"
+                :error="errors.password || ''"
                 :disabled="isSubmitting"
                 required
-                full-width
+                :fullWidth="true"
             />
+
+            <!-- Name -->
             <app-input
                 v-model="currentUser.name"
                 :label="$t('admin.users.form.name')"
                 :placeholder="$t('admin.users.form.namePlaceholder')"
-                :error="errors.name"
+                :error="errors.name || ''"
                 :disabled="isSubmitting"
                 required
-                full-width
+                :fullWidth="true"
             />
+
+            <!-- LastName -->
             <app-input
                 v-model="currentUser.lastName"
                 :label="$t('admin.users.form.lastname')"
                 :placeholder="$t('admin.users.form.lastnamePlaceholder')"
-                :error="errors.lastName"
+                :error="errors.lastName || ''"
                 :disabled="isSubmitting"
                 required
-                full-width
+                :fullWidth="true"
             />
+
+            <!-- Personal Email -->
             <app-input
                 v-model="currentUser.personalEmail"
                 :label="$t('admin.users.form.personalEmail')"
                 type="email"
                 :placeholder="$t('admin.users.form.personalEmailPlaceholder')"
-                :error="errors.personalEmail"
+                :error="errors.personalEmail || ''"
                 :disabled="isSubmitting"
-                full-width
+                :fullWidth="true"
+            />
+
+            <!-- Phone -->
+            <app-input
+                v-model="currentUser.phone"
+                :label="$t('admin.users.form.phone')"
+                type="tel"
+                :placeholder="$t('admin.users.form.phonePlaceholder')"
+                :disabled="isSubmitting"
+                :fullWidth="true"
+            />
+
+            <!-- Role -->
+            <app-input
+                v-model="currentUser.role"
+                :label="$t('admin.users.form.role')"
+                type="select"
+                :options="roleOptions"
+                :placeholder="$t('admin.users.form.selectRole')"
+                :error="errors.role || ''"
+                :disabled="isSubmitting"
+                required
+                :fullWidth="true"
             />
 
           </div>

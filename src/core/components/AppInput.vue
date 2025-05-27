@@ -22,10 +22,6 @@ export default {
     type: {
       type: String,
       default: 'text',
-      validator: (value) => [
-        'text', 'number', 'email', 'password', 'date',
-        'tel', 'url', 'search', 'textarea', 'select', 'file', 'photo'
-      ].includes(value)
     },
     required: {
       type: Boolean,

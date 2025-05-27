@@ -845,6 +845,7 @@ export default {
   gap: 1rem;
 }
 
+/*
 .form-grid .app-input-container:nth-child(2) {
   grid-column: 1 / -1;
 }
@@ -852,6 +853,7 @@ export default {
 .form-grid .app-input-container:last-child {
   grid-column: 1 / -1;
 }
+*/
 
 /* Email Preview Styles */
 .email-preview-container {

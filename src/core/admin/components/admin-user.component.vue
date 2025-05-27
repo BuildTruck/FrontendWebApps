@@ -525,6 +525,7 @@ export default {
                 :placeholder="$t('admin.users.form.personalEmailPlaceholder')"
                 :error="errors.personalEmail"
                 :disabled="isSubmitting"
+                required
                 full-width
             />
 

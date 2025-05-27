@@ -10,9 +10,9 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '18'  # o la versión que uses localmente
+          node-version: '20'
           cache: 'npm'
-      - run: npm ci  # ← ESTO FALTABA - instala dependencias
+      - run: npm ci
       - run: npm run build
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:

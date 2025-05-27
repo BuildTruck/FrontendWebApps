@@ -463,103 +463,62 @@ export default {
       <div class="modal" @click.stop>
         <div class="modal-header">
           <h3>{{ modalTitle }}</h3>
-          <button class="modal-close" @click="closeModal" :disabled="isSubmitting">
-            <i class="pi pi-times"></i>
-          </button>
+          <button class="modal-close" @click="closeModal">×</button>
         </div>
-
         <div class="modal-body">
-          <div class="form-grid">
-            <!-- Email Corporativo Preview (Solo lectura) -->
-            <div class="email-preview-container">
-              <label class="email-preview-label">{{ $t('admin.users.form.email') }}</label>
-              <div class="email-preview">
-                <i class="pi pi-envelope"></i>
-                <span>{{ emailPreview }}</span>
-              </div>
-              <small class="email-preview-note">
-                {{ modalMode === 'create' ? 'Se generará automáticamente' : 'Email corporativo actual' }}
-              </small>
+          <!-- Email Preview del modal original -->
+          <div class="email-preview-container">
+            <label class="email-preview-label">Email Corporativo</label>
+            <div class="email-preview">
+              <i class="pi pi-envelope"></i>
+              <span>{{ emailPreview }}</span>
             </div>
-
-            <app-input
-                v-if="modalMode === 'create'"
-                v-model="currentUser.password"
-                :label="$t('admin.users.form.password')"
-                type="password"
-                :placeholder="$t('admin.users.form.passwordPlaceholder')"
-                :error="errors.password"
-                :disabled="isSubmitting"
-                required
-                full-width
-            />
-
-            <app-input
-                v-model="currentUser.name"
-                :label="$t('admin.users.form.name')"
-                :placeholder="$t('admin.users.form.namePlaceholder')"
-                :error="errors.name"
-                :disabled="isSubmitting"
-                required
-                full-width
-            />
-
-            <app-input
-                v-model="currentUser.lastName"
-                :label="$t('admin.users.form.lastname')"
-                :placeholder="$t('admin.users.form.lastnamePlaceholder')"
-                :error="errors.lastName"
-                :disabled="isSubmitting"
-                required
-                full-width
-            />
-
-            <app-input
-                v-model="currentUser.personalEmail"
-                :label="$t('admin.users.form.personalEmail')"
-                type="email"
-                :placeholder="$t('admin.users.form.personalEmailPlaceholder')"
-                :error="errors.personalEmail"
-                :disabled="isSubmitting"
-                full-width
-            />
-
-            <app-input
-                v-model="currentUser.phone"
-                :label="$t('admin.users.form.phone')"
-                type="tel"
-                :placeholder="$t('admin.users.form.phonePlaceholder')"
-                :disabled="isSubmitting"
-                full-width
-            />
-
-            <app-input
-                v-model="currentUser.role"
-                :label="$t('admin.users.form.role')"
-                type="select"
-                :options="roleOptions"
-                :placeholder="$t('admin.users.form.selectRole')"
-                :error="errors.role"
-                :disabled="isSubmitting"
-                required
-                full-width
-            />
+            <small class="email-preview-note">
+              {{ modalMode === 'create' ? 'Se generará automáticamente' : 'Email corporativo actual' }}
+            </small>
           </div>
-        </div>
 
+          <!-- Password field (solo en modo crear) -->
+          <app-input
+              v-if="modalMode === 'create'"
+              v-model="currentUser.password"
+              label="Contraseña"
+              type="password"
+              placeholder="Ingresa la contraseña"
+              required
+              full-width
+          />
+
+          <app-input
+              v-model="currentUser.name"
+              label="Nombre"
+              placeholder="Ingresa el nombre"
+              required
+              full-width
+          />
+
+          <app-input
+              v-model="currentUser.lastName"
+              label="Apellido"
+              placeholder="Ingresa el apellido"
+              required
+              full-width
+          />
+
+          <!-- 🔍 TEST 4: roleOptions (otro computed sospechoso) -->
+          <app-input
+              v-model="currentUser.role"
+              label="Rol"
+              type="select"
+              :options="roleOptions"
+              placeholder="Selecciona el rol"
+              required
+              full-width
+          />
+        </div>
         <div class="modal-footer">
-          <app-button
-              :label="$t('admin.actions.cancel')"
-              variant="secondary"
-              :disabled="isSubmitting"
-              @click="closeModal"
-          />
-          <app-button
-              :label="isSubmitting ? 'Guardando...' : $t('admin.actions.save')"
-              variant="primary"
-              :disabled="isSubmitting"
-              @click="saveUser"
-          />
+          <button @click="closeModal">Cancelar</button>
+          <button>Guardar</button>
         </div>
       </div>
     </div>

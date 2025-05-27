@@ -469,12 +469,41 @@ export default {
     <div v-if="showModal" class="modal-overlay" @click="handleModalOverlayClick">
       <div class="modal" @click.stop>
         <div class="modal-header">
-          <!-- 🔍 TEST 1: Solo modalTitle -->
           <h3>{{ modalTitle }}</h3>
-          <button class="modal-close" @click="closeModal">×</button>
+          <button class="modal-close" @click="closeModal" :disabled="isSubmitting">
+            <i class="pi pi-times"></i>
+          </button>
         </div>
+
         <div class="modal-body">
-          <p>Modal con título funciona</p>
+          <div class="form-grid">
+            <!-- Email Corporativo Preview (Solo lectura) -->
+            <div class="email-preview-container">
+              <label class="email-preview-label">{{ $t('admin.users.form.email') }}</label>
+              <div class="email-preview">
+                <i class="pi pi-envelope"></i>
+                <span>{{ emailPreview }}</span>
+              </div>
+              <small class="email-preview-note">
+                {{ modalMode === 'create' ? 'Se generará automáticamente' : 'Email corporativo actual' }}
+              </small>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <app-button
+              :label="$t('admin.actions.cancel')"
+              variant="secondary"
+              :disabled="isSubmitting"
+              @click="closeModal"
+          />
+          <app-button
+              :label="isSubmitting ? 'Guardando...' : $t('admin.actions.save')"
+              variant="primary"
+              :disabled="isSubmitting"
+              @click="saveUser"
+          />
         </div>
       </div>
     </div>

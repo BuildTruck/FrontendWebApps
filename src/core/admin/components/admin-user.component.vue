@@ -463,31 +463,103 @@ export default {
       <div class="modal" @click.stop>
         <div class="modal-header">
           <h3>{{ modalTitle }}</h3>
-          <button class="modal-close" @click="closeModal">×</button>
+          <button class="modal-close" @click="closeModal" :disabled="isSubmitting">
+            <i class="pi pi-times"></i>
+          </button>
         </div>
+
         <div class="modal-body">
-          <app-input
-              v-model="currentUser.name"
-              label="Nombre"
-              placeholder="Ingresa el nombre"
-              full-width
-          />
+          <div class="form-grid">
+            <!-- Email Corporativo Preview (Solo lectura) -->
+            <div class="email-preview-container">
+              <label class="email-preview-label">{{ $t('admin.users.form.email') }}</label>
+              <div class="email-preview">
+                <i class="pi pi-envelope"></i>
+                <span>{{ emailPreview }}</span>
+              </div>
+              <small class="email-preview-note">
+                {{ modalMode === 'create' ? 'Se generará automáticamente' : 'Email corporativo actual' }}
+              </small>
+            </div>
 
-          <app-input
-              v-model="currentUser.lastName"
-              label="Apellido"
-              placeholder="Ingresa el apellido"
-              full-width
-          />
+            <app-input
+                v-if="modalMode === 'create'"
+                v-model="currentUser.password"
+                :label="$t('admin.users.form.password')"
+                type="password"
+                :placeholder="$t('admin.users.form.passwordPlaceholder')"
+                :error="errors.password"
+                :disabled="isSubmitting"
+                required
+                full-width
+            />
 
-          <!-- 🔍 TEST 3: emailPreview (sospechoso principal) -->
-          <div style="background: #f0f0f0; padding: 10px; margin: 10px 0;">
-            <strong>Email Preview:</strong> {{ emailPreview }}
+            <app-input
+                v-model="currentUser.name"
+                :label="$t('admin.users.form.name')"
+                :placeholder="$t('admin.users.form.namePlaceholder')"
+                :error="errors.name"
+                :disabled="isSubmitting"
+                required
+                full-width
+            />
+
+            <app-input
+                v-model="currentUser.lastName"
+                :label="$t('admin.users.form.lastname')"
+                :placeholder="$t('admin.users.form.lastnamePlaceholder')"
+                :error="errors.lastName"
+                :disabled="isSubmitting"
+                required
+                full-width
+            />
+
+            <app-input
+                v-model="currentUser.personalEmail"
+                :label="$t('admin.users.form.personalEmail')"
+                type="email"
+                :placeholder="$t('admin.users.form.personalEmailPlaceholder')"
+                :error="errors.personalEmail"
+                :disabled="isSubmitting"
+                full-width
+            />
+
+            <app-input
+                v-model="currentUser.phone"
+                :label="$t('admin.users.form.phone')"
+                type="tel"
+                :placeholder="$t('admin.users.form.phonePlaceholder')"
+                :disabled="isSubmitting"
+                full-width
+            />
+
+            <app-input
+                v-model="currentUser.role"
+                :label="$t('admin.users.form.role')"
+                type="select"
+                :options="roleOptions"
+                :placeholder="$t('admin.users.form.selectRole')"
+                :error="errors.role"
+                :disabled="isSubmitting"
+                required
+                full-width
+            />
           </div>
         </div>
+
         <div class="modal-footer">
-          <button @click="closeModal" style="padding: 10px 20px; margin: 5px;">Cancelar</button>
-          <button style="padding: 10px 20px; margin: 5px; background: #FF5F01; color: white;">Guardar</button>
+          <app-button
+              :label="$t('admin.actions.cancel')"
+              variant="secondary"
+              :disabled="isSubmitting"
+              @click="closeModal"
+          />
+          <app-button
+              :label="isSubmitting ? 'Guardando...' : $t('admin.actions.save')"
+              variant="primary"
+              :disabled="isSubmitting"
+              @click="saveUser"
+          />
         </div>
       </div>
     </div>

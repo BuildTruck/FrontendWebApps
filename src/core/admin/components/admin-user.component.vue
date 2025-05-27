@@ -525,7 +525,7 @@ export default {
                 v-model="currentUser.personalEmail"
                 :label="$t('admin.users.form.personalEmail')"
                 type="email"
-                :placeholder="$t('admin.users.form.personalEmailPlaceholder') || 'user@gmail.com'"
+                :placeholder="'user@gmail.com'"
                 :error="errors.personalEmail"
                 :disabled="isSubmitting"
                 full-width

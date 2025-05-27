@@ -462,12 +462,22 @@ export default {
     <div v-if="showModal" class="modal-overlay" @click="handleModalOverlayClick">
       <div class="modal" @click.stop>
         <div class="modal-header">
-          <h3>TEST MODAL</h3>
+          <h3>{{ modalTitle }}</h3>
           <button class="modal-close" @click="closeModal">×</button>
         </div>
         <div class="modal-body">
-          <p>Modal visible - Modo: {{ modalMode }}</p>
-          <p>Env: {{ $env || 'no env' }}</p>
+          <!-- 🔍 TEST 1: HTML inputs básicos -->
+          <input type="text" placeholder="Nombre" style="width: 100%; margin: 10px 0; padding: 8px;" />
+          <input type="text" placeholder="Apellido" style="width: 100%; margin: 10px 0; padding: 8px;" />
+          <select style="width: 100%; margin: 10px 0; padding: 8px;">
+            <option>admin</option>
+            <option>manager</option>
+            <option>supervisor</option>
+          </select>
+        </div>
+        <div class="modal-footer">
+          <button @click="closeModal" style="padding: 10px 20px; margin: 5px;">Cancelar</button>
+          <button style="padding: 10px 20px; margin: 5px; background: #FF5F01; color: white;">Guardar</button>
         </div>
       </div>
     </div>

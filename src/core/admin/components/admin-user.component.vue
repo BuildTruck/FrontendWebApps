@@ -500,6 +500,7 @@ export default {
                 required
                 full-width
             />
+
             <app-input
                 v-model="currentUser.name"
                 :label="$t('admin.users.form.name')"
@@ -509,6 +510,7 @@ export default {
                 required
                 full-width
             />
+
             <app-input
                 v-model="currentUser.lastName"
                 :label="$t('admin.users.form.lastname')"
@@ -523,12 +525,32 @@ export default {
                 v-model="currentUser.personalEmail"
                 :label="$t('admin.users.form.personalEmail')"
                 type="email"
-                placeholder="usuario@gmail.com"
+                :placeholder="$t('admin.users.form.personalEmailPlaceholder') || 'user@gmail.com'"
                 :error="errors.personalEmail"
                 :disabled="isSubmitting"
                 full-width
             />
 
+            <app-input
+                v-model="currentUser.phone"
+                :label="$t('admin.users.form.phone')"
+                type="tel"
+                :placeholder="$t('admin.users.form.phonePlaceholder')"
+                :disabled="isSubmitting"
+                full-width
+            />
+
+            <app-input
+                v-model="currentUser.role"
+                :label="$t('admin.users.form.role')"
+                type="select"
+                :options="roleOptions"
+                :placeholder="$t('admin.users.form.selectRole')"
+                :error="errors.role"
+                :disabled="isSubmitting"
+                required
+                full-width
+            />
           </div>
         </div>
 

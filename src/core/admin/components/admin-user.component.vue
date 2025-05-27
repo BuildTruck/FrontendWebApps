@@ -1,6 +1,6 @@
 <script>
 import { userService} from "../../services/user-api.service.js";
-import { adminService } from '../services/admin-api.service'
+import { adminService } from '../services/admin-api.service.js'
 import AppButton from '../../../core/components/AppButton.vue'
 import AppInput from '../../../core/components/AppInput.vue'
 import AppNotification from '../../../core/components/AppNotification.vue'
@@ -81,11 +81,11 @@ export default {
     getEmptyUser() {
       return {
         id: null,
-        email: '', // Se generará automáticamente
+        email: '',
         password: '',
         personalEmail: '',
         name: '',
-        lastName: '', // Usar camelCase consistentemente
+        lastName: '',
         phone: '',
         role: 'supervisor',
         permissions: []
@@ -124,14 +124,12 @@ export default {
     openEditModal(user) {
       if (this.isSubmitting) return
 
-      // Crear copia del usuario normalizando el campo lastName
       this.currentUser = {
         ...user,
-        // Asegurar que se use 'lastName' consistentemente
+
         lastName: user.lastName || user.lastname || ''
       }
 
-      // Limpiar cualquier campo lastname duplicado en minúscula
       if (this.currentUser.lastname) {
         delete this.currentUser.lastname
       }
@@ -158,7 +156,7 @@ export default {
     validateUser() {
       this.errors = {}
 
-      // Trimear valores para evitar espacios en blanco
+
       this.currentUser.name = this.currentUser.name?.trim() || ''
       this.currentUser.lastName = this.currentUser.lastName?.trim() || ''
       this.currentUser.personalEmail = this.currentUser.personalEmail?.trim() || ''
@@ -201,7 +199,7 @@ export default {
       try {
         this.isSubmitting = true
 
-        // Crear objeto limpio con solo los campos necesarios usando lastName
+
         const userData = {
           email: this.currentUser.email || '',
           personalEmail: this.currentUser.personalEmail || '',
@@ -241,7 +239,7 @@ export default {
       } catch (error) {
         console.error('Error guardando usuario:', error)
 
-        // Manejar errores específicos
+
         if (error.response?.data?.message) {
           this.showNotification(error.response.data.message, 'error')
         } else if (error.response?.status === 409) {
@@ -250,7 +248,6 @@ export default {
           this.showNotification(this.$t('admin.users.errors.saveUser'), 'error')
         }
 
-        // Resetear isSubmitting en caso de error también
         this.isSubmitting = false
       }
     },
@@ -306,7 +303,6 @@ export default {
     formatDate(dateString) {
       if (!dateString) return 'N/A'
 
-      // Crear fecha en zona horaria de Perú (GMT-5)
       const date = new Date(dateString)
       return date.toLocaleDateString('es-PE', {
         timeZone: 'America/Lima',
@@ -396,7 +392,7 @@ export default {
       </div>
     </div>
 
-    <!-- Loading State -->
+
     <div v-if="loading" class="loading-container">
       <i class="pi pi-spin pi-spinner"></i>
       <p>{{ $t('admin.actions.loading') }}</p>
@@ -466,109 +462,16 @@ export default {
     <div v-if="showModal" class="modal-overlay" @click="handleModalOverlayClick">
       <div class="modal" @click.stop>
         <div class="modal-header">
-          <h3>{{ modalTitle }}</h3>
-          <button class="modal-close" @click="closeModal" :disabled="isSubmitting">
-            <i class="pi pi-times"></i>
-          </button>
+          <h3>TEST MODAL</h3>
+          <button class="modal-close" @click="closeModal">×</button>
         </div>
-
         <div class="modal-body">
-          <div class="form-grid">
-            <!-- Email Corporativo Preview (Solo lectura) -->
-            <div class="email-preview-container">
-              <label class="email-preview-label">{{ $t('admin.users.form.email') }}</label>
-              <div class="email-preview">
-                <i class="pi pi-envelope"></i>
-                <span>{{ emailPreview }}</span>
-              </div>
-              <small class="email-preview-note">
-                {{ modalMode === 'create' ? 'Se generará automáticamente' : 'Email corporativo actual' }}
-              </small>
-            </div>
-
-            <app-input
-                v-if="modalMode === 'create'"
-                v-model="currentUser.password"
-                :label="$t('admin.users.form.password')"
-                type="password"
-                :placeholder="$t('admin.users.form.passwordPlaceholder')"
-                :error="errors.password"
-                :disabled="isSubmitting"
-                required
-                full-width
-            />
-
-            <app-input
-                v-model="currentUser.name"
-                :label="$t('admin.users.form.name')"
-                :placeholder="$t('admin.users.form.namePlaceholder')"
-                :error="errors.name"
-                :disabled="isSubmitting"
-                required
-                full-width
-            />
-
-            <app-input
-                v-model="currentUser.lastName"
-                :label="$t('admin.users.form.lastname')"
-                :placeholder="$t('admin.users.form.lastnamePlaceholder')"
-                :error="errors.lastName"
-                :disabled="isSubmitting"
-                required
-                full-width
-            />
-
-            <app-input
-                v-model="currentUser.personalEmail"
-                :label="$t('admin.users.form.personalEmail')"
-                type="email"
-                :placeholder="$t('admin.users.form.personalEmailPlaceholder')"
-                :error="errors.personalEmail"
-                :disabled="isSubmitting"
-                full-width
-            />
-
-            <app-input
-                v-model="currentUser.phone"
-                :label="$t('admin.users.form.phone')"
-                type="tel"
-                :placeholder="$t('admin.users.form.phonePlaceholder')"
-                :disabled="isSubmitting"
-                full-width
-            />
-
-            <app-input
-                v-model="currentUser.role"
-                :label="$t('admin.users.form.role')"
-                type="select"
-                :options="roleOptions"
-                :placeholder="$t('admin.users.form.selectRole')"
-                :error="errors.role"
-                :disabled="isSubmitting"
-                required
-                full-width
-            />
-          </div>
-        </div>
-
-        <div class="modal-footer">
-          <app-button
-              :label="$t('admin.actions.cancel')"
-              variant="secondary"
-              :disabled="isSubmitting"
-              @click="closeModal"
-          />
-          <app-button
-              :label="isSubmitting ? 'Guardando...' : $t('admin.actions.save')"
-              variant="primary"
-              :disabled="isSubmitting"
-              @click="saveUser"
-          />
+          <p>Modal visible - Modo: {{ modalMode }}</p>
+          <p>Env: {{ $env || 'no env' }}</p>
         </div>
       </div>
     </div>
 
-    <!-- Delete Confirmation -->
     <div v-if="deleteConfirm.visible" class="modal-overlay" @click="closeDeleteConfirm">
       <div class="modal confirm-modal" @click.stop>
         <div class="modal-header">

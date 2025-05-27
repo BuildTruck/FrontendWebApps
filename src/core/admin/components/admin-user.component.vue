@@ -469,17 +469,15 @@ export default {
     <div v-if="showModal" class="modal-overlay" @click="handleModalOverlayClick">
       <div class="modal" @click.stop>
         <div class="modal-header">
-          <h3>{{ modalTitle }}</h3>
-          <button class="modal-close" @click="closeModal" :disabled="isSubmitting">
-            <i class="pi pi-times"></i>
-          </button>
+          <h3>{{ modalMode === 'create' ? 'Crear Usuario' : 'Editar Usuario' }}</h3>
+          <button class="modal-close" @click="closeModal">×</button>
         </div>
 
         <div class="modal-body">
           <div class="form-grid">
-            <!-- Email Corporativo Preview (Solo lectura) -->
+            <!-- Email preview SIN traducciones -->
             <div class="email-preview-container">
-              <label class="email-preview-label">{{ $t('admin.users.form.email') }}</label>
+              <label class="email-preview-label">Email Corporativo</label>
               <div class="email-preview">
                 <i class="pi pi-envelope"></i>
                 <span>{{ emailPreview }}</span>
@@ -489,66 +487,40 @@ export default {
               </small>
             </div>
 
+            <!-- Campos SIN traducciones y SIN validaciones -->
             <app-input
                 v-if="modalMode === 'create'"
                 v-model="currentUser.password"
-                :label="$t('admin.users.form.password')"
+                label="Contraseña"
                 type="password"
-                :placeholder="$t('admin.users.form.passwordPlaceholder')"
-                :error="errors.password"
-                :disabled="isSubmitting"
-                required
+                placeholder="Ingresa la contraseña"
                 full-width
             />
 
             <app-input
                 v-model="currentUser.name"
-                :label="$t('admin.users.form.name')"
-                :placeholder="$t('admin.users.form.namePlaceholder')"
-                :error="errors.name"
-                :disabled="isSubmitting"
-                required
+                label="Nombre"
+                placeholder="Ingresa el nombre"
                 full-width
             />
 
             <app-input
                 v-model="currentUser.lastName"
-                :label="$t('admin.users.form.lastname')"
-                :placeholder="$t('admin.users.form.lastnamePlaceholder')"
-                :error="errors.lastName"
-                :disabled="isSubmitting"
-                required
-                full-width
-            />
-
-            <app-input
-                v-model="currentUser.personalEmail"
-                :label="$t('admin.users.form.personalEmail')"
-                type="email"
-                :placeholder="$t('admin.users.form.personalEmailPlaceholder')"
-                :error="errors.personalEmail"
-                :disabled="isSubmitting"
-                full-width
-            />
-
-            <app-input
-                v-model="currentUser.phone"
-                :label="$t('admin.users.form.phone')"
-                type="tel"
-                :placeholder="$t('admin.users.form.phonePlaceholder')"
-                :disabled="isSubmitting"
+                label="Apellido"
+                placeholder="Ingresa el apellido"
                 full-width
             />
 
             <app-input
                 v-model="currentUser.role"
-                :label="$t('admin.users.form.role')"
+                label="Rol"
                 type="select"
-                :options="roleOptions"
-                :placeholder="$t('admin.users.form.selectRole')"
-                :error="errors.role"
-                :disabled="isSubmitting"
-                required
+                :options="[
+              { value: 'admin', label: 'Administrador' },
+              { value: 'manager', label: 'Gerente' },
+              { value: 'supervisor', label: 'Supervisor' }
+            ]"
+                placeholder="Selecciona el rol"
                 full-width
             />
           </div>
@@ -556,16 +528,14 @@ export default {
 
         <div class="modal-footer">
           <app-button
-              :label="$t('admin.actions.cancel')"
+              label="Cancelar"
               variant="secondary"
-              :disabled="isSubmitting"
               @click="closeModal"
           />
           <app-button
-              :label="isSubmitting ? 'Guardando...' : $t('admin.actions.save')"
+              label="Guardar"
               variant="primary"
-              :disabled="isSubmitting"
-              @click="saveUser"
+              @click="closeModal"
           />
         </div>
       </div>

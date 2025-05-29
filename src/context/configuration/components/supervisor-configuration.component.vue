@@ -3,7 +3,7 @@ import AppInput from "../../../core/components/AppInput.vue"
 import AppButton from "../../../core/components/AppButton.vue"
 import { AuthService } from "../../../auth/services/auth-api.service.js"
 import { Configuration } from "../models/configuration.entity.js"
-import { ConfigurationService } from "../services/configuration-api.service.js"
+import { configurationService } from "../services/configuration-api.service.js"
 import AppNotification from "../../../core/components/AppNotification.vue"
 
 export default {

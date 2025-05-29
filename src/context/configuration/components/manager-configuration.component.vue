@@ -1,13 +1,14 @@
 <script>
-import AppButton from "../../../core/components/AppButton.vue";
+import { createApp } from 'vue';
 import AppInput from "../../../core/components/AppInput.vue";
-import {Configuration} from "../models/configuration.entity.js";
-import {AuthService} from "../../../auth/services/auth-api.service.js";
-import {ManagerService} from "../../manager/services/manager-api.service.js";
-import AppNotification from "../../../core/components/AppNotification.vue"
+import AppButton from "../../../core/components/AppButton.vue";
+import AppNotification from "../../../core/components/AppNotification.vue";
+import { AuthService } from "../../../auth/services/auth-api.service.js";
+import { configurationService } from "../services/configuration-api.service.js";
+import { Configuration } from "../models/configuration.entity.js";
 
 export default {
-  name: 'manager-configuration.component',
+  name: "SupervisorConfigurationComponent",
   components: {
     AppInput,
     AppButton,
@@ -16,6 +17,7 @@ export default {
   data() {
     return {
       settings: new Configuration(),
+      originalSettings: new Configuration(),
       loading: false,
       notification: {
         show: false,
@@ -26,39 +28,47 @@ export default {
     }
   },
   mounted() {
-    const user = AuthService.getCurrentUser()
-    if (user?.settings) {
-      this.settings = new Configuration(user.settings)
-    }
+    this.loadUserSettings();
   },
   methods: {
-
+    async loadUserSettings() {
+      const user = AuthService.getCurrentUser();
+      if (user?.settings) {
+        const config = new Configuration(user.settings);
+        this.settings = config;
+        this.originalSettings = new Configuration(config.toJSON());
+        this.isDarkMode = config.theme === 'dark';
+        this.updateBodyClass();
+      }
+    },
+    updateBodyClass() {
+      document.body.className = this.isDarkMode ? 'dark-mode' : 'light-mode';
+    },
     async saveConfig() {
       try {
-        this.loading = true
-        const user = AuthService.getCurrentUser()
-        const managerService = new ManagerService()
-
-        await managerService.update(user.id, {
-          ...user,
-          settings: this.settings.toJSON()
-        })
-
-        // Actualizar en sessionStorage también
+        this.loading = true;
+        const user = AuthService.getCurrentUser();
+        if (!user || !user.id) {
+          throw new Error('User not found or invalid user ID');
+        }
+        const settings = this.settings.toJSON();
+        settings.user_id = user.id; // Ensure user_id is included
+        await configurationService.updateSettings(user.id, settings);
         const updatedUser = {
           ...user,
-          settings: this.settings.toJSON()
-        }
-        sessionStorage.setItem('user', JSON.stringify(updatedUser))
-
-        this.showNotification("Configuración actualizada correctamente.", "success", true);
+          settings: this.settings.toJSON(),
+        };
+        sessionStorage.setItem("user", JSON.stringify(updatedUser));
+        this.showNotification(this.$t("settings.updated"), "success", true);
       } catch (err) {
-        console.error("Error al actualizar configuración", err)
-        // Reemplaza el alert con showNotification
-        this.showNotification("Hubo un error al guardar los cambios.", "error", false);
+        console.error("Error updating configuration", err);
+        this.showNotification(this.$t("settings.updateError"), "error", false);
       } finally {
-        this.loading = false
+        this.loading = false;
       }
+    },
+    cancelChanges() {
+      this.settings = new Configuration(this.originalSettings.toJSON());
     },
     showNotification(message, type = 'success', autoClose = true) {
       this.notification = {
@@ -66,26 +76,14 @@ export default {
         message,
         type,
         autoClose
-      }
-    },
+      };
+    }
   }
 }
 </script>
 
 <template>
   <div class="config-form">
-    <AppInput
-        v-model="settings.language"
-        type="select"
-        :label="$t('settings.language')"
-        :options="[
-        { label: $t('settings.languages.spanish'), value: 'es' },
-        { label: $t('settings.languages.english'), value: 'en' }
-      ]"
-        :placeholder="$t('settings.selectLanguage')"
-        fullWidth
-    />
-
     <AppInput
         v-model="settings.theme"
         type="select"
@@ -94,7 +92,7 @@ export default {
         { label: $t('settings.themes.light'), value: 'light' },
         { label: $t('settings.themes.dark'), value: 'dark' }
       ]"
-        :placeholder="$t('settings.selectTheme')"
+        :placeholder="$t('general.select')"
         fullWidth
     />
 
@@ -104,9 +102,34 @@ export default {
         :label="$t('settings.plan')"
         :options="[
         { label: $t('settings.plans.basic'), value: 'basic' },
-        { label: $t('settings.plans.business'), value: 'empresarial' }
+        { label: $t('settings.plans.business'), value: 'business' }
       ]"
-        :placeholder="$t('settings.selectPlan')"
+        :placeholder="$t('general.select')"
+        :disabled="true"
+        fullWidth
+    />
+
+    <AppInput
+        v-model="settings.notifications_enable"
+        type="select"
+        :label="$t('settings.notifications')"
+        :options="[
+        { label: $t('general.yes'), value: 'true' },
+        { label: $t('general.no'), value: 'false' }
+      ]"
+        :placeholder="$t('general.select')"
+        fullWidth
+    />
+
+    <AppInput
+        v-model="settings.email_notifications"
+        type="select"
+        :label="$t('settings.emailNotifications')"
+        :options="[
+        { label: $t('general.yes'), value: 'true' },
+        { label: $t('general.no'), value: 'false' }
+      ]"
+        :placeholder="$t('general.select')"
         fullWidth
     />
 
@@ -123,6 +146,7 @@ export default {
           @click="cancelChanges"
       />
     </div>
+
     <AppNotification
         v-model="notification.show"
         :message="notification.message"
@@ -136,13 +160,12 @@ export default {
 <style scoped>
 .config-form {
   max-width: 600px;
-  margin-left: 80px; /* mueve hacia la izquierda */
+  margin-left: 80px;
   margin-top: 60px;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
 }
-
 
 .actions {
   display: flex;

@@ -11,6 +11,8 @@
     "noResults": "No results found",
     "yes": "Yes",
     "no": "No",
+    "select": "Select an option",
+    "understood": "Understood",
     "confirm": "Confirm",
     "actions": "Actions",
     "close": "Close",
@@ -48,7 +50,6 @@
     "language": "Language",
     "theme": "Display mode",
     "plan": "Plan",
-    "selectLanguage": "Select a language",
     "selectTheme": "Select a theme",
     "selectPlan": "Select a plan",
     "languages": {
@@ -62,8 +63,15 @@
     "plans": {
       "basic": "Basic",
       "business": "Business"
-    }
+    },
+    "notifications": "Allow notifications",
+    "emailNotifications": "Notify by email",
+    "updated": "Settings updated successfully.",
+    "updateError": "There was an error saving your changes."
   },
+
+
+
   "profile": {
     "profilePhoto": "Profile photo",
     "editProfile": "Edit profile",

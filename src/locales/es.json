@@ -11,6 +11,8 @@
     "noResults": "No se encontraron resultados",
     "yes": "Sí",
     "no": "No",
+    "select": "Selecciona una opción",
+    "understood": "Entendido",
     "confirm": "Confirmar",
     "actions": "Acciones",
     "close": "Cerrar",
@@ -48,7 +50,6 @@
     "language": "Idioma",
     "theme": "Modo de visualización",
     "plan": "Plan",
-    "selectLanguage": "Selecciona un idioma",
     "selectTheme": "Selecciona un tema",
     "selectPlan": "Selecciona un plan",
     "languages": {
@@ -62,8 +63,15 @@
     "plans": {
       "basic": "Básico",
       "business": "Empresarial"
-    }
+    },
+    "notifications": "Permitir notificaciones",
+    "emailNotifications": "Notificar por correo",
+    "updated": "Configuración actualizada correctamente.",
+    "updateError": "Hubo un error al guardar los cambios."
   },
+
+
+
   "profile": {
     "profilePhoto": "Foto de perfil",
     "editProfile": "Editar perfil",

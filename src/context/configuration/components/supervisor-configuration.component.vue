@@ -1,10 +1,10 @@
 <script>
-import AppInput from "../../../core/components/AppInput.vue"
-import AppButton from "../../../core/components/AppButton.vue"
-import { AuthService } from "../../../auth/services/auth-api.service.js"
-import { Configuration } from "../models/configuration.entity.js"
-import { configurationService } from "../services/configuration-api.service.js"
-import AppNotification from "../../../core/components/AppNotification.vue"
+import AppInput from "../../../core/components/AppInput.vue";
+import AppButton from "../../../core/components/AppButton.vue";
+import AppNotification from "../../../core/components/AppNotification.vue";
+import { AuthService } from "../../../auth/services/auth-api.service.js";
+import { configurationService } from "../services/configuration-api.service.js";
+import { Configuration } from "../models/configuration.entity.js";
 
 export default {
   name: "SupervisorConfigurationComponent",
@@ -24,42 +24,56 @@ export default {
         type: 'success',
         autoClose: true
       }
-    }
+    };
   },
   mounted() {
-    const user = AuthService.getCurrentUser()
-    if (user?.settings) {
-      const config = new Configuration(user.settings)
-      this.settings = config
-      this.originalSettings = new Configuration(config.toJSON())
-    }
+    this.loadUserSettings();
   },
   methods: {
+    async loadUserSettings() {
+      const user = AuthService.getCurrentUser();
+      if (user?.settings) {
+        const config = new Configuration(user.settings);
+        this.settings = config;
+        this.originalSettings = new Configuration(config.toJSON());
+        this.isDarkMode = config.theme === 'dark';
+        this.updateBodyClass();
+      }
+    },
+    updateBodyClass() {
+      document.body.className = this.isDarkMode ? 'dark-mode' : 'light-mode';
+    },
     async saveConfig() {
       try {
-        this.loading = true
-        const user = AuthService.getCurrentUser()
+        this.loading = true;
+        const user = AuthService.getCurrentUser();
+        if (!user || !user.id) {
+          throw new Error('User not found or invalid user ID');
+        }
+        const { theme, notifications_enable, email_notifications } = this.settings;
+        const settings = {
+          user_id: user.id,
+          theme,
+          notifications_enable,
+          email_notifications
+        };
+        await configurationService.updateSettings(user.id, settings);
 
-        await ConfigurationService.updateSettings(user.id, this.settings)
-
-        // Actualizar sessionStorage
         const updatedUser = {
           ...user,
-          settings: this.settings.toJSON()
-        }
-        sessionStorage.setItem("user", JSON.stringify(updatedUser))
-
-        this.showNotification("Configuración actualizada correctamente.", "success", true);
+          settings: this.settings.toJSON(),
+        };
+        sessionStorage.setItem("user", JSON.stringify(updatedUser));
+        this.showNotification(this.$t("settings.updated"), "success", true);
       } catch (err) {
-        console.error("Error al actualizar configuración", err)
-        // Reemplaza el alert con showNotification
-        this.showNotification("Hubo un error al guardar los cambios.", "error", false);
+        console.error("Error updating configuration", err);
+        this.showNotification(this.$t("settings.updateError"), "error", false);
       } finally {
-        this.loading = false
+        this.loading = false;
       }
     },
     cancelChanges() {
-      this.settings = new Configuration(this.originalSettings.toJSON())
+      this.settings = new Configuration(this.originalSettings.toJSON());
     },
     showNotification(message, type = 'success', autoClose = true) {
       this.notification = {
@@ -67,26 +81,14 @@ export default {
         message,
         type,
         autoClose
-      }
-    },
+      };
+    }
   }
-}
+};
 </script>
 
 <template>
   <div class="config-form">
-    <AppInput
-        v-model="settings.language"
-        type="select"
-        :label="$t('settings.language')"
-        :options="[
-        { label: $t('settings.languages.spanish'), value: 'es' },
-        { label: $t('settings.languages.english'), value: 'en' }
-      ]"
-        :placeholder="$t('settings.selectLanguage')"
-        fullWidth
-    />
-
     <AppInput
         v-model="settings.theme"
         type="select"
@@ -95,19 +97,31 @@ export default {
         { label: $t('settings.themes.light'), value: 'light' },
         { label: $t('settings.themes.dark'), value: 'dark' }
       ]"
-        :placeholder="$t('settings.selectTheme')"
+        :placeholder="$t('general.select')"
         fullWidth
     />
 
     <AppInput
-        v-model="settings.plan"
+        v-model="settings.notifications_enable"
         type="select"
-        :label="$t('settings.plan')"
+        :label="$t('settings.notifications')"
         :options="[
-        { label: $t('settings.plans.basic'), value: 'basic' },
-        { label: $t('settings.plans.business'), value: 'empresarial' }
+        { label: $t('general.yes'), value: 'true' },
+        { label: $t('general.no'), value: 'false' }
       ]"
-        :placeholder="$t('settings.selectPlan')"
+        :placeholder="$t('general.select')"
+        fullWidth
+    />
+
+    <AppInput
+        v-model="settings.email_notifications"
+        type="select"
+        :label="$t('settings.emailNotifications')"
+        :options="[
+        { label: $t('general.yes'), value: 'true' },
+        { label: $t('general.no'), value: 'false' }
+      ]"
+        :placeholder="$t('general.select')"
         fullWidth
     />
 
@@ -124,6 +138,7 @@ export default {
           @click="cancelChanges"
       />
     </div>
+
     <AppNotification
         v-model="notification.show"
         :message="notification.message"
@@ -146,8 +161,7 @@ export default {
 
 .actions {
   display: flex;
-  justify-content: flex-start;
+  justify-content: flex-end;
   gap: 1rem;
-  margin-top: 1rem;
 }
 </style>

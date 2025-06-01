@@ -5,7 +5,8 @@ import PrimeVue from 'primevue/config'
 
 import i18n from "./i18n.js"
 import router from './router'
-
+import { jsPDF } from 'jspdf'
+import * as XLSX from 'xlsx';
 
 // PrimeVue Styles
 import 'primeicons/primeicons.css';
@@ -106,7 +107,8 @@ app.use(PrimeVue)
 app.use(i18n)
 app.use(ToastService)
 app.use(ConfirmationService)
-
+window.jsPDF = jsPDF
+window.XLSX = XLSX;
 // Form Components
 app.component('pv-input-text', InputText)
 app.component('pv-input-number', InputNumber)

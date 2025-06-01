@@ -105,7 +105,7 @@ export default {
       localSelection: [],
       filters: {},
       globalFilterValue: '',
-      selectEnabled: false,
+      selectEnabled: false, // ✅ SIEMPRE inicia en false
       showFilterMenu: false,
       filterMatchMode: 'contains',
       filterRules: [],
@@ -116,7 +116,7 @@ export default {
   created() {
     this.initFilters();
     this.syncSelection();
-    this.localRows = this.rows; // Asegurar que se inicialice correctamente
+    this.localRows = this.rows;
     document.addEventListener('click', this.handleOutsideClick);
   },
   beforeUnmount() {
@@ -130,14 +130,17 @@ export default {
       deep: true,
       immediate: true
     },
+    // ✅ CORREGIDO: No activar selección automáticamente
     selectable: {
       handler(newValue) {
-        this.selectEnabled = newValue;
-        if (!newValue) {
+        // NO cambiar selectEnabled automáticamente
+        // Solo limpiar selección si se desactiva
+        if (!newValue && this.selectEnabled) {
           this.clearSelection();
+          this.selectEnabled = false;
         }
       },
-      immediate: true
+      immediate: false // ✅ Cambiar a false
     },
     rows: {
       handler(newValue) {
@@ -272,7 +275,6 @@ export default {
     updateFilterRule(index, field, value) {
       if (this.filterRules[index]) {
         this.filterRules[index][field] = value;
-        // NO aplicar filtros automáticamente, solo cuando el usuario lo decida
       }
     },
 
@@ -310,9 +312,8 @@ export default {
     },
 
     onRowClick(event) {
-      if (!this.selectEnabled) {
-        this.$emit('row-click', event);
-      }
+      // ✅ CORREGIDO: Permitir click incluso con selección habilitada
+      this.$emit('row-click', event);
     },
 
     toggleSelectionMode() {
@@ -351,9 +352,7 @@ export default {
 
     // Paginación
     onRowsPerPageChange(event) {
-      // PrimeVue puede enviar el evento como objeto {value: X} o directamente el valor
       const newRows = event?.value !== undefined ? event.value : event;
-      console.log('🔄 Cambio de filas detectado:', newRows);
       this.localRows = newRows;
       this.$emit('update:rows', newRows);
     },
@@ -451,7 +450,7 @@ export default {
             <i class="pi pi-search" />
             <AppInput
                 v-model="globalFilterValue"
-                placeholder="Buscar"
+                :placeholder="$t('table.search')"
                 class="search-input"
                 @input="onGlobalFilterChange"
             />
@@ -460,14 +459,14 @@ export default {
 
         <!-- Selector de filas por página -->
         <div v-if="showRowsPerPageDropdown && paginator" class="rows-selector">
-          <label class="rows-label">Mostrar:</label>
+          <label class="rows-label">{{ $t('table.show') }}:</label>
           <Dropdown
               v-model="localRows"
               :options="rowsPerPageOptions"
               class="rows-dropdown"
               @change="onRowsPerPageChange"
           />
-          <span class="rows-label">filas</span>
+          <span class="rows-label">{{ $t('table.rows') }}</span>
         </div>
 
         <!-- Botones -->
@@ -477,7 +476,7 @@ export default {
             <AppButton
                 type="button"
                 icon="pi pi-filter"
-                label="Filtro"
+                :label="$t('table.filter')"
                 variant="primary"
                 size="small"
                 @click="toggleFilterMenu"
@@ -485,9 +484,9 @@ export default {
             <!-- Panel de filtros -->
             <div v-if="showFilterMenu" class="filter-panel" ref="filterMenu">
               <div class="filter-panel-header">
-                <span>Filtrar por</span>
+                <span>{{ $t('table.filterBy') }}</span>
                 <div class="filter-clear-btn" @click="clearAllFilters">
-                  <i class="pi pi-trash"></i> Limpiar filtros
+                  <i class="pi pi-trash"></i> {{ $t('table.clearFilters') }}
                 </div>
               </div>
 
@@ -495,13 +494,13 @@ export default {
                 <!-- Reglas de filtro -->
                 <div v-for="(rule, index) in filterRules" :key="index" class="filter-rule">
                   <div class="filter-row">
-                    <label class="filter-label">Campo:</label>
+                    <label class="filter-label">{{ $t('table.field') }}:</label>
                     <select
                         v-model="rule.field"
                         class="filter-select"
                         @change="updateFilterRule(index, 'field', $event.target.value)"
                     >
-                      <option value="" disabled>Seleccionar campo</option>
+                      <option value="" disabled>{{ $t('table.selectField') }}</option>
                       <option
                           v-for="col in filterableColumns"
                           :key="col.field"
@@ -514,22 +513,22 @@ export default {
 
                   <!-- Dentro del panel de filtros - Modo -->
                   <div class="filter-row">
-                    <label class="filter-label">Modo:</label>
+                    <label class="filter-label">{{ $t('table.mode') }}:</label>
                     <select
                         v-model="rule.mode"
                         class="filter-select"
                         @change="updateFilterRule(index, 'mode', $event.target.value)"
                     >
-                      <option value="Contains">Contiene</option>
-                      <option value="Starts with">Empieza con</option>
+                      <option value="Contains">{{ $t('table.contains') }}</option>
+                      <option value="Starts with">{{ $t('table.startsWith') }}</option>
                     </select>
                   </div>
 
                   <div class="filter-row">
-                    <label class="filter-label">Valor:</label>
+                    <label class="filter-label">{{ $t('table.value') }}:</label>
                     <AppInput
                         v-model="rule.value"
-                        :placeholder="'Buscar en ' + (filterableColumns.find(col => col.field === rule.field)?.header || 'campo')"
+                        :placeholder="$t('table.searchIn') + ' ' + (filterableColumns.find(col => col.field === rule.field)?.header || $t('table.field').toLowerCase())"
                         class="filter-input"
                         @input="updateFilterRule(index, 'value', $event.target.value)"
                     />
@@ -537,23 +536,23 @@ export default {
 
                   <div class="filter-actions">
                     <div class="remove-rule" @click="removeFilterRule(index)">
-                      <i class="pi pi-trash"></i> Quitar regla
+                      <i class="pi pi-trash"></i> {{ $t('table.removeRule') }}
                     </div>
                   </div>
                 </div>
 
                 <!-- Botón para agregar regla -->
                 <div class="add-rule" @click="addFilterRule">
-                  <i class="pi pi-plus"></i> Agregar regla
+                  <i class="pi pi-plus"></i> {{ $t('table.addRule') }}
                 </div>
               </div>
 
               <div class="filter-panel-footer">
                 <div class="filter-footer-actions">
-                  <button class="btn-cancel" @click="showFilterMenu = false" title="Cerrar sin aplicar">
+                  <button class="btn-cancel" @click="showFilterMenu = false" :title="$t('table.closeWithoutApplying')">
                     <i class="pi pi-times"></i>
                   </button>
-                  <button class="btn-apply" @click="applyFilters" title="Aplicar filtros">
+                  <button class="btn-apply" @click="applyFilters" :title="$t('table.applyFilters')">
                     <i class="pi pi-check"></i>
                   </button>
                 </div>
@@ -577,7 +576,7 @@ export default {
                 v-if="!selectEnabled"
                 type="button"
                 icon="pi pi-check-square"
-                label="Seleccionar"
+                :label="$t('table.select')"
                 variant="secondary"
                 size="small"
                 @click="toggleSelectionMode"
@@ -586,7 +585,7 @@ export default {
               <AppButton
                   type="button"
                   icon="pi pi-times-circle"
-                  label="Cancelar"
+                  :label="$t('table.cancel')"
                   variant="secondary"
                   size="small"
                   @click="toggleSelectionMode"
@@ -595,7 +594,7 @@ export default {
                   v-if="localSelection && localSelection.length > 0"
                   type="button"
                   icon="pi pi-trash"
-                  :label="`Eliminar (${localSelection.length})`"
+                  :label="`${$t('table.delete')} (${localSelection.length})`"
                   variant="danger"
                   size="small"
                   @click="handleDelete"
@@ -642,7 +641,7 @@ export default {
                   'custom-checkbox-indeterminate': isIndeterminate
                 }"
                 @click="toggleSelectAll"
-                :title="isAllSelected ? 'Deseleccionar todo' : 'Seleccionar todo'"
+                :title="isAllSelected ? $t('table.deselectAll') : $t('table.selectAll')"
             >
               <i v-if="isAllSelected" class="pi pi-check"></i>
               <i v-else-if="isIndeterminate" class="pi pi-minus"></i>
@@ -666,13 +665,13 @@ export default {
       <template #empty>
         <div class="empty-state">
           <i class="pi pi-info-circle empty-icon"></i>
-          <p>No hay datos disponibles</p>
+          <p>{{ $t('table.noDataAvailable') }}</p>
         </div>
       </template>
       <template #loading>
         <div class="loading-state">
           <i class="pi pi-spin pi-spinner loading-icon"></i>
-          <p>Cargando datos. Por favor espere...</p>
+          <p>{{ $t('table.loadingData') }}</p>
         </div>
       </template>
 
@@ -763,7 +762,7 @@ export default {
           <AppButton
               type="button"
               icon="pi pi-plus"
-              label="Añadir"
+              :label="$t('table.add')"
               variant="primary"
               @click="handleAdd"
           />

@@ -1,272 +1,309 @@
+<template>
+  <div class="personnel-manager">
+    <div class="page-header">
+      <h2>Gestión de Personal</h2>
+      <p class="page-description">Vista de solo lectura del personal registrado</p>
+    </div>
+
+    <app-table
+        :columns="columns"
+        :data="personnelList"
+        :loading="loading"
+        :paginator="true"
+        :rows="15"
+        :striped="true"
+        :show-gridlines="true"
+        :scrollable="true"
+        scroll-height="500px"
+        :show-export-button="true"
+        :show-filter-button="true"
+        :show-rows-per-page-dropdown="true"
+        :rows-per-page-options="[10, 15, 25, 50]"
+        :global-filter-fields="['nombre', 'dni', 'rol', 'estado']"
+        @export="handleExport"
+        @filter="handleFilter"
+    >
+      <template #empty>
+        <div class="empty-state">
+          <i class="pi pi-users empty-icon"></i>
+          <p>No hay personal registrado</p>
+        </div>
+      </template>
+    </app-table>
+
+    <!-- Notificación -->
+    <app-notification
+        v-model="notification.show"
+        :message="notification.message"
+        :type="notification.type"
+        :auto-close="true"
+        :duration="3000"
+    />
+  </div>
+</template>
+
 <script>
-import AppTable from '../../../core/components/AppTable.vue'
-import AppNotification from '../../../core/components/AppNotification.vue'
-import AppButton from '../../../core/components/AppButton.vue'
-import PersonnelForm from "./personnel-form.vue";
-import {personnelApiService} from "../services/personnel-api.service.js";
+import AppTable from "../../../core/components/AppTable.vue";
+import AppNotification from "../../../core/components/AppNotification.vue";
+import { PersonnelApiService} from "../services/personnel-api.service.js";
 
 export default {
   name: 'PersonnelManager',
   components: {
     AppTable,
-    AppNotification,
-    AppButton,
-    PersonnelForm
+    AppNotification
+  },
+  props: {
+    projectId: {
+      type: [String, Number],
+      default: null
+    }
   },
   data() {
     return {
-      inventory: [],
-      selectedPerson: null,
-      showForm: false,
-      isReadonly: true,
-      loading: {
-        inventory: false // Changed from `loading: false`
+      personnelList: [],
+      loading: false,
+      personnelService: new PersonnelApiService(),
+      notification: {
+        show: false,
+        message: '',
+        type: 'success'
       },
-      showNotification: false,
-      notificationMessage: '',
-      exportOptions: false,
-      selectedItems: []
-    }
-  },
-  computed: {
-    inventoryColumns() {
-      return [
-        {field: 'name', header: 'Nombre'},
-        {field: 'dni', header: 'DNI'},
-        {field: 'rol', header: 'Rol'},
-        {field: 'status', header: 'Estado'}
+      columns: [
+        {
+          field: 'avatar',
+          header: '',
+          sortable: false,
+          style: 'width: 60px; text-align: center;'
+        },
+        {
+          field: 'nombre',
+          header: 'Nombre',
+          sortable: true,
+          filterable: true,
+          style: 'min-width: 200px;'
+        },
+        {
+          field: 'dni',
+          header: 'DNI',
+          sortable: true,
+          filterable: true,
+          style: 'min-width: 120px;'
+        },
+        {
+          field: 'rol',
+          header: 'Rol',
+          sortable: true,
+          filterable: true,
+          style: 'min-width: 130px;'
+        },
+        {
+          field: 'estado',
+          header: 'Estado',
+          sortable: true,
+          filterable: true,
+          style: 'min-width: 120px;'
+        },
+        {
+          field: 'fechaIngreso',
+          header: 'Fecha Ingreso',
+          sortable: true,
+          dataType: 'date',
+          style: 'min-width: 130px;'
+        },
+        {
+          field: 'telefono',
+          header: 'Teléfono',
+          sortable: true,
+          style: 'min-width: 130px;'
+        },
+        {
+          field: 'correo',
+          header: 'Correo',
+          sortable: true,
+          style: 'min-width: 200px;'
+        }
       ]
-    },
+    };
   },
-  async created() {
-    await this.loadInventory()
+  async mounted() {
+    await this.loadPersonnel();
   },
   methods: {
-    async loadInventory() {
+    async loadPersonnel() {
       try {
-        this.loading.inventory = true
-        const user = JSON.parse(sessionStorage.getItem('user'))
-        this.inventory = await personnelApiService.getInventorySummary(user.projectId)
+        this.loading = true;
+
+        if (this.projectId) {
+          this.personnelList = await this.personnelService.getByProject(this.projectId);
+        } else {
+          this.personnelList = await this.personnelService.getAll();
+        }
+
+        // Procesar avatares para mostrar
+        this.personnelList = this.personnelList.map(person => ({
+          ...person,
+          avatarDisplay: this.getAvatarDisplay(person)
+        }));
+
       } catch (error) {
-        console.error('Error al cargar personal:', error)
-        this.showNotification = true
-        this.notificationMessage = 'Error al cargar personal'
+        console.error('Error al cargar personal:', error);
+        this.showNotification('Error al cargar la lista de personal', 'error');
       } finally {
-        this.loading.inventory = false
+        this.loading = false;
       }
     },
 
-    handleRowClick({ data }) {
-      this.selectedPerson = { ...data }
-      this.showForm = true
-      this.isReadonly = true
-    },
-
-    cancelView() {
-      this.showForm = false
-      this.selectedPerson = null
-      this.isReadonly = true
-    },
-
-    async handleUpdated(message = '') {
-      await this.loadInventory()
-      if (message) {
-        this.notificationMessage = message
-        this.showNotification = true
+    getAvatarDisplay(person) {
+      if (person.avatar) {
+        // Si tiene avatar, mostrar imagen circular pequeña
+        return `<img src="${person.avatar}" alt="${person.nombre}" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;" />`;
+      } else {
+        // Si no tiene avatar, mostrar iniciales
+        const initials = person.getInitials();
+        return `<div style="width: 32px; height: 32px; border-radius: 50%; background-color: #FF5F01; color: white; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.875rem;">${initials}</div>`;
       }
     },
 
-    handleSelectionChange(selection) {
-      this.selectedItems = selection
-    },
+    async handleExport(exportData) {
+      try {
+        this.loading = true;
 
-    toggleExportOptions() {
-      this.exportOptions = !this.exportOptions
-    },
+        // Usar los datos filtrados de la tabla
+        const dataToExport = exportData.filteredData.map(person => ({
+          'Nombre': person.nombre,
+          'DNI': person.dni,
+          'Rol': person.rol,
+          'Estado': person.estado,
+          'Fecha de Ingreso': person.fechaIngreso ? this.formatDate(person.fechaIngreso) : '',
+          'Teléfono': person.telefono || '',
+          'Correo': person.correo || ''
+        }));
 
-    exportData(format) {
-      const data = this.inventory
-      const columns = this.inventoryColumns
-      const fileName = `inventario_personal_${new Date().toISOString().split('T')[0]}`
+        // Crear archivo Excel
+        await this.exportToExcel(dataToExport, 'Personal_Lista');
 
-      if (!data || data.length === 0) {
-        this.notificationMessage = 'No hay datos para exportar'
-        this.showNotification = true
-        return
+        this.showNotification('Exportación completada exitosamente', 'success');
+
+      } catch (error) {
+        console.error('Error al exportar:', error);
+        this.showNotification('Error al exportar los datos', 'error');
+      } finally {
+        this.loading = false;
       }
-
-      if (format === 'csv') {
-        this.exportToCSV(data, columns, fileName)
-      } else if (format === 'excel') {
-        console.log('Exportación a Excel solicitada')
-      } else if (format === 'pdf') {
-        console.log('Exportación a PDF solicitada')
-      }
-
-      this.exportOptions = false
     },
 
-    exportToCSV(data, columns, fileName) {
-      const headers = columns.map(col => col.header).join(',')
-      const rows = data
-          .map(item =>
-              columns
-                  .map(col => {
-                    let val = item[col.field]
-                    if (val === null || val === undefined) val = ''
-                    return typeof val === 'string' && val.includes(',')
-                        ? `"${val}"`
-                        : val
-                  })
-                  .join(',')
-          )
-          .join('\n')
+    async exportToExcel(data, filename) {
+      // Función simple para exportar a Excel usando las capacidades del navegador
+      const headers = Object.keys(data[0]);
+      let csvContent = headers.join(',') + '\n';
 
-      const csvContent = `${headers}\n${rows}`
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-      const link = document.createElement('a')
-      link.href = URL.createObjectURL(blob)
-      link.download = `${fileName}.csv`
-      link.click()
+      data.forEach(row => {
+        const values = headers.map(header => {
+          const value = row[header] || '';
+          // Escapar comillas y envolver en comillas si contiene comas
+          return value.toString().includes(',') ? `"${value.replace(/"/g, '""')}"` : value;
+        });
+        csvContent += values.join(',') + '\n';
+      });
+
+      // Crear blob y descargar
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `${filename}_${this.getCurrentDateString()}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    },
+
+    handleFilter(filterData) {
+      console.log('Filtros aplicados:', filterData);
+    },
+
+    getCurrentDateString() {
+      return new Date().toLocaleDateString('es-PE').replace(/\//g, '-');
+    },
+
+    formatDate(date) {
+      if (!date) return '';
+      return new Date(date).toLocaleDateString('es-PE', {
+        timeZone: 'America/Lima',
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+      });
+    },
+
+    showNotification(message, type = 'success') {
+      this.notification = {
+        show: true,
+        message,
+        type
+      };
     }
   }
-}
+};
 </script>
-
-<template>
-  <div class="personnel-manager">
-    <!-- Cabecera con título y acciones -->
-    <div class="header-container">
-      <div class="export-container">
-        <AppButton
-            label="Exportar"
-            icon="pi pi-download"
-            variant="secondary"
-            @click="toggleExportOptions"
-        />
-        <div v-if="exportOptions" class="export-menu">
-          <div class="export-option" @click="exportData('csv')">
-            <i class="pi pi-file"></i> Exportar a CSV
-          </div>
-          <div class="export-option" @click="exportData('excel')">
-            <i class="pi pi-file-excel"></i> Exportar a Excel
-          </div>
-          <div class="export-option" @click="exportData('pdf')">
-            <i class="pi pi-file-pdf"></i> Exportar a PDF
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- VISTA DE PERSONAL -->
-    <div>
-      <!-- Formulario personal -->
-      <PersonnelForm
-          v-if="showForm"
-          :machinery="selectedMachinery || {}"
-          :readonly="isReadonly"
-          :machinery-list="inventory"
-          @cancel="cancelView"
-      />
-
-      <!-- Botones en el detalle del personal -->
-      <div v-if="showForm && isReadonly" class="personal-detail-actions">
-        <div class="flex justify-end">
-          <AppButton label="Cerrar" variant="secondary" @click="cancelView" />
-        </div>
-      </div>
-
-      <!-- Tabla -->
-      <div v-if="!showForm">
-        <AppTable
-            :columns="inventoryColumns"
-            :data="inventory"
-            :loading="loading.inventory"
-            :showFilterButton="true"
-            :showAddButton="false"
-            :selectable="true"
-            @row-click="handleRowClick"
-            @update:selection="handleSelectionChange"
-        />
-        <div v-if="!loading.inventory && inventory.length === 0" class="empty-state">
-          <p>No hay personal registrado.</p>
-        </div>
-      </div>
-    </div>
-
-    <!-- NOTIFICACIÓN -->
-  </div>
-</template>
 
 <style scoped>
 .personnel-manager {
-  padding: 1rem;
+  padding: 1.5rem;
+  background-color: #f8f9fa;
+  min-height: 100vh;
 }
 
-.header-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
+.page-header {
+  margin-bottom: 2rem;
+  text-align: center;
 }
 
-.personal-detail-actions {
-  margin: 1rem 0;
-  padding: 1rem;
-  border-top: 1px solid #eee;
-  border-bottom: 1px solid #eee;
+.page-header h2 {
+  color: #0D1C3C;
+  font-size: 2rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem 0;
 }
 
-.flex {
-  display: flex;
-}
-.justify-end {
-  justify-content: flex-end;
-}
-
-.export-container {
-  position: relative;
-}
-
-.export-menu {
-  position: absolute;
-  top: 100%;
-  right: 0;
-  width: 200px;
-  background-color: white;
-  border-radius: 6px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
-  z-index: 1000;
-  margin-top: 0.5rem;
-}
-
-.export-option {
-  padding: 0.75rem 1rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.export-option:hover {
-  background-color: #f5f5f5;
+.page-description {
+  color: #666;
+  font-size: 1.1rem;
+  margin: 0;
 }
 
 .empty-state {
   text-align: center;
-  padding: 2rem;
+  padding: 3rem 2rem;
   color: #666;
-  background-color: #f9f9f9;
-  border-radius: 6px;
-  margin-top: 1rem;
 }
 
+.empty-icon {
+  font-size: 3rem;
+  opacity: 0.5;
+  margin-bottom: 1rem;
+  color: #FF5F01;
+}
+
+.empty-state p {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+/* Responsive */
 @media (max-width: 768px) {
-  .header-container {
-    flex-direction: column;
-    gap: 1rem;
-    align-items: flex-start;
+  .personnel-manager {
+    padding: 1rem;
+  }
+
+  .page-header h2 {
+    font-size: 1.5rem;
+  }
+
+  .page-description {
+    font-size: 1rem;
   }
 }
 </style>

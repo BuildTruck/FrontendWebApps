@@ -30,7 +30,7 @@ export class Personnel {
         this.sundays = data.sundays || 0;
         this.totalDays = data.totalDays || 0;
 
-        // NEW: Monthly attendance as string by month
+        // Monthly attendance as string by month
         this.monthlyAttendance = data.monthlyAttendance || {};
 
         // Contact fields
@@ -288,7 +288,7 @@ export class Personnel {
         return this.projectId.toString() === projectId.toString();
     }
 
-    // NEW MONTHLY ATTENDANCE METHODS
+    // MONTHLY ATTENDANCE METHODS - FIXED VERSION
 
     /**
      * Get month key in YYYY-MM format
@@ -306,28 +306,26 @@ export class Personnel {
     }
 
     /**
-     * Initialize attendance string for a month
+     * Initialize attendance string for a month with separators
      */
     initializeMonthAttendance(year, month) {
         const monthKey = Personnel.getMonthKey(year, month);
         const daysInMonth = Personnel.getDaysInMonth(year, month);
 
         if (!this.monthlyAttendance[monthKey]) {
-            // Initialize with empty attendance, auto-mark Sundays
-            let attendanceString = '';
+            // Initialize with pipe-separated values for each day
+            const attendanceArray = [];
 
             for (let day = 1; day <= daysInMonth; day++) {
                 const date = new Date(year, month - 1, day);
                 const dayOfWeek = date.getDay();
 
-                if (dayOfWeek === 0) { // Sunday
-                    attendanceString += 'DD';
-                } else {
-                    attendanceString += '';
-                }
+                // NO marcar domingos automáticamente aquí - dejar vacío
+                attendanceArray.push('');
             }
 
-            this.monthlyAttendance[monthKey] = attendanceString.padEnd(daysInMonth, '');
+            // Join with pipe separator: "X|F|P||DD|X|..."
+            this.monthlyAttendance[monthKey] = attendanceArray.join('|');
         }
 
         return this.monthlyAttendance[monthKey];
@@ -347,16 +345,19 @@ export class Personnel {
         // Initialize month if not exists
         this.initializeMonthAttendance(year, month);
 
-        let attendanceString = this.monthlyAttendance[monthKey];
+        // Convert string to array, modify, and convert back
+        let attendanceArray = this.monthlyAttendance[monthKey].split('|');
 
-        // Ensure string is correct length
-        attendanceString = attendanceString.padEnd(daysInMonth, '');
+        // Ensure array has correct length
+        while (attendanceArray.length < daysInMonth) {
+            attendanceArray.push('');
+        }
 
-        // Update specific day (day-1 because array is 0-indexed)
-        const dayIndex = day - 1;
-        attendanceString = attendanceString.substring(0, dayIndex) + status + attendanceString.substring(dayIndex + 1);
+        // Set the status for the specific day (day-1 because array is 0-indexed)
+        attendanceArray[day - 1] = status || '';
 
-        this.monthlyAttendance[monthKey] = attendanceString;
+        // Convert back to string
+        this.monthlyAttendance[monthKey] = attendanceArray.join('|');
 
         // Recalculate monthly totals
         this.calculateMonthlyTotals(year, month);
@@ -370,10 +371,28 @@ export class Personnel {
         const attendanceString = this.monthlyAttendance[monthKey];
 
         if (!attendanceString || day < 1) {
+            // Si es domingo y no hay dato, retornar DD automáticamente
+            const date = new Date(year, month - 1, day);
+            const dayOfWeek = date.getDay();
+            if (dayOfWeek === 0) {
+                return 'DD';
+            }
             return '';
         }
 
-        return attendanceString.charAt(day - 1) || '';
+        const attendanceArray = attendanceString.split('|');
+        const status = attendanceArray[day - 1] || '';
+
+        // Si está vacío y es domingo, retornar DD automáticamente
+        if (!status) {
+            const date = new Date(year, month - 1, day);
+            const dayOfWeek = date.getDay();
+            if (dayOfWeek === 0) {
+                return 'DD';
+            }
+        }
+
+        return status;
     }
 
     /**
@@ -382,6 +401,7 @@ export class Personnel {
     calculateMonthlyTotals(year, month) {
         const monthKey = Personnel.getMonthKey(year, month);
         const attendanceString = this.monthlyAttendance[monthKey] || '';
+        const daysInMonth = Personnel.getDaysInMonth(year, month);
 
         // Reset counters
         this.workedDays = 0;
@@ -390,26 +410,38 @@ export class Personnel {
         this.absences = 0;
         this.sundays = 0;
 
-        // Count each status
-        for (let i = 0; i < attendanceString.length; i++) {
-            const status = attendanceString.charAt(i);
+        // Split by pipe and count each status
+        const attendanceArray = attendanceString.split('|');
 
-            switch (status) {
-                case 'X':
-                    this.workedDays++;
-                    break;
-                case 'P':
-                    this.compensatoryDays++;
-                    break;
-                case 'PD':
-                    this.unpaidLeave++;
-                    break;
-                case 'F':
-                    this.absences++;
-                    break;
-                case 'DD':
+        for (let day = 1; day <= daysInMonth; day++) {
+            const status = attendanceArray[day - 1] || '';
+
+            // Si está vacío, verificar si es domingo
+            if (!status) {
+                const date = new Date(year, month - 1, day);
+                const dayOfWeek = date.getDay();
+                if (dayOfWeek === 0) {
                     this.sundays++;
-                    break;
+                }
+            } else {
+                // Contar según el estado
+                switch (status) {
+                    case 'X':
+                        this.workedDays++;
+                        break;
+                    case 'P':
+                        this.compensatoryDays++;
+                        break;
+                    case 'PD':
+                        this.unpaidLeave++;
+                        break;
+                    case 'F':
+                        this.absences++;
+                        break;
+                    case 'DD':
+                        this.sundays++;
+                        break;
+                }
             }
         }
 
@@ -447,6 +479,67 @@ export class Personnel {
     }
 
     /**
+     * Migrate from old string format (without separators) to new format
+     */
+    migrateAttendanceFormat(year, month) {
+        const monthKey = Personnel.getMonthKey(year, month);
+        const attendanceString = this.monthlyAttendance[monthKey];
+
+        if (!attendanceString) return;
+
+        // Check if already in new format (has pipes)
+        if (attendanceString.includes('|')) return;
+
+        // Convert old format to new format
+        const daysInMonth = Personnel.getDaysInMonth(year, month);
+        const attendanceArray = [];
+
+        let i = 0;
+        let charIndex = 0;
+
+        while (i < daysInMonth && charIndex < attendanceString.length) {
+            const char = attendanceString[charIndex];
+
+            // Check for multi-character statuses
+            if (char === 'D' && charIndex + 1 < attendanceString.length && attendanceString[charIndex + 1] === 'D') {
+                attendanceArray.push('DD');
+                charIndex += 2;
+            } else if (char === 'P' && charIndex + 1 < attendanceString.length && attendanceString[charIndex + 1] === 'D') {
+                attendanceArray.push('PD');
+                charIndex += 2;
+            } else if (char && char !== ' ') {
+                attendanceArray.push(char);
+                charIndex += 1;
+            } else {
+                attendanceArray.push('');
+                charIndex += 1;
+            }
+
+            i++;
+        }
+
+        // Fill remaining days
+        while (attendanceArray.length < daysInMonth) {
+            attendanceArray.push('');
+        }
+
+        // Save in new format
+        this.monthlyAttendance[monthKey] = attendanceArray.join('|');
+    }
+
+    /**
+     * Get attendance array for display purposes
+     */
+    getAttendanceArray(year, month) {
+        const monthKey = Personnel.getMonthKey(year, month);
+        const attendanceString = this.monthlyAttendance[monthKey] || '';
+
+        if (!attendanceString) return [];
+
+        return attendanceString.split('|');
+    }
+
+    /**
      * Clear month attendance
      */
     clearMonthAttendance(year, month) {
@@ -480,6 +573,8 @@ export class Personnel {
                     const day = date.getDate();
                     const status = dailyAttendance[dateStr];
 
+                    // Migrate old format first
+                    this.migrateAttendanceFormat(year, month);
                     this.setDayAttendance(year, month, day, status);
                 }
             } catch (error) {
@@ -520,7 +615,7 @@ export class Personnel {
                 date: dateString,
                 dayOfWeek: dayOfWeek,
                 isSunday: dayOfWeek === 0,
-                dayName: ['S', 'M', 'T', 'W', 'T', 'F', 'S'][dayOfWeek]
+                dayName: ['D', 'L', 'M', 'M', 'J', 'V', 'S'][dayOfWeek] // Español: Domingo, Lunes, Martes, Miércoles, Jueves, Viernes, Sábado
             });
         }
 

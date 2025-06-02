@@ -551,6 +551,25 @@
     "november": "November",
     "december": "December",
     "allTypes": "All",
-    "filterByType": "Filter by type"
+    "filterByType": "Filter by type",
+    "managerTitle": "Personnel Manager",
+    "managerSubtitle": "View and manage personnel by type with detailed reports",
+    "managerSummary": "Summary",
+    "managerDetail": "Detail",
+    "personnelDetail": "Personnel Detail",
+    "personnelManagerReport": "Personnel Manager Report",
+    "exportAll": "Export All",
+    "export": "Export",
+    "active": "active",
+    "saveChanges": "Save Changes",
+    "searchPlaceholder": "Search personnel by name, document, position...",
+    "selectPersonnelToView": "Select Personnel to View Details",
+    "selectPersonnelInstruction": "Click on any row in the Summary tab to view and edit personnel details here.",
+    "goToSummary": "Go to Summary",
+    "unpaidLeave": "Unpaid Leave",
+    "totalAmount": "Total Amount",
+    "viewMonth": "View Month",
+    "week": "Week",
+    "totalDays": "Total days"
   }
 }

@@ -137,14 +137,14 @@ export default {
             .map(p => {
               const clonedPerson = p.clone();
 
-              // Initialize attendance for current month
-              clonedPerson.initializeMonthAttendance(this.currentYear, this.currentMonth);
+              // Initialize if needed and calculate totals
+              if (clonedPerson.initializeMonthAttendance) {
+                clonedPerson.initializeMonthAttendance(this.currentYear, this.currentMonth);
+              }
 
-              // Auto-mark Sundays
-              clonedPerson.autoMarkSundays(this.currentYear, this.currentMonth);
-
-              // Calculate totals
-              clonedPerson.calculateMonthlyTotals(this.currentYear, this.currentMonth);
+              if (clonedPerson.calculateMonthlyTotals) {
+                clonedPerson.calculateMonthlyTotals(this.currentYear, this.currentMonth);
+              }
 
               return clonedPerson;
             });
@@ -152,7 +152,6 @@ export default {
         this.applyPersonnelFilter();
 
       } catch (error) {
-        console.error('Error loading attendance data:', error);
         this.showNotificationMessage(this.$t('personnel.errorLoadingAttendance'), 'error');
       } finally {
         this.loading = false;
@@ -176,7 +175,6 @@ export default {
         this.$emit('attendance-updated', this.attendancePersonnel);
 
       } catch (error) {
-        console.error('Error saving attendance:', error);
         this.showNotificationMessage(this.$t('personnel.errorSavingAttendance'), 'error');
       } finally {
         this.saving = false;
@@ -201,20 +199,40 @@ export default {
       const { person, day } = this.selectedCell;
 
       try {
-        // Set attendance using new monthly method
-        person.setDayAttendance(this.currentYear, this.currentMonth, day.day, status);
+        // Try different methods to set attendance based on what's available
+        if (person.setDayAttendance) {
+          person.setDayAttendance(this.currentYear, this.currentMonth, day.day, status);
+        } else {
+          // Fallback: direct manipulation of monthlyAttendance
+          const monthKey = `${this.currentYear}-${this.currentMonth.toString().padStart(2, '0')}`;
+          if (!person.monthlyAttendance) person.monthlyAttendance = {};
+
+          let attendanceString = person.monthlyAttendance[monthKey] || '';
+          const daysInMonth = new Date(this.currentYear, this.currentMonth, 0).getDate();
+
+          // Ensure string has correct length
+          const attendanceArray = attendanceString.split('|');
+          while (attendanceArray.length < daysInMonth) {
+            attendanceArray.push('');
+          }
+
+          attendanceArray[day.day - 1] = status || '';
+          person.monthlyAttendance[monthKey] = attendanceArray.join('|');
+        }
 
         // Update in allPersonnel to maintain sync
         const originalPerson = this.allPersonnel.find(p => p.id === person.id);
-        if (originalPerson) {
+        if (originalPerson && originalPerson.setDayAttendance) {
           originalPerson.setDayAttendance(this.currentYear, this.currentMonth, day.day, status);
+        } else if (originalPerson) {
+          // Copy the updated monthlyAttendance
+          originalPerson.monthlyAttendance = { ...person.monthlyAttendance };
         }
 
         this.hideContextMenu();
         this.$forceUpdate();
 
       } catch (error) {
-        console.error('Error setting attendance:', error);
         this.showNotificationMessage(this.$t('personnel.errorSavingAttendance'), 'error');
       }
     },
@@ -225,10 +243,33 @@ export default {
     },
 
     getAttendanceStatus(person, day) {
-      return person.getDayAttendance(this.currentYear, this.currentMonth, day.day);
+      // Try using entity method first
+      if (person.getDayAttendance) {
+        return person.getDayAttendance(this.currentYear, this.currentMonth, day.day);
+      }
+
+      // Fallback: direct access to monthlyAttendance
+      const monthKey = `${this.currentYear}-${this.currentMonth.toString().padStart(2, '0')}`;
+      const attendanceString = person.monthlyAttendance?.[monthKey] || '';
+
+      if (!attendanceString) {
+        // If empty and it's Sunday, show DD
+        return day.isSunday ? 'DD' : '';
+      }
+
+      const attendanceArray = attendanceString.split('|');
+      const status = attendanceArray[day.day - 1] || '';
+
+      // If empty and it's Sunday, show DD
+      return status || (day.isSunday ? 'DD' : '');
     },
 
-    getAttendanceColor(status) {
+    getAttendanceColor(status, day = null) {
+      // Always check if it's Sunday first for consistent coloring
+      if (day?.isSunday && (!status || status === 'DD')) {
+        return '#6b7280'; // Gray for Sunday
+      }
+
       const statusInfo = this.attendanceStatuses.find(s => s.value === status);
       return statusInfo ? statusInfo.color : '#f3f4f6';
     },
@@ -420,8 +461,8 @@ export default {
                 'clickable': true
               }"
               :style="{
-                backgroundColor: getAttendanceColor(getAttendanceStatus(person, day)),
-                color: getAttendanceStatus(person, day) ? 'white' : '#666'
+                backgroundColor: getAttendanceColor(getAttendanceStatus(person, day), day),
+                color: 'white'
               }"
               @click="handleCellClick(person, day, $event)"
               @mousedown.prevent
@@ -751,9 +792,6 @@ export default {
   box-shadow: 0 2px 8px rgba(255, 95, 1, 0.3);
 }
 
-.attendance-cell.sunday {
-  background-color: #f5f5f5 !important;
-}
 
 .totals-cell {
   padding: 0.5rem;

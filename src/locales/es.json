@@ -554,6 +554,25 @@
     "november": "Noviembre",
     "december": "Diciembre",
     "allTypes": "Todos",
-    "filterByType": "Filtrar por tipo"
+    "filterByType": "Filtrar por tipo",
+    "managerTitle": "Gestor de Personal",
+    "managerSubtitle": "Visualiza y gestiona el personal por tipo con reportes detallados",
+    "managerSummary": "Resumen",
+    "managerDetail": "Detalle",
+    "personnelDetail": "Detalle del Personal",
+    "personnelManagerReport": "Reporte Gestor Personal",
+    "exportAll": "Exportar Todo",
+    "export": "Exportar",
+    "active": "activos",
+    "saveChanges": "Guardar Cambios",
+    "searchPlaceholder": "Buscar personal por nombre, documento, cargo...",
+    "selectPersonnelToView": "Selecciona Personal para Ver Detalles",
+    "selectPersonnelInstruction": "Haz clic en cualquier fila de la pestaña Resumen para ver y editar los detalles del personal aquí.",
+    "goToSummary": "Ir al Resumen",
+    "unpaidLeave": "Permisos con Descuento",
+    "totalAmount": "Monto Total",
+    "viewMonth": "Ver Mes",
+    "week": "Semana",
+    "totalDays": "Total de días"
   }
 }

@@ -395,17 +395,32 @@ export class PersonnelApiService extends BaseService {
                 'Teléfono': person.phone,
                 'Email': person.email,
                 'Banco': person.bank,
-                'Cuenta': person.accountNumber
+                'Cuenta': person.accountNumber,
+
+                // ✅ NUEVAS COLUMNAS DE ASISTENCIA
+                'Días Trabajados': person.workedDays || 0,
+                'Días Compensatorios': person.compensatoryDays || 0,
+                'Permisos con Descuento': person.unpaidLeave || 0,
+                'Faltas': person.absences || 0,
+                'Domingos': person.sundays || 0,
+                'Total Días': person.totalDays || 0,
+                'Monto Total': person.totalAmount || 0
             }));
 
-            // Note: XLSX import should be handled by the component that calls this
-            // This is just the data preparation
-            return {
-                data: exportData,
-                fileName: `${fileName}_${new Date().toISOString().split('T')[0]}.xlsx`
-            };
+            // Crear workbook y worksheet
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.json_to_sheet(exportData);
+
+            // Añadir worksheet al workbook
+            XLSX.utils.book_append_sheet(wb, ws, 'Personal');
+
+            // Generar y descargar archivo
+            const finalFileName = `${fileName}_${new Date().toISOString().split('T')[0]}.xlsx`;
+            XLSX.writeFile(wb, finalFileName);
+
+            return true;
         } catch (error) {
-            console.error('Error preparing export data:', error);
+            console.error('Error exporting to Excel:', error);
             throw error;
         }
     }

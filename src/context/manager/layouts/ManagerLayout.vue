@@ -1,6 +1,8 @@
 <script>
 import { AuthService } from '../../../auth/services/auth-api.service.js';
 import LanguageSwitcher from "../../../core/components/language-switcher.component.vue";
+import { useThemeStore} from "../../../core/stores/theme.js";
+import { useLogo} from "../../../core/composables/useLogo.js";
 
 export default {
   name: 'ManagerLayout',
@@ -11,9 +13,13 @@ export default {
       default: 'Gerente'
     }
   },
+  setup() {
+    const themeStore = useThemeStore()
+    const { logoSrc } = useLogo()
+    return { themeStore, logoSrc }
+  },
   data() {
     return {
-      // Añadimos displayName para mostrar en lugar de la prop
       displayName: '',
       menuItems: [
         { id: 'proyectos', label: 'navigation.proyectos', icon: 'pi pi-home', route: '/proyectos', active: true },
@@ -27,10 +33,11 @@ export default {
       ]
     }
   },
-  created() {
-    // Cambiar localStorage a sessionStorage
+  async created() {
     const userData = JSON.parse(sessionStorage.getItem('user') || '{}');
     this.displayName = userData.name || this.userName;
+
+    await this.themeStore.initializeTheme();
   },
   computed: {
     activeMenuId() {
@@ -73,7 +80,7 @@ export default {
     <!-- Sidebar fijo -->
     <aside class="sidebar">
       <div class="logo-container">
-        <div class="logo"></div>
+        <img :src="logoSrc" alt="Logo" class="logo" />
       </div>
 
       <!-- Menú principal -->
@@ -167,11 +174,9 @@ export default {
 .logo {
   width: 100%;
   height: 100%;
-  background-image: url('../../../assets/buildtruck-logo.svg');
-  background-size: contain;
-  background-position: center;
-  background-repeat: no-repeat;
-  margin-left: -20px; /* Mueve ligeramente a la izquierda */
+  object-fit: contain;
+  object-position: center;
+  margin-left: -20px;
 }
 
 

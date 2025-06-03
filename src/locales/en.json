@@ -48,27 +48,45 @@
     "networkError": "Network error. Please check your connection."
   },
   "settings": {
-    "language": "Language",
-    "theme": "Display mode",
+    "appearance": "Appearance",
+    "appearanceDescription": "Customize the application appearance according to your preferences",
+    "subscription": "Subscription",
+    "subscriptionDescription": "Manage your subscription plan and available features",
+    "notificationsSection": "Notifications",
+    "notificationsDescription": "Configure how and when you want to receive notifications",
+    "adminNotificationsSection": "Administrator Notifications",
+    "adminNotificationsDescription": "Special settings for system administrators",
+    "unsavedChanges": "You have unsaved changes",
+    "loadError": "Error loading configuration",
+    "updated": "Configuration updated successfully",
+    "updateError": "Error updating configuration",
+
+    "theme": "Theme",
     "plan": "Plan",
-    "selectTheme": "Select a theme",
-    "selectPlan": "Select a plan",
-    "languages": {
-      "spanish": "Spanish",
-      "english": "English"
-    },
+    "notifications": "Enable Notifications",
+    "emailNotifications": "Email Notifications",
+    "adminNotifications": "Administrator Notifications",
+    "systemAlerts": "System Alerts",
+
     "themes": {
       "light": "Light",
-      "dark": "Dark"
+      "dark": "Dark",
+      "auto": "Auto"
     },
+
     "plans": {
       "basic": "Basic",
-      "business": "Business"
+      "business": "Business",
+      "enterprise": "Enterprise"
     },
-    "notifications": "Allow notifications",
-    "emailNotifications": "Notify by email",
-    "updated": "Settings updated successfully.",
-    "updateError": "There was an error saving your changes."
+
+    "planFeatures": {
+      "basic": "Basic plan: Access to essential features, up to 5 projects, email support",
+      "business": "Business plan: Advanced features, unlimited projects, priority support, custom reports",
+      "enterprise": "Enterprise plan: All features, custom integration, 24/7 support, dedicated account manager"
+    },
+
+    "adminFeaturesInfo": "Administrator notifications include security alerts, system reports, and critical user notifications"
   },
 
 

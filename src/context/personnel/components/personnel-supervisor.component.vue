@@ -103,11 +103,6 @@ export default {
   <div class="personnel-supervisor">
     <!-- Header con título y navegación -->
     <div class="supervisor-header" v-if="showTabs">
-      <div class="header-content">
-        <p class="supervisor-subtitle">
-          {{ $t('personnel.subtitle') }}
-        </p>
-      </div>
 
       <!-- Navegación de pestañas -->
       <nav class="tabs-navigation">
@@ -238,9 +233,8 @@ export default {
   background-color: white;
   color: #FF5F01;
   border-color: white;
-  box-shadow:
-      0 4px 12px rgba(0, 0, 0, 0.15),
-      0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15),
+  0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .tab-button.active::after {
@@ -393,8 +387,7 @@ export default {
 
 /* Sombras y profundidad */
 .supervisor-header {
-  box-shadow:
-      0 4px 8px rgba(0, 0, 0, 0.1),
-      0 2px 4px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1),
+  0 2px 4px rgba(0, 0, 0, 0.06);
 }
 </style>

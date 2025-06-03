@@ -48,27 +48,45 @@
     "networkError": "Error de red. Compruebe su conexión."
   },
   "settings": {
-    "language": "Idioma",
-    "theme": "Modo de visualización",
+    "appearance": "Apariencia",
+    "appearanceDescription": "Personaliza la apariencia de la aplicación según tus preferencias",
+    "subscription": "Suscripción",
+    "subscriptionDescription": "Gestiona tu plan de suscripción y características disponibles",
+    "notificationsSection": "Notificaciones",
+    "notificationsDescription": "Configura cómo y cuándo quieres recibir notificaciones",
+    "adminNotificationsSection": "Notificaciones de Administrador",
+    "adminNotificationsDescription": "Configuraciones especiales para administradores del sistema",
+    "unsavedChanges": "Tienes cambios sin guardar",
+    "loadError": "Error al cargar la configuración",
+    "updated": "Configuración actualizada exitosamente",
+    "updateError": "Error al actualizar la configuración",
+
+    "theme": "Tema",
     "plan": "Plan",
-    "selectTheme": "Selecciona un tema",
-    "selectPlan": "Selecciona un plan",
-    "languages": {
-      "spanish": "Español",
-      "english": "Inglés"
-    },
+    "notifications": "Habilitar Notificaciones",
+    "emailNotifications": "Notificaciones por Email",
+    "adminNotifications": "Notificaciones de Administrador",
+    "systemAlerts": "Alertas del Sistema",
+
     "themes": {
       "light": "Claro",
-      "dark": "Oscuro"
+      "dark": "Oscuro",
+      "auto": "Automático"
     },
+
     "plans": {
       "basic": "Básico",
-      "business": "Empresarial"
+      "business": "Empresarial",
+      "enterprise": "Corporativo"
     },
-    "notifications": "Permitir notificaciones",
-    "emailNotifications": "Notificar por correo",
-    "updated": "Configuración actualizada correctamente.",
-    "updateError": "Hubo un error al guardar los cambios."
+
+    "planFeatures": {
+      "basic": "Plan básico: Acceso a funciones esenciales, hasta 5 proyectos, soporte por email",
+      "business": "Plan empresarial: Funciones avanzadas, proyectos ilimitados, soporte prioritario, reportes personalizados",
+      "enterprise": "Plan corporativo: Todas las funciones, integración personalizada, soporte 24/7, gestor de cuenta dedicado"
+    },
+
+    "adminFeaturesInfo": "Las notificaciones de administrador incluyen alertas de seguridad, reportes de sistema y notificaciones de usuarios críticos"
   },
 
 

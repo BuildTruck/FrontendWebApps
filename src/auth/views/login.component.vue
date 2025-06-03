@@ -3,8 +3,9 @@ import AppInput from '../../core/components/AppInput.vue'
 import AppButton from '../../core/components/AppButton.vue'
 import { AuthService } from '../services/auth-api.service'
 import LanguageSwitcher from "../../core/components/language-switcher.component.vue"
+import { useThemeStore} from "../../core/stores/theme.js";
+import { useLogo } from "../../core/composables/useLogo.js";
 
-// Importa los modelos
 import { Manager } from '../../context/manager/models/manager.entity.js'
 import { Supervisor } from '../../context/supervisor/models/supervisor.entity.js'
 import { Admin} from "../../core/admin/models/admin.entity.js";
@@ -16,6 +17,11 @@ export default {
     AppButton,
     LanguageSwitcher,
   },
+  setup() {
+    const themeStore = useThemeStore()
+    const { logoSrc } = useLogo() // 🆕 USAR COMPOSABLE
+    return { themeStore, logoSrc }
+  },
   data() {
     return {
       email: '',
@@ -26,33 +32,27 @@ export default {
       authError: ''
     }
   },
-  methods: {
-    mounted() {
-      // Forzar limpieza completa de almacenamiento al cargar el componente
-      AuthService.clearAllStorages();
-      const isOpera = (!!window.opr && !!opr.addons) ||
-          !!window.opera ||
-          navigator.userAgent.indexOf(' OPR/') >= 0;
+  mounted() {
+    AuthService.clearAllStorages();
 
-      if (isOpera) {
-        console.log('Detectado navegador Opera - aplicando limpieza adicional');
-        // Para Opera, añadir una recarga forzada si hay un parámetro "fresh" en la URL
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('fresh')) {
-          // Si venimos de un logout, forzar una recarga completa para limpiar caché
-          console.log('Forzando recarga completa en Opera');
+    // INICIALIZAR TEMA PARA LOGIN (solo detección del sistema)
+    this.themeStore.initializeForLogin();
 
-          // Eliminar el parámetro fresh de la URL para evitar recargas infinitas
-          const url = new URL(window.location.href);
-          url.searchParams.delete('fresh');
-          window.history.replaceState({}, document.title, url.toString());
-        }
+    const isOpera = (!!window.opr && !!opr.addons) ||
+        !!window.opera ||
+        navigator.userAgent.indexOf(' OPR/') >= 0;
+
+    if (isOpera) {
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('fresh')) {
+        const url = new URL(window.location.href);
+        url.searchParams.delete('fresh');
+        window.history.replaceState({}, document.title, url.toString());
       }
-    },
-
+    }
+  },
+  methods: {
     async handleLogin() {
-      console.log('Intentando login...');
-
       // Reiniciar errores
       this.emailError = '';
       this.passwordError = '';
@@ -64,25 +64,19 @@ export default {
       if (!this.email || this.email.trim() === '') {
         this.emailError = 'El email es obligatorio';
         isValid = false;
-        console.log('Error de email:', this.emailError);
       }
 
       if (!this.password || this.password.trim() === '') {
         this.passwordError = 'La contraseña es obligatoria';
         isValid = false;
-        console.log('Error de password:', this.passwordError);
       }
 
-      // Si hay errores, detener el proceso
       if (!isValid) {
-        console.log('Validación fallida');
         return;
       }
 
-      console.log('Validación exitosa, intentando autenticar...');
-
       try {
-        // Limpiar cualquier sesión anterior - usar el método completo
+        // Limpiar cualquier sesión anterior
         AuthService.clearAllStorages();
 
         // Autenticar
@@ -90,7 +84,6 @@ export default {
 
         if (!rawUser) {
           this.authError = 'Correo o contraseña incorrectos';
-          console.log('No hay usuario:', this.authError);
           return;
         }
 
@@ -110,19 +103,12 @@ export default {
             throw new Error(`Rol desconocido: ${rawUser.role}`);
         }
 
-        console.log('Usuario autenticado:', user);
-        console.log('Rol del usuario:', user.role);
-        console.log('Nombre:', user.name);
-
         // Guardar en sessionStorage
         sessionStorage.setItem('token', 'fake-token');
         sessionStorage.setItem('user', JSON.stringify(user.toJSON()));
 
-        // Verificar qué se guardó
-        const storedUser = JSON.parse(sessionStorage.getItem('user'));
-        console.log('Usuario guardado en sessionStorage:', storedUser);
-        console.log('Rol guardado:', storedUser.role);
-        console.log('Nombre guardado:', storedUser.name);
+        // APLICAR TEMA DEL USUARIO
+        await this.themeStore.initializeFromLogin(user.id);
 
         // Detectar Opera para redirección
         const isOpera = (!!window.opr && !!opr.addons) ||
@@ -131,8 +117,6 @@ export default {
 
         // Redireccionar según rol
         if (user.role === 'manager') {
-          console.log('Redirigiendo a vista de manager: /proyectos');
-
           if (isOpera) {
             window.location.href = '/proyectos';
           } else {
@@ -140,40 +124,27 @@ export default {
           }
         }
         else if (user.role === 'supervisor') {
-          console.log('Buscando proyecto asignado al supervisor...');
-
           try {
-            // Buscar proyecto asignado al supervisor usando AuthService
             const project = await AuthService.getAssignedProject(user.id);
 
             if (project) {
-              console.log(`Redirigiendo a vista de supervisor: /supervisor/${project.id}`);
-
               if (isOpera) {
                 window.location.href = `/supervisor/${project.id}`;
               } else {
                 this.$router.push(`/supervisor/${project.id}`);
               }
             } else {
-              console.log('Supervisor sin proyecto asignado');
               this.authError = 'Aún no tienes un proyecto asignado. Contacta con tu manager para más información.';
-
-              // Limpiar la sesión ya que no puede acceder
               AuthService.clearAllStorages();
               return;
             }
           } catch (projectError) {
-            console.error('Error buscando proyecto del supervisor:', projectError);
             this.authError = 'Error al verificar tu proyecto asignado. Intenta nuevamente.';
-
-            // Limpiar la sesión en caso de error
             AuthService.clearAllStorages();
             return;
           }
         }
         else if (user.role === 'admin') {
-          console.log('Redirigiendo a vista de admin: /admin');
-
           if (isOpera) {
             window.location.href = '/admin';
           } else {
@@ -194,7 +165,8 @@ export default {
     <div class="login-container">
       <div class="form-section">
         <div class="logo-container">
-          <img src="../../assets/buildtruck-logo.svg" alt="Logo" class="logo" />
+          <!-- 🆕 LOGO REACTIVO -->
+          <img :src="logoSrc" alt="Logo" class="logo" />
           <div class="language-switcher-container">
             <language-switcher />
           </div>

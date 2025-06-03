@@ -1,5 +1,6 @@
 import { createApp } from 'vue'
 import './style.css'
+import './dark-mode.css'
 import App from './App.vue'
 import PrimeVue from 'primevue/config'
 
@@ -7,6 +8,7 @@ import i18n from "./i18n.js"
 import router from './router'
 import { jsPDF } from 'jspdf'
 import * as XLSX from 'xlsx';
+import { createPinia } from 'pinia'
 
 // PrimeVue Styles
 import 'primeicons/primeicons.css';
@@ -100,7 +102,9 @@ import Terminal from 'primevue/terminal'
 import Message from 'primevue/message'
 
 const app = createApp(App)
+const pinia = createPinia()
 
+app.use(pinia)
 app.use(router)
 //app.use(store)
 app.use(PrimeVue)

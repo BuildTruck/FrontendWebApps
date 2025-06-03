@@ -1,6 +1,8 @@
 <script>
 import AppButton from '../../../core/components/AppButton.vue';
 import LanguageSwitcher from "../../../core/components/language-switcher.component.vue";
+import {useThemeStore} from "../../../core/stores/theme.js";
+import {useLogo} from "../../../core/composables/useLogo.js";
 
 export default {
   name: 'ProjectLayoutManager',
@@ -30,6 +32,11 @@ export default {
       })
     }
   },
+  setup() {
+    const themeStore = useThemeStore()
+    const { logoSrc } = useLogo()
+    return { themeStore, logoSrc }
+  },
   data() {
     return {
       // Configuración básica de pestañas sin contadores estáticos
@@ -53,17 +60,18 @@ export default {
       }));
     }
   },
-  mounted() {
-    // Determinar la pestaña activa basada en la ruta actual
+  async mounted() {
+    await this.themeStore.initializeTheme();
+
     const currentPath = this.$route.path;
     const pathParts = currentPath.split('/');
     const lastPart = pathParts[pathParts.length - 1];
 
-    // Si estamos en una ruta específica (documentacion, personal, etc.), activamos esa pestaña
+
     if (this.tabs.some(tab => tab.id === lastPart)) {
       this.activeTab = lastPart;
     } else {
-      // Redirigir a la pestaña documentación por defecto
+
       this.activeTab = 'documentacion';
       this.$router.replace(`/proyecto/${this.projectId}/documentacion`);
     }
@@ -85,7 +93,7 @@ export default {
     <!-- Barra lateral izquierda para logo y botón -->
     <aside class="sidebar">
       <div class="logo-container">
-        <div class="logo"></div>
+        <img :src="logoSrc" alt="Logo" class="logo" />
       </div>
 
       <!-- Botón atrás alineado en la misma columna -->
@@ -166,11 +174,9 @@ export default {
 .logo {
   width: 100%;
   height: 100%;
+  object-fit: contain;
+  object-position: center;
   margin-left: -20px;
-  background-image: url('../../../assets/buildtruck-logo.svg');
-  background-size: contain;
-  background-position: center;
-  background-repeat: no-repeat;
 }
 
 /* Botón de retorno en la barra lateral */

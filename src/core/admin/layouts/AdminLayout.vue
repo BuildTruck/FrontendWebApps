@@ -1,31 +1,40 @@
 <script>
 import { AuthService } from '../../../auth/services/auth-api.service.js';
 import LanguageSwitcher from "../../../core/components/language-switcher.component.vue";
+import { useThemeStore} from "../../stores/theme.js";
+import { useLogo} from "../../composables/useLogo.js";
 
 export default {
   name: 'AdminLayout',
   components: {LanguageSwitcher},
+  setup() {
+    const themeStore = useThemeStore()
+    const { logoSrc } = useLogo()
+    return { themeStore, logoSrc }
+  },
   data() {
     return {
       displayName: '',
-      // Menú principal para administrador
+
       menuItems: [
         { id: 'dashboard', label: 'admin.tabs.dashboard', icon: 'pi pi-home', route: '/admin/dashboard', active: true },
         { id: 'usuarios', label: 'admin.tabs.usuarios', icon: 'pi pi-users', route: '/admin/usuarios', active: false },
         { id: 'configuraciones', label: 'admin.tabs.configuraciones', icon: 'pi pi-cog', route: '/admin/configuraciones', active: false },
       ],
-      // Opciones de perfil
+
       profileItems: [
         { id: 'salir', label: 'navigation.salir', icon: 'pi pi-sign-out', route: '/logout', active: false }
       ]
     }
   },
-  created() {
+  async created() {
     // Obtener datos del usuario de sessionStorage
     const userData = JSON.parse(sessionStorage.getItem('user') || '{}');
     this.displayName = userData.name || 'Admin';
 
-    // Si estamos en la ruta raíz del admin, redirigir a dashboard
+
+    await this.themeStore.initializeTheme();
+
     if (this.$route.path === '/admin') {
       this.$router.push('/admin/dashboard');
     }
@@ -68,7 +77,7 @@ export default {
     <!-- Sidebar fijo -->
     <aside class="sidebar">
       <div class="logo-container">
-        <div class="logo"></div>
+        <img :src="logoSrc" alt="Logo" class="logo" />
       </div>
 
       <!-- Menú principal -->
@@ -158,10 +167,8 @@ export default {
 .logo {
   width: 100%;
   height: 100%;
-  background-image: url('../../../assets/buildtruck-logo.svg');
-  background-size: contain;
-  background-position: center;
-  background-repeat: no-repeat;
+  object-fit: contain;
+  object-position: center;
   margin-left: -20px;
 }
 

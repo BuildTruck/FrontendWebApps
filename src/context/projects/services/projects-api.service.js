@@ -19,10 +19,9 @@ class ProjectsService extends BaseService {
                 response = await this.getAll({ managerId });
             } catch (filterError) {
                 console.log('Filtro no funciona en MockAPI, obteniendo todos los proyectos...');
-                // Si el filtro falla, obtener todos y filtrar en cliente
+
                 response = await this.getAll();
 
-                // Filtrar en el cliente
                 if (response.data && Array.isArray(response.data)) {
                     response.data = response.data.filter(project =>
                         project.managerId == managerId || project.managerId === managerId

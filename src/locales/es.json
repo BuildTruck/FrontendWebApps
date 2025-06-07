@@ -255,7 +255,9 @@
     "date": "Fecha",
     "area": "Área / Zona",
     "worker": "Trabajador",
-    "other": "Otro"
+    "other": "Otro",
+    "otherMaterial": "Otro Tipo de Material",
+    "otherMaterialPlaceholder": "Ej: Cerámicas, Eléctrico"
   },
   "projects": {
     "welcome": "Bienvenido",

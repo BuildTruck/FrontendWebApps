@@ -56,7 +56,8 @@ export default {
         area: '',
         usageType: '',
         worker: ''
-      }
+      },
+      materialTypes: [],
     }
   },
   created() {

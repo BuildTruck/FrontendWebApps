@@ -1,7 +1,7 @@
 <script>
-import AppTable from '../../../core/components/AppTable.vue'
-import MaterialsForm from './materials-form.vue'
-import { materialsApiService } from '../services/materials-api.service.js'
+import AppTable from '../../../core/components/AppTable.vue';
+import MaterialsForm from './materials-form.vue';
+import { materialsApiService } from '../services/materials-api.service.js';
 
 export default {
   name: 'MaterialsSupervisorEntries',
@@ -36,41 +36,39 @@ export default {
         { field: 'payment', header: this.$t('inventory.paymentMethod') },
         { field: 'observations', header: this.$t('inventory.observations') }
       ]
-    }
+    };
   },
   async created() {
-    await this.loadMaterials()
-    await this.loadEntries()
+    await this.loadMaterials();
+    await this.loadEntries();
   },
   methods: {
     async loadMaterials() {
-      const projectId = materialsApiService.getCurrentProjectIdSync()
-      this.materials = await materialsApiService.getByProject(projectId)
+      const projectId = materialsApiService.getCurrentProjectIdSync();
+      this.materials = await materialsApiService.getByProject(projectId);
     },
 
     async loadEntries() {
-      const projectId = materialsApiService.getCurrentProjectIdSync()
-      const rawEntries = await materialsApiService.getEntriesByProject(projectId)
+      const projectId = materialsApiService.getCurrentProjectIdSync();
+      const rawEntries = await materialsApiService.getEntriesByProject(projectId);
 
-      this.entries = rawEntries
-          .filter(entry => entry.materialId && entry.quantity > 0)
-          .map(entry => {
-            const material = this.materials.find(m => m.id === entry.materialId)
-            return {
-              ...entry,
-              materialName: material?.name || 'Desconocido'
-            }
-          })
+      this.entries = rawEntries.map(entry => {
+        const material = this.materials.find(m => m.id === entry.materialId);
+        return {
+          ...entry,
+          materialName: material?.name || 'Desconocido'
+        };
+      });
     },
 
     handleAdd() {
-      this.selectedEntry = null
-      this.isEditingEntry = false
-      this.showForm = true
+      this.selectedEntry = null;
+      this.isEditingEntry = false;
+      this.showForm = true;
     },
 
     handleRowClick({ data }) {
-      const material = this.materials.find(m => m.id === data.materialId)
+      const material = this.materials.find(m => m.id === data.materialId);
 
       this.selectedEntry = {
         entryId: data.id,
@@ -85,32 +83,22 @@ export default {
         price: data.unitCost,
         description: data.observations,
         status: data.status
-      }
+      };
 
-      this.isEditingEntry = true
-      this.showForm = true
+      this.isEditingEntry = true;
+      this.showForm = true;
     },
 
     cancelForm() {
-      this.showForm = false
-      this.isEditingEntry = false
+      this.showForm = false;
+      this.isEditingEntry = false;
     },
 
     async handleConfirm(data) {
       try {
-        if (!data.date || !data.id || !data.quantity || !data.price) {
-          alert('Faltan datos requeridos. Verifica la información antes de guardar.')
-          return
-        }
-
-        const material = this.materials.find(m => m.id === data.id)
-
-        if (!material) {
-          alert('Material no encontrado. Por favor selecciona uno.')
-          return
-        }
-
-        const projectId = materialsApiService.getCurrentProjectIdSync()
+        const projectId = materialsApiService.getCurrentProjectIdSync();
+        const material = this.materials.find(m => m.id === data.id);
+        if (!material) return alert('Material no encontrado.');
 
         const entryPayload = {
           id: this.isEditingEntry ? data.entryId : 'e' + Date.now(),
@@ -124,49 +112,44 @@ export default {
           ruc: data.ruc,
           payment: data.payment,
           unitCost: Number(data.price),
-          totalCost: Number(data.price) * Number(data.quantity),
+          totalCost: Number(data.quantity) * Number(data.price),
           observations: data.description,
-          status: data.status || 'Normal',
+          status: data.status || 'Pendiente',
           createdBy: JSON.parse(sessionStorage.getItem('user')).id
-        }
+        };
 
         if (this.isEditingEntry) {
-          await materialsApiService.updateEntry(entryPayload.id, entryPayload)
+          await materialsApiService.updateEntry(entryPayload.id, entryPayload);
         } else {
-          await materialsApiService.createEntry(entryPayload)
-
-          const updatedStock = material?.stock
-              ? Number(material.stock) + entryPayload.quantity
-              : entryPayload.quantity
-
+          await materialsApiService.createEntry(entryPayload);
+          const updatedStock = Number(material.stock || 0) + entryPayload.quantity;
           await materialsApiService.updateMaterial(material.id, {
             ...material,
             stock: updatedStock
-          })
+          });
         }
 
-        this.showForm = false
-        this.isEditingEntry = false
-        await this.loadEntries()
-        this.$emit('updated', 'Ingreso guardado correctamente')
-      } catch (err) {
-        console.error('Error al guardar ingreso:', err)
+        this.showForm = false;
+        this.isEditingEntry = false;
+        await this.loadEntries();
+        this.$emit('updated', 'Ingreso guardado correctamente');
+      } catch (error) {
+        console.error('Error al guardar ingreso:', error);
       }
     },
 
     async handleDelete(selected) {
-      const confirmDelete = window.confirm(`¿Seguro que deseas eliminar ${selected.length} ingreso(s)?`)
-      if (!confirmDelete) return
+      if (!window.confirm(`¿Eliminar ${selected.length} ingreso(s)?`)) return;
 
       for (const entry of selected) {
-        const index = this.entries.findIndex(e => e.id === entry.id)
-        if (index !== -1) this.entries.splice(index, 1)
+        const index = this.entries.findIndex(e => e.id === entry.id);
+        if (index !== -1) this.entries.splice(index, 1);
       }
 
-      this.selection = []
+      this.selection = [];
     }
   }
-}
+};
 </script>
 
 <template>

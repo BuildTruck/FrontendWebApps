@@ -62,11 +62,16 @@ export default {
       }
     },
     saveCustomType(newType) {
-      const updated = new Set(this.materialTypes)
-      updated.add(newType)
-      this.materialTypes = [...updated]
-      localStorage.setItem(MATERIAL_TYPES_KEY, JSON.stringify(this.materialTypes))
+      const trimmedType = newType.trim();
+      if (!trimmedType) return;
+
+      const lowerSet = new Set(this.materialTypes.map(t => t.toLowerCase()));
+      if (!lowerSet.has(trimmedType.toLowerCase())) {
+        this.materialTypes.push(trimmedType);
+        localStorage.setItem(MATERIAL_TYPES_KEY, JSON.stringify(this.materialTypes));
+      }
     },
+
     confirm() {
       if (this.localMaterial.type === 'Otro' && this.localMaterial.customType) {
         this.localMaterial.type = this.localMaterial.customType

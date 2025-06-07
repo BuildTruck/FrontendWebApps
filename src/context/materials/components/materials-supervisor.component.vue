@@ -72,13 +72,16 @@ export default {
         this.loading = true
         const projectId = materialsApiService.getCurrentProjectIdSync()
         if (!projectId) throw new Error('No projectId')
-        this.inventory = await materialsApiService.getInventorySummary(projectId)
+
+        const allData =  await materialsApiService.getInventorySummary()
+        this.inventory = allData.filter(item => item.projectId === projectId)
       } catch (error) {
         console.error('Error al cargar inventario:', error)
       } finally {
         this.loading = false
       }
     },
+
 
     async handleUpdated(message = '') {
       await this.loadInventory()

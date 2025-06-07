@@ -9,9 +9,11 @@ class MaterialEntriesService extends BaseService {
         super('/material-entries');
     }
 
-    async getByProject(projectId) {
-        const res = await this.getAll({ projectId });
-        return (res.data || []).map(e => new MaterialEntryEntity(e));
+    async getAllFiltered(projectId) {
+        const res = await this.getAll();
+        return (res.data || [])
+            .filter(e => e.projectId === projectId)
+            .map(e => new MaterialEntryEntity(e));
     }
 
     async createEntry(data) {
@@ -32,9 +34,11 @@ class MaterialUsagesService extends BaseService {
         super('/material-usages');
     }
 
-    async getByProject(projectId) {
-        const res = await this.getAll({ projectId });
-        return (res.data || []).map(u => new MaterialUsageEntity(u));
+    async getAllFiltered(projectId) {
+        const res = await this.getAll();
+        return (res.data || [])
+            .filter(u => u.projectId === projectId)
+            .map(u => new MaterialUsageEntity(u));
     }
 
     async createUsage(data) {
@@ -74,8 +78,10 @@ class MaterialsApiService extends BaseService {
 
     async getByProject(projectId = null) {
         if (!projectId) projectId = this.getCurrentProjectIdSync();
-        const res = await this.getAll({ projectId });
-        return (res.data || []).map(m => new MaterialEntity(m));
+        const res = await this.getAll();
+        return (res.data || [])
+            .filter(m => m.projectId === projectId)
+            .map(m => new MaterialEntity(m));
     }
 
     async createMaterial(data) {
@@ -95,7 +101,7 @@ class MaterialsApiService extends BaseService {
 
     // 📥 ENTRADAS delegadas
     getEntriesByProject(projectId) {
-        return this.entriesService.getByProject(projectId);
+        return this.entriesService.getAllFiltered(projectId);
     }
 
     createEntry(data) {
@@ -106,9 +112,9 @@ class MaterialsApiService extends BaseService {
         return this.entriesService.updateEntry(id, data);
     }
 
-    // 📤 USOS delegados
+    // 📤 USOS delegadas
     getUsagesByProject(projectId) {
-        return this.usagesService.getByProject(projectId);
+        return this.usagesService.getAllFiltered(projectId);
     }
 
     createUsage(data) {
@@ -119,12 +125,20 @@ class MaterialsApiService extends BaseService {
         return this.usagesService.updateUsage(id, data);
     }
 
-    // 📊 INVENTARIO
+
+    // 📊 INVENTARIO corregido
     async getInventorySummary(projectId = null) {
         if (!projectId) projectId = this.getCurrentProjectIdSync();
-        const materials = await this.getByProject(projectId);
-        const entries = await this.getEntriesByProject(projectId);
-        const usages = await this.getUsagesByProject(projectId);
+
+        const [materialsRes, entriesRes, usagesRes] = await Promise.all([
+            this.getAll(),
+            this.entriesService.getAll(),
+            this.usagesService.getAll()
+        ]);
+
+        const materials = (materialsRes.data || []).filter(m => m.projectId === projectId).map(m => new MaterialEntity(m));
+        const entries = (entriesRes.data || []).filter(e => e.projectId === projectId).map(e => new MaterialEntryEntity(e));
+        const usages = (usagesRes.data || []).filter(u => u.projectId === projectId).map(u => new MaterialUsageEntity(u));
 
         return materials.map(material => {
             const matId = material.id;

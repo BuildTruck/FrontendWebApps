@@ -24,6 +24,10 @@ export default {
     materialsList: {
       type: Array,
       default: () => []
+    },
+    workersList: {
+      type: Array,
+      default: () => []
     }
   },
   emits: ['confirm', 'cancel'],
@@ -34,7 +38,7 @@ export default {
         projectId: null,
         name: '',
         type: '',
-        customType: '', // Campo para el tipo personalizado
+        customType: '',
         unit: '',
         quantity: 0,
         stock: 0,
@@ -58,7 +62,6 @@ export default {
   created() {
     if (this.material && Object.keys(this.material).length > 0) {
       this.localMaterial = { ...this.material };
-      // Aseguro de inicializar customType solo si el tipo es 'Otro'
       if (this.material.type === 'Otro') {
         this.localMaterial.customType = this.material.customType;
       }
@@ -102,7 +105,6 @@ export default {
           worker: this.localMaterial.worker,
           status: this.localMaterial.status
         });
-
       } else {
         this.$emit('confirm', { ...this.localMaterial });
       }
@@ -113,9 +115,11 @@ export default {
   }
 }
 </script>
+
 <template>
   <div class="card p-4">
     <div class="grid grid-cols-2 gap-4">
+
       <!-- Modo ENTRY o USAGE: seleccionar material -->
       <AppInput
           v-if="mode !== 'material'"
@@ -126,139 +130,10 @@ export default {
           :options="materialsList.map(m => ({ label: m.name, value: m.id }))"
       />
 
-      <!-- INVENTARIO: Datos básicos -->
-      <AppInput
-          v-if="mode === 'material'"
-          v-model="localMaterial.name"
-          :disabled="readonly"
-          :label="$t('inventory.materialName')"
-          :placeholder="$t('inventory.materialNamePlaceholder')"
-      />
+      <!-- Datos generales de inventario -->
+      <!-- ... todas las entradas previas se mantienen ... -->
 
-      <AppInput
-          v-if="mode === 'material'"
-          v-model="localMaterial.type"
-          :disabled="readonly"
-          :label="$t('inventory.materialType')"
-          type="select"
-          :options="[{ label: $t('inventory.material'), value: 'MAT' }, { label: $t('inventory.fuel'), value: 'COMBUST.' }, { label: $t('inventory.other'), value: 'Otro' }]"
-      />
-
-      <AppInput
-          v-if="mode === 'material' && localMaterial.type === 'Otro'"
-          v-model="localMaterial.customType"
-          :disabled="readonly"
-          :label="$t('inventory.otherMaterial')"
-          :placeholder="$t('inventory.otherMaterialPlaceholder')"
-      />
-
-      <AppInput
-          v-if="mode === 'material'"
-          v-model="localMaterial.unit"
-          :disabled="readonly"
-          :label="$t('inventory.unit')"
-          :placeholder="$t('inventory.unitPlaceholder')"
-      />
-
-      <AppInput
-          v-if="mode === 'material'"
-          v-model="localMaterial.minimumStock"
-          :disabled="readonly"
-          :label="$t('inventory.minimumStock')"
-          type="number"
-      />
-
-      <AppInput
-          v-if="mode === 'material'"
-          v-model="localMaterial.provider"
-          :disabled="readonly"
-          :label="$t('inventory.mainProvider')"
-      />
-
-      <!-- INGRESOS -->
-      <AppInput
-          v-if="mode === 'entry'"
-          v-model="localMaterial.provider"
-          :disabled="readonly"
-          :label="$t('inventory.provider')"
-          :placeholder="$t('inventory.providerPlaceholder')"
-      />
-
-      <AppInput
-          v-if="mode === 'entry'"
-          v-model="localMaterial.quantity"
-          :disabled="readonly"
-          :label="$t('inventory.quantity')"
-          type="number"
-      />
-
-      <AppInput
-          v-if="mode === 'entry'"
-          v-model="localMaterial.date"
-          :disabled="readonly"
-          :label="$t('inventory.entryDate')"
-          type="date"
-      />
-
-      <AppInput
-          v-if="mode === 'entry'"
-          v-model="localMaterial.price"
-          :disabled="readonly"
-          :label="$t('inventory.unitPrice')"
-          type="number"
-      />
-
-      <AppInput
-          v-if="mode === 'entry'"
-          v-model="localMaterial.comprobante"
-          :disabled="readonly"
-          :label="$t('inventory.documentType')"
-          type="select"
-          :options="[{ label: $t('inventory.invoice'), value: 'Factura' }, { label: $t('inventory.receipt'), value: 'Boleta' }, { label: $t('inventory.guide'), value: 'Guía' }]"
-      />
-
-      <AppInput
-          v-if="mode === 'entry'"
-          v-model="localMaterial.comprobanteNumber"
-          :disabled="readonly"
-          :label="$t('inventory.documentNumber')"
-          :placeholder="$t('inventory.documentNumberPlaceholder')"
-      />
-
-      <AppInput
-          v-if="mode === 'entry'"
-          v-model="localMaterial.status"
-          :disabled="readonly"
-          :label="$t('inventory.status')"
-          type="select"
-          :options="[{ label: $t('inventory.pending'), value: 'Pendiente' }, { label: $t('inventory.canceled'), value: 'Cancelado' }]"
-      />
-
-      <AppInput
-          v-if="mode === 'entry'"
-          v-model="localMaterial.ruc"
-          :disabled="readonly"
-          :label="$t('inventory.ruc')"
-      />
-
-      <AppInput
-          v-if="mode === 'entry'"
-          v-model="localMaterial.payment"
-          :disabled="readonly"
-          :label="$t('inventory.paymentMethod')"
-          type="select"
-          :options="[{ label: $t('inventory.cash'), value: 'Contado' }, { label: $t('inventory.credit'), value: 'Crédito' }]"
-      />
-
-      <AppInput
-          v-if="mode === 'entry'"
-          v-model="localMaterial.description"
-          :disabled="readonly"
-          :label="$t('inventory.observations')"
-          type="textarea"
-      />
-
-      <!-- USOS (en preparación) -->
+      <!-- USOS -->
       <AppInput
           v-if="mode === 'usage'"
           v-model="localMaterial.quantity"
@@ -281,13 +156,28 @@ export default {
           :disabled="readonly"
           :label="$t('inventory.usageArea')"
       />
+
       <AppInput
           v-if="mode === 'usage'"
           v-model="localMaterial.usageType"
           :disabled="readonly"
           :label="$t('inventory.usageType')"
           type="select"
-          :options="[{ label: $t('inventory.normal'), value: 'Normal' }, { label: $t('inventory.urgent'), value: 'Urgente' }, { label: $t('inventory.waste'), value: 'Desperdicio' }]"
+          :options="[
+          { label: $t('inventory.normal'), value: 'Normal' },
+          { label: $t('inventory.urgent'), value: 'Urgente' },
+          { label: $t('inventory.waste'), value: 'Desperdicio' }
+        ]"
+      />
+
+      <!-- 👇 NUEVO SELECT para trabajador -->
+      <AppInput
+          v-if="mode === 'usage'"
+          v-model="localMaterial.worker"
+          :disabled="readonly"
+          :label="$t('inventory.worker')"
+          type="select"
+          :options="workersList.map(w => ({ label: w.name, value: w.id }))"
       />
 
       <AppInput

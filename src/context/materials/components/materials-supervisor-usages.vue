@@ -1,7 +1,8 @@
 <script>
-import AppTable from '../../../core/components/AppTable.vue'
-import MaterialsForm from './materials-form.vue'
-import { materialsApiService } from '../services/materials-api.service.js'
+import AppTable from '../../../core/components/AppTable.vue';
+import MaterialsForm from './materials-form.vue';
+import { materialsApiService } from '../services/materials-api.service.js';
+import { personnelService } from '../../personnel/services/personnel-api.service.js';
 
 export default {
   name: 'MaterialsSupervisorUsages',
@@ -13,6 +14,7 @@ export default {
     return {
       usages: [],
       materials: [],
+      workers: [],
       selectedUsage: null,
       showForm: false,
       isEditingUsage: false,
@@ -23,43 +25,52 @@ export default {
         { field: 'materialName', header: this.$t('inventory.material') },
         { field: 'quantity', header: this.$t('inventory.usedQuantity') },
         { field: 'area', header: this.$t('inventory.area') },
-        { field: 'worker', header: this.$t('inventory.worker') },
+        { field: 'workerName', header: this.$t('inventory.worker') },
         { field: 'usageType', header: this.$t('inventory.usageType') },
         { field: 'observations', header: this.$t('inventory.observations') }
       ]
-    }
+    };
   },
   async created() {
-    await this.loadMaterials()
-    await this.loadUsages()
+    await this.loadMaterials();
+    await this.loadWorkers();
+    await this.loadUsages();
   },
   methods: {
     async loadMaterials() {
-      const projectId = materialsApiService.getCurrentProjectIdSync()
-      this.materials = await materialsApiService.getByProject(projectId)
+      const projectId = materialsApiService.getCurrentProjectIdSync();
+      this.materials = await materialsApiService.getByProject(projectId);
+    },
+
+    async loadWorkers() {
+      this.workers = await personnelService.getAll();
     },
 
     async loadUsages() {
-      const projectId = materialsApiService.getCurrentProjectIdSync()
-      const rawUsages = await materialsApiService.getUsagesByProject(projectId)
+      const projectId = materialsApiService.getCurrentProjectIdSync();
+      const rawUsages = await materialsApiService.getUsagesByProject(projectId);
 
       this.usages = rawUsages.map(usage => {
-        const material = this.materials.find(m => m.id === usage.materialId)
+        const material = this.materials.find(m => m.id === usage.materialId);
+        const worker = this.workers.find(w => w.id === usage.worker);
+
         return {
           ...usage,
-          materialName: material?.name || 'Desconocido'
-        }
-      })
+          materialName: material?.name || 'Desconocido',
+          workerName: worker ? `${worker.name} ${worker.lastname}` : 'No asignado' // ✅ Aquí el nombre completo
+        };
+      });
     },
 
+
     handleAdd() {
-      this.selectedUsage = null
-      this.isEditingUsage = false
-      this.showForm = true
+      this.selectedUsage = null;
+      this.isEditingUsage = false;
+      this.showForm = true;
     },
 
     handleRowClick({ data }) {
-      const material = this.materials.find(m => m.id === data.materialId)
+      const material = this.materials.find(m => m.id === data.materialId);
 
       this.selectedUsage = {
         usageId: data.id,
@@ -71,26 +82,26 @@ export default {
         usageType: data.usageType,
         description: data.observations,
         status: data.status
-      }
+      };
 
-      this.isEditingUsage = true
-      this.showForm = true
+      this.isEditingUsage = true;
+      this.showForm = true;
     },
 
     cancelForm() {
-      this.showForm = false
-      this.isEditingUsage = false
+      this.showForm = false;
+      this.isEditingUsage = false;
     },
 
     async handleConfirm(data) {
       try {
-        const material = this.materials.find(m => m.id === data.id)
-        const projectId = materialsApiService.getCurrentProjectIdSync()
-        const user = JSON.parse(sessionStorage.getItem('user'))
+        const material = this.materials.find(m => m.id === data.id);
+        const projectId = materialsApiService.getCurrentProjectIdSync();
+        const user = JSON.parse(sessionStorage.getItem('user'));
 
         if (!material) {
-          alert('Material no encontrado. Por favor selecciona uno.')
-          return
+          alert('Material no encontrado. Por favor selecciona uno.');
+          return;
         }
 
         const usagePayload = {
@@ -100,52 +111,52 @@ export default {
           quantity: Number(data.quantity),
           date: data.date,
           area: data.area,
-          worker: data.worker,
+          worker: data.worker, // Este es el workerId
           usageType: data.usageType,
           observations: data.description,
           status: data.status || 'Normal',
           createdBy: user.id
-        }
+        };
 
         if (this.isEditingUsage) {
-          await materialsApiService.updateUsage(usagePayload.id, usagePayload)
+          await materialsApiService.updateUsage(usagePayload.id, usagePayload);
         } else {
           if (Number(material.stock) < usagePayload.quantity) {
-            alert('No hay suficiente stock para este uso.')
-            return
+            alert('No hay suficiente stock para este uso.');
+            return;
           }
 
-          await materialsApiService.createUsage(usagePayload)
+          await materialsApiService.createUsage(usagePayload);
 
-          const updatedStock = Number(material.stock) - usagePayload.quantity
+          const updatedStock = Number(material.stock) - usagePayload.quantity;
           await materialsApiService.updateMaterial(material.id, {
             ...material,
             stock: updatedStock
-          })
+          });
         }
 
-        this.showForm = false
-        this.isEditingUsage = false
-        await this.loadUsages()
-        this.$emit('updated', 'Uso guardado correctamente')
+        this.showForm = false;
+        this.isEditingUsage = false;
+        await this.loadUsages();
+        this.$emit('updated', 'Uso guardado correctamente');
       } catch (error) {
-        console.error('Error al guardar uso:', error)
+        console.error('Error al guardar uso:', error);
       }
     },
 
     async handleDelete(selected) {
-      const confirmDelete = window.confirm(`¿Eliminar ${selected.length} uso(s)?`)
-      if (!confirmDelete) return
+      const confirmDelete = window.confirm(`¿Eliminar ${selected.length} uso(s)?`);
+      if (!confirmDelete) return;
 
       for (const usage of selected) {
-        const index = this.usages.findIndex(u => u.id === usage.id)
-        if (index !== -1) this.usages.splice(index, 1)
+        const index = this.usages.findIndex(u => u.id === usage.id);
+        if (index !== -1) this.usages.splice(index, 1);
       }
 
-      this.selection = []
+      this.selection = [];
     }
   }
-}
+};
 </script>
 
 <template>
@@ -157,6 +168,7 @@ export default {
         :readonly="false"
         :mode="'usage'"
         :materials-list="materials"
+        :workers-list="workers"
         @confirm="handleConfirm"
         @cancel="cancelForm"
     />

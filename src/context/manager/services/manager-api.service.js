@@ -1,4 +1,3 @@
-// src/context/manager/services/manager-api.service.js
 import { BaseService } from '../../../core/services/base.service'
 
 export class ManagerService extends BaseService {

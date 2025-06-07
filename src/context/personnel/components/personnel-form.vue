@@ -124,6 +124,12 @@ export default {
         if (this.isEditing && this.personnel) {
           this.localPersonnel = new Personnel({ ...this.personnel });
           this.localPersonnel.projectId = this.currentProjectId;
+
+          if (this.personnel.avatar) {
+            this.localPersonnel.avatar = this.personnel.avatar;
+          }
+          console.log('Editing personnel with avatar:', this.personnel.avatar ? 'Yes' : 'No');
+          console.log('Local personnel avatar:', this.localPersonnel.avatar ? 'Yes' : 'No');
         } else {
           this.localPersonnel = new Personnel({
             projectId: this.currentProjectId

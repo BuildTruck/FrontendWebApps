@@ -1,6 +1,6 @@
 <script>
-import AppInput from '../../../core/components/AppInput.vue'
-import AppButton from '../../../core/components/AppButton.vue'
+import AppInput from '../../../core/components/AppInput.vue';
+import AppButton from '../../../core/components/AppButton.vue';
 
 export default {
   name: 'MaterialsForm',
@@ -34,6 +34,7 @@ export default {
         projectId: null,
         name: '',
         type: '',
+        customType: '', // Campo para el tipo personalizado
         unit: '',
         quantity: 0,
         stock: 0,
@@ -51,23 +52,28 @@ export default {
         area: '',
         usageType: '',
         worker: ''
-
       }
     }
   },
   created() {
     if (this.material && Object.keys(this.material).length > 0) {
-      this.localMaterial = { ...this.material }
+      this.localMaterial = { ...this.material };
+      // Aseguro de inicializar customType solo si el tipo es 'Otro'
+      if (this.material.type === 'Otro') {
+        this.localMaterial.customType = this.material.customType;
+      }
     }
 
-    const user = JSON.parse(sessionStorage.getItem('user'))
+    const user = JSON.parse(sessionStorage.getItem('user'));
     if (!this.readonly && user?.projectId) {
-      this.localMaterial.projectId = user.projectId
+      this.localMaterial.projectId = user.projectId;
     }
   },
   methods: {
     confirm() {
-      this.localMaterial.total = this.localMaterial.quantity * this.localMaterial.price
+      if (this.localMaterial.type === 'Otro' && this.localMaterial.customType) {
+        this.localMaterial.type = this.localMaterial.customType;
+      }
 
       if (this.mode === 'entry') {
         this.$emit('confirm', {
@@ -83,7 +89,7 @@ export default {
           payment: this.localMaterial.payment,
           price: this.localMaterial.price,
           description: this.localMaterial.description
-        })
+        });
       } else if (this.mode === 'usage') {
         this.$emit('confirm', {
           usageId: this.material.usageId,
@@ -95,19 +101,18 @@ export default {
           description: this.localMaterial.description,
           worker: this.localMaterial.worker,
           status: this.localMaterial.status
-        })
+        });
 
       } else {
-        this.$emit('confirm', { ...this.localMaterial })
+        this.$emit('confirm', { ...this.localMaterial });
       }
     },
     cancel() {
-      this.$emit('cancel')
+      this.$emit('cancel');
     }
   }
 }
 </script>
-
 <template>
   <div class="card p-4">
     <div class="grid grid-cols-2 gap-4">
@@ -136,10 +141,15 @@ export default {
           :disabled="readonly"
           :label="$t('inventory.materialType')"
           type="select"
-          :options="[
-          { label: $t('inventory.material'), value: 'MAT' },
-          { label: $t('inventory.fuel'), value: 'COMBUST.' }
-        ]"
+          :options="[{ label: $t('inventory.material'), value: 'MAT' }, { label: $t('inventory.fuel'), value: 'COMBUST.' }, { label: $t('inventory.other'), value: 'Otro' }]"
+      />
+
+      <AppInput
+          v-if="mode === 'material' && localMaterial.type === 'Otro'"
+          v-model="localMaterial.customType"
+          :disabled="readonly"
+          :label="$t('inventory.otherMaterial')"
+          :placeholder="$t('inventory.otherMaterialPlaceholder')"
       />
 
       <AppInput
@@ -204,11 +214,7 @@ export default {
           :disabled="readonly"
           :label="$t('inventory.documentType')"
           type="select"
-          :options="[
-          { label: $t('inventory.invoice'), value: 'Factura' },
-          { label: $t('inventory.receipt'), value: 'Boleta' },
-          { label: $t('inventory.guide'), value: 'Guía' }
-        ]"
+          :options="[{ label: $t('inventory.invoice'), value: 'Factura' }, { label: $t('inventory.receipt'), value: 'Boleta' }, { label: $t('inventory.guide'), value: 'Guía' }]"
       />
 
       <AppInput
@@ -225,10 +231,7 @@ export default {
           :disabled="readonly"
           :label="$t('inventory.status')"
           type="select"
-          :options="[
-          { label: $t('inventory.pending'), value: 'Pendiente' },
-          { label: $t('inventory.canceled'), value: 'Cancelado' }
-        ]"
+          :options="[{ label: $t('inventory.pending'), value: 'Pendiente' }, { label: $t('inventory.canceled'), value: 'Cancelado' }]"
       />
 
       <AppInput
@@ -244,10 +247,7 @@ export default {
           :disabled="readonly"
           :label="$t('inventory.paymentMethod')"
           type="select"
-          :options="[
-          { label: $t('inventory.cash'), value: 'Contado' },
-          { label: $t('inventory.credit'), value: 'Crédito' }
-        ]"
+          :options="[{ label: $t('inventory.cash'), value: 'Contado' }, { label: $t('inventory.credit'), value: 'Crédito' }]"
       />
 
       <AppInput
@@ -281,18 +281,13 @@ export default {
           :disabled="readonly"
           :label="$t('inventory.usageArea')"
       />
-
       <AppInput
           v-if="mode === 'usage'"
           v-model="localMaterial.usageType"
           :disabled="readonly"
           :label="$t('inventory.usageType')"
           type="select"
-          :options="[
-          { label: $t('inventory.normal'), value: 'Normal' },
-          { label: $t('inventory.urgent'), value: 'Urgente' },
-          { label: $t('inventory.waste'), value: 'Desperdicio' }
-        ]"
+          :options="[{ label: $t('inventory.normal'), value: 'Normal' }, { label: $t('inventory.urgent'), value: 'Urgente' }, { label: $t('inventory.waste'), value: 'Desperdicio' }]"
       />
 
       <AppInput

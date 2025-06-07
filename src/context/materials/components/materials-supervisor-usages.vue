@@ -35,13 +35,13 @@ export default {
   },
   methods: {
     async loadMaterials() {
-      const user = JSON.parse(sessionStorage.getItem('user'))
-      this.materials = await materialsApiService.getByProject(user.projectId)
+      const projectId = materialsApiService.getCurrentProjectIdSync()
+      this.materials = await materialsApiService.getByProject(projectId)
     },
 
     async loadUsages() {
-      const user = JSON.parse(sessionStorage.getItem('user'))
-      const rawUsages = await materialsApiService.getUsagesByProject(user.projectId)
+      const projectId = materialsApiService.getCurrentProjectIdSync()
+      const rawUsages = await materialsApiService.getUsagesByProject(projectId)
 
       this.usages = rawUsages.map(usage => {
         const material = this.materials.find(m => m.id === usage.materialId)
@@ -84,8 +84,9 @@ export default {
 
     async handleConfirm(data) {
       try {
-        const user = JSON.parse(sessionStorage.getItem('user'))
         const material = this.materials.find(m => m.id === data.id)
+        const projectId = materialsApiService.getCurrentProjectIdSync()
+        const user = JSON.parse(sessionStorage.getItem('user'))
 
         if (!material) {
           alert('Material no encontrado. Por favor selecciona uno.')
@@ -95,7 +96,7 @@ export default {
         const usagePayload = {
           id: this.isEditingUsage ? data.usageId : 'u' + Date.now(),
           materialId: material.id,
-          projectId: user.projectId,
+          projectId,
           quantity: Number(data.quantity),
           date: data.date,
           area: data.area,
@@ -109,6 +110,11 @@ export default {
         if (this.isEditingUsage) {
           await materialsApiService.updateUsage(usagePayload.id, usagePayload)
         } else {
+          if (Number(material.stock) < usagePayload.quantity) {
+            alert('No hay suficiente stock para este uso.')
+            return
+          }
+
           await materialsApiService.createUsage(usagePayload)
 
           const updatedStock = Number(material.stock) - usagePayload.quantity

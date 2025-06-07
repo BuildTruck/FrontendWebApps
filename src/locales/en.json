@@ -254,7 +254,8 @@
     "total": "Total",
     "date": "Date",
     "area": "Area / Zone",
-    "worker": "Worker"
+    "worker": "Worker",
+    "other": "Other"
   },
   "projects": {
     "welcome": "Welcome",

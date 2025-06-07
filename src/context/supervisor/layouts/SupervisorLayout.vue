@@ -1,6 +1,8 @@
 <script>
 import { AuthService } from '../../../auth/services/auth-api.service.js';
 import LanguageSwitcher from "../../../core/components/language-switcher.component.vue";
+import { useThemeStore } from "../../../core/stores/theme.js";
+import { useLogo } from "../../../core/composables/useLogo.js";
 
 export default {
   name: 'SupervisorLayout',
@@ -15,11 +17,14 @@ export default {
       required: true
     }
   },
+  setup() {
+    const themeStore = useThemeStore()
+    const { logoSrc } = useLogo()
+    return { themeStore, logoSrc }
+  },
   data() {
     return {
-      // Añadimos displayName para mostrar en lugar de la prop
       displayName: '',
-      // Menú principal según la imagen proporcionada, pero sin proyectos
       menuItems: [
         { id: 'personal', label: 'project.tabs.personal', icon: 'pi pi-users', route: `/supervisor/${this.projectId}/personal`, active: true },
         { id: 'inventario', label: 'project.tabs.inventario', icon: 'pi pi-inbox', route: `/supervisor/${this.projectId}/inventario`, active: false },
@@ -27,7 +32,6 @@ export default {
         { id: 'incidentes', label: 'project.tabs.incidentes', icon: 'pi pi-exclamation-triangle', route: `/supervisor/${this.projectId}/incidentes`, active: false },
         { id: 'documentacion', label: 'project.tabs.documentacion', icon: 'pi pi-file', route: `/supervisor/${this.projectId}/documentacion`, active: false },
       ],
-// Opciones de perfil según la imagen proporcionada
       profileItems: [
         { id: 'salir', label: 'navigation.salir', icon: 'pi pi-sign-out', route: '/logout', active: false },
         { id: 'configuraciones', label: 'project.tabs.configuracion', icon: 'pi pi-cog', route: `/supervisor/${this.projectId}/configuraciones`, active: false },
@@ -35,12 +39,15 @@ export default {
       ]
     }
   },
-  created() {
-    // Obtener datos del usuario de sessionStorage
+  async created() {
+
     const userData = JSON.parse(sessionStorage.getItem('user') || '{}');
     this.displayName = userData.name || this.userName;
 
-    // Si estamos en la ruta raíz del supervisor, redirigir a personal
+
+    await this.themeStore.initializeTheme();
+
+
     if (this.$route.path === `/supervisor/${this.projectId}`) {
       this.$router.push(`/supervisor/${this.projectId}/personal`);
     }
@@ -86,7 +93,7 @@ export default {
     <!-- Sidebar fijo -->
     <aside class="sidebar">
       <div class="logo-container">
-        <div class="logo"></div>
+        <img :src="logoSrc" alt="Logo" class="logo" />
       </div>
 
       <!-- Menú principal -->
@@ -177,10 +184,8 @@ export default {
 .logo {
   width: 100%;
   height: 100%;
-  background-image: url('../../../assets/buildtruck-logo.svg');
-  background-size: contain;
-  background-position: center;
-  background-repeat: no-repeat;
+  object-fit: contain;
+  object-position: center;
   margin-left: -20px; /* Mueve ligeramente a la izquierda */
 }
 

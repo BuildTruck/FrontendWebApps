@@ -3,17 +3,16 @@ export class MaterialEntryEntity {
         this.id = data.id ?? null;
         this.projectId = data.projectId ?? null;
         this.materialId = data.materialId ?? null;
+
         this.date = this.validateDate(data.date) || '';
         this.quantity = this.validateQuantity(data.quantity) || 0;
         this.unit = data.unit || '';
         this.provider = data.provider || '';
         this.ruc = data.ruc || '';
 
-        // ✅ CAMBIO AQUÍ
-        this.payment = data.payment || data.paymentType || '';
-
         this.comprobante = data.comprobante || '';
         this.comprobanteNumber = data.comprobanteNumber || '';
+        this.payment = data.payment || data.paymentType || ''; // ✅ Aseguramos campo "payment"
 
         this.unitCost = Number(data.unitCost || data.price) || 0;
         this.totalCost = Number(data.totalCost) || +(this.quantity * this.unitCost).toFixed(2);
@@ -46,7 +45,7 @@ export class MaterialEntryEntity {
             ruc: this.ruc,
             comprobante: this.comprobante,
             comprobanteNumber: this.comprobanteNumber,
-            payment: this.payment, // ✅ CAMBIO AQUÍ TAMBIÉN
+            payment: this.payment, // ✅ Esto es lo que necesitas
             unitCost: this.unitCost,
             totalCost: this.totalCost,
             status: this.status,

@@ -4,8 +4,8 @@ import AppNotification from '../../../core/components/AppNotification.vue'
 import AppButton from '../../../core/components/AppButton.vue'
 import MaterialsForm from './materials-form.vue'
 import MaterialsSupervisorEntries from './materials-supervisor-entries.vue'
-import { materialsApiService } from '../services/materials-api.service.js'
 import MaterialsSupervisorUsages from './materials-supervisor-usages.vue'
+import { materialsApiService } from '../services/materials-api.service.js'
 
 export default {
   name: 'MaterialsSupervisor',
@@ -49,22 +49,17 @@ export default {
           field: 'price',
           header: this.$t('inventory.unitPrice'),
           dataType: 'numeric',
-          body: row =>
-              row.price && row.price > 0 ? `S/ ${row.price.toFixed(2)}` : '-'
+          body: row => row.price && row.price > 0 ? `S/ ${row.price.toFixed(2)}` : '-'
         },
         {
           field: 'total',
           header: this.$t('inventory.total'),
           dataType: 'numeric',
-          body: row =>
-              row.total && row.total > 0 ? `S/ ${row.total.toFixed(2)}` : '-'
+          body: row => row.total && row.total > 0 ? `S/ ${row.total.toFixed(2)}` : '-'
         }
       ]
 
-      const hasData = this.inventory.some(
-          mat => mat.totalEntries > 0 || mat.totalUsages > 0
-      )
-
+      const hasData = this.inventory.some(mat => mat.totalEntries > 0 || mat.totalUsages > 0)
       return hasData ? [...base, ...extra] : base
     }
   },
@@ -75,8 +70,9 @@ export default {
     async loadInventory() {
       try {
         this.loading = true
-        const user = JSON.parse(sessionStorage.getItem('user'))
-        this.inventory = await materialsApiService.getInventorySummary(user.projectId)
+        const projectId = materialsApiService.getCurrentProjectIdSync()
+        if (!projectId) throw new Error('No projectId')
+        this.inventory = await materialsApiService.getInventorySummary(projectId)
       } catch (error) {
         console.error('Error al cargar inventario:', error)
       } finally {
@@ -102,8 +98,14 @@ export default {
 
     async handleConfirm(material) {
       try {
-        const user = JSON.parse(sessionStorage.getItem('user'))
-        material.projectId = user?.projectId
+        if (!material.projectId) {
+          material.projectId = materialsApiService.getCurrentProjectIdSync()
+        }
+
+        if (!material.projectId) {
+          alert('No se pudo determinar el proyecto actual')
+          return
+        }
 
         if (material.id) {
           await materialsApiService.updateMaterial(material.id, material)
@@ -119,6 +121,8 @@ export default {
         await this.loadInventory()
       } catch (error) {
         console.error('Error al guardar material:', error)
+        this.notificationMessage = 'Error al guardar material'
+        this.showNotification = true
       }
     },
 
@@ -169,10 +173,8 @@ export default {
       />
     </div>
 
-
     <!-- INVENTARIO -->
     <div v-if="selectedTab === 'inventory'">
-      <!-- Formulario modo material -->
       <MaterialsForm
           v-if="showForm"
           :material="selectedMaterial || {}"
@@ -183,13 +185,11 @@ export default {
           :materials-list="inventory"
       />
 
-      <!-- Botones al ver detalles -->
       <div v-if="showForm && isReadonly" class="flex justify-end gap-2 mt-4">
         <AppButton :label="$t('general.edit')" variant="primary" @click="handleEdit" />
         <AppButton :label="$t('general.close')" variant="secondary" @click="cancelView" />
       </div>
 
-      <!-- Tabla -->
       <div v-if="!showForm && !showAddForm">
         <AppTable
             :columns="columns"
@@ -233,7 +233,6 @@ export default {
   margin-bottom: 1.5rem;
 }
 
-/* Estilo base del botón-tab */
 .tabs-wrapper .p-button {
   border: none !important;
   background: transparent !important;
@@ -246,7 +245,6 @@ export default {
   transition: none !important;
 }
 
-/* Hover limpio sin ningún cambio */
 .tabs-wrapper .p-button:hover,
 .tabs-wrapper .p-button:focus,
 .tabs-wrapper .p-button:active {
@@ -257,11 +255,8 @@ export default {
   outline: none !important;
 }
 
-/* Estilo del tab activo */
 .tabs-wrapper .tab-active {
   color: #FF5F01 !important;
   border-bottom: 3px solid #FF5F01;
 }
 </style>
-
-

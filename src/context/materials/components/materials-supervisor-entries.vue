@@ -44,26 +44,24 @@ export default {
   },
   methods: {
     async loadMaterials() {
-      const user = JSON.parse(sessionStorage.getItem('user'))
-      this.materials = await materialsApiService.getByProject(user.projectId)
+      const projectId = materialsApiService.getCurrentProjectIdSync()
+      this.materials = await materialsApiService.getByProject(projectId)
     },
 
     async loadEntries() {
-      const user = JSON.parse(sessionStorage.getItem('user'))
-      const rawEntries = await materialsApiService.getEntriesByProject(user.projectId)
+      const projectId = materialsApiService.getCurrentProjectIdSync()
+      const rawEntries = await materialsApiService.getEntriesByProject(projectId)
 
-      this.entries = rawEntries.map(entry => {
-        const material = this.materials.find(m => m.id === entry.materialId)
-        return {
-          ...entry,
-          materialName: material?.name || 'Desconocido',
-          // 👇 puedes agregar esto si solo necesitas mostrarlo en la tabla
-          // pero no lo uses para editar
-          // documentNumber: entry.comprobanteNumber
-        }
-      })
+      this.entries = rawEntries
+          .filter(entry => entry.materialId && entry.quantity > 0)
+          .map(entry => {
+            const material = this.materials.find(m => m.id === entry.materialId)
+            return {
+              ...entry,
+              materialName: material?.name || 'Desconocido'
+            }
+          })
     },
-
 
     handleAdd() {
       this.selectedEntry = null
@@ -71,12 +69,12 @@ export default {
       this.showForm = true
     },
 
-    handleRowClick ({ data }) {
+    handleRowClick({ data }) {
       const material = this.materials.find(m => m.id === data.materialId)
 
       this.selectedEntry = {
-        entryId: data.id,                       // ID del ingreso
-        id: material?.id,                       // ID del material
+        entryId: data.id,
+        id: material?.id,
         quantity: data.quantity,
         date: data.date,
         provider: data.provider,
@@ -100,7 +98,11 @@ export default {
 
     async handleConfirm(data) {
       try {
-        const user = JSON.parse(sessionStorage.getItem('user'))
+        if (!data.date || !data.id || !data.quantity || !data.price) {
+          alert('Faltan datos requeridos. Verifica la información antes de guardar.')
+          return
+        }
+
         const material = this.materials.find(m => m.id === data.id)
 
         if (!material) {
@@ -108,10 +110,12 @@ export default {
           return
         }
 
+        const projectId = materialsApiService.getCurrentProjectIdSync()
+
         const entryPayload = {
           id: this.isEditingEntry ? data.entryId : 'e' + Date.now(),
           materialId: material.id,
-          projectId: user.projectId,
+          projectId,
           date: data.date,
           quantity: Number(data.quantity),
           provider: data.provider,
@@ -123,7 +127,7 @@ export default {
           totalCost: Number(data.price) * Number(data.quantity),
           observations: data.description,
           status: data.status || 'Normal',
-          createdBy: user.id
+          createdBy: JSON.parse(sessionStorage.getItem('user')).id
         }
 
         if (this.isEditingEntry) {
@@ -131,7 +135,10 @@ export default {
         } else {
           await materialsApiService.createEntry(entryPayload)
 
-          const updatedStock = Number(material.stock) + entryPayload.quantity
+          const updatedStock = material?.stock
+              ? Number(material.stock) + entryPayload.quantity
+              : entryPayload.quantity
+
           await materialsApiService.updateMaterial(material.id, {
             ...material,
             stock: updatedStock
@@ -152,7 +159,6 @@ export default {
       if (!confirmDelete) return
 
       for (const entry of selected) {
-        // Aquí puedes agregar lógica para eliminar desde el backend si lo soporta
         const index = this.entries.findIndex(e => e.id === entry.id)
         if (index !== -1) this.entries.splice(index, 1)
       }
@@ -165,7 +171,6 @@ export default {
 
 <template>
   <div>
-    <!-- FORMULARIO -->
     <MaterialsForm
         v-if="showForm"
         :material="selectedEntry || {}"
@@ -176,7 +181,6 @@ export default {
         @cancel="cancelForm"
     />
 
-    <!-- TABLA -->
     <div v-else>
       <AppTable
           :columns="columns"

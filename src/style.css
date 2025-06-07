@@ -3,9 +3,32 @@
   line-height: 1.5;
   font-weight: 400;
 
+  /* VARIABLES DE COLOR PARA TEMA CLARO */
+  --bg-primary: #FFFFFF;
+  --bg-secondary: #f8f9fa;
+  --bg-card: #FFFFFF;
+  --text-primary: rgba(0, 0, 0, 0.87);
+  --text-secondary: #666;
+  --text-muted: #999;
+  --border-color: #e3e1e1;
+  --border-hover: #444;
+  --input-bg: #FFFFFF;
+  --dropdown-bg: #FFFFFF;
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --shadow-hover: 0 2px 10px rgba(0, 0, 0, 0.15);
+
+  /* Variables para componentes específicos */
+  --button-secondary-bg: transparent;
+  --button-text-bg: transparent;
+  --notification-bg: white;
+  --table-stripe: #fafafa;
+  --table-hover: #f5f5f5;
+  --primary-color: #FF5F01;
+  --primary-color-hover: #E04E00;
+
   color-scheme: light dark;
-  color: rgba(0, 0, 0, 0.87); /* Cambiado a color oscuro para tema claro */
-  background-color: #FFFFFF;
+  color: var(--text-primary);
+  background-color: var(--bg-primary);
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -27,7 +50,9 @@ body {
   padding: 0;
   min-width: 320px;
   min-height: 100vh;
-  /* Quitar display: flex y place-items: center */
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 h1 {
@@ -59,15 +84,14 @@ button:focus-visible {
 }
 
 #app {
-  width: 100%; /* Cambiar max-width por width: 100% */
-  margin: 0; /* Quitar el auto-centering */
-  padding: 0; /* Quitar el padding */
-  /* text-align: center; - Solo descomenta esta línea si necesitas centrar el texto */
+  width: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 ::-webkit-scrollbar {
-  width: 10px;           /* vertical */
-  height: 10px;          /* horizontal */
+  width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-track {

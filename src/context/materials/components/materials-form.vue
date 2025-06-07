@@ -1,6 +1,6 @@
 <script>
-import AppInput from '../../../core/components/AppInput.vue'
-import AppButton from '../../../core/components/AppButton.vue'
+import AppInput from '../../../core/components/AppInput.vue';
+import AppButton from '../../../core/components/AppButton.vue';
 
 export default {
   name: 'MaterialsForm',
@@ -24,6 +24,10 @@ export default {
     materialsList: {
       type: Array,
       default: () => []
+    },
+    workersList: {
+      type: Array,
+      default: () => []
     }
   },
   emits: ['confirm', 'cancel'],
@@ -34,6 +38,7 @@ export default {
         projectId: null,
         name: '',
         type: '',
+        customType: '',
         unit: '',
         quantity: 0,
         stock: 0,
@@ -51,23 +56,27 @@ export default {
         area: '',
         usageType: '',
         worker: ''
-
       }
     }
   },
   created() {
     if (this.material && Object.keys(this.material).length > 0) {
-      this.localMaterial = { ...this.material }
+      this.localMaterial = { ...this.material };
+      if (this.material.type === 'Otro') {
+        this.localMaterial.customType = this.material.customType;
+      }
     }
 
-    const user = JSON.parse(sessionStorage.getItem('user'))
+    const user = JSON.parse(sessionStorage.getItem('user'));
     if (!this.readonly && user?.projectId) {
-      this.localMaterial.projectId = user.projectId
+      this.localMaterial.projectId = user.projectId;
     }
   },
   methods: {
     confirm() {
-      this.localMaterial.total = this.localMaterial.quantity * this.localMaterial.price
+      if (this.localMaterial.type === 'Otro' && this.localMaterial.customType) {
+        this.localMaterial.type = this.localMaterial.customType;
+      }
 
       if (this.mode === 'entry') {
         this.$emit('confirm', {
@@ -83,7 +92,7 @@ export default {
           payment: this.localMaterial.payment,
           price: this.localMaterial.price,
           description: this.localMaterial.description
-        })
+        });
       } else if (this.mode === 'usage') {
         this.$emit('confirm', {
           usageId: this.material.usageId,
@@ -95,14 +104,13 @@ export default {
           description: this.localMaterial.description,
           worker: this.localMaterial.worker,
           status: this.localMaterial.status
-        })
-
+        });
       } else {
-        this.$emit('confirm', { ...this.localMaterial })
+        this.$emit('confirm', { ...this.localMaterial });
       }
     },
     cancel() {
-      this.$emit('cancel')
+      this.$emit('cancel');
     }
   }
 }
@@ -111,6 +119,7 @@ export default {
 <template>
   <div class="card p-4">
     <div class="grid grid-cols-2 gap-4">
+
       <!-- Modo ENTRY o USAGE: seleccionar material -->
       <AppInput
           v-if="mode !== 'material'"
@@ -121,7 +130,7 @@ export default {
           :options="materialsList.map(m => ({ label: m.name, value: m.id }))"
       />
 
-      <!-- INVENTARIO: Datos básicos -->
+      <!-- MATERIAL (nuevo material) -->
       <AppInput
           v-if="mode === 'material'"
           v-model="localMaterial.name"
@@ -138,8 +147,17 @@ export default {
           type="select"
           :options="[
           { label: $t('inventory.material'), value: 'MAT' },
-          { label: $t('inventory.fuel'), value: 'COMBUST.' }
+          { label: $t('inventory.fuel'), value: 'COMBUST.' },
+          { label: $t('inventory.other'), value: 'Otro' }
         ]"
+      />
+
+      <AppInput
+          v-if="mode === 'material' && localMaterial.type === 'Otro'"
+          v-model="localMaterial.customType"
+          :disabled="readonly"
+          :label="$t('inventory.otherMaterial')"
+          :placeholder="$t('inventory.otherMaterialPlaceholder')"
       />
 
       <AppInput
@@ -165,7 +183,7 @@ export default {
           :label="$t('inventory.mainProvider')"
       />
 
-      <!-- INGRESOS -->
+      <!-- ENTRY (entradas de material) -->
       <AppInput
           v-if="mode === 'entry'"
           v-model="localMaterial.provider"
@@ -258,7 +276,7 @@ export default {
           type="textarea"
       />
 
-      <!-- USOS (en preparación) -->
+      <!-- USAGE (uso del material) -->
       <AppInput
           v-if="mode === 'usage'"
           v-model="localMaterial.quantity"
@@ -297,11 +315,21 @@ export default {
 
       <AppInput
           v-if="mode === 'usage'"
+          v-model="localMaterial.worker"
+          :disabled="readonly"
+          :label="$t('inventory.worker')"
+          type="select"
+          :options="workersList.map(w => ({ label: w.name, value: w.id }))"
+      />
+
+      <AppInput
+          v-if="mode === 'usage'"
           v-model="localMaterial.description"
           :disabled="readonly"
           :label="$t('inventory.observations')"
           type="textarea"
       />
+
     </div>
 
     <div class="flex justify-end mt-4 gap-2" v-if="!readonly">
@@ -310,6 +338,7 @@ export default {
     </div>
   </div>
 </template>
+
 
 <style scoped>
 .grid {

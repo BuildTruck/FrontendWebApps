@@ -103,7 +103,6 @@ export default {
   <div class="personnel-supervisor">
     <!-- Header con título y navegación -->
     <div class="supervisor-header" v-if="showTabs">
-
       <!-- Navegación de pestañas -->
       <nav class="tabs-navigation">
         <button
@@ -154,32 +153,34 @@ export default {
   </div>
 </template>
 
-
 <style scoped>
 .personnel-supervisor {
-  height: 100%;
+  height: 100vh; /* ✅ Asegurar altura completa */
   display: flex;
   flex-direction: column;
   background-color: #f8f9fa;
+  overflow: hidden; /* ✅ Prevenir scroll en el contenedor principal */
 }
 
-/* Header */
+/* Header - Altura fija */
 .supervisor-header {
   background: linear-gradient(135deg, #FF5F01 0%, #E04E00 100%);
   color: white;
-  padding: 2rem;
+  padding: 1.5rem 2rem; /* ✅ Reducir padding para dar más espacio al contenido */
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   position: relative;
   overflow: hidden;
+  flex-shrink: 0; /* ✅ No permitir que se encoja */
+  min-height: auto; /* ✅ Altura mínima automática */
 }
 
 .header-content {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem; /* ✅ Reducir margen */
 }
 
 .supervisor-title {
   margin: 0 0 0.5rem 0;
-  font-size: 2rem;
+  font-size: 1.75rem; /* ✅ Reducir tamaño de fuente */
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -187,12 +188,12 @@ export default {
 }
 
 .supervisor-title i {
-  font-size: 1.75rem;
+  font-size: 1.5rem; /* ✅ Reducir tamaño del ícono */
 }
 
 .supervisor-subtitle {
   margin: 0;
-  font-size: 1.125rem;
+  font-size: 1rem; /* ✅ Reducir tamaño de fuente */
   opacity: 0.9;
   font-weight: 400;
 }
@@ -210,12 +211,12 @@ export default {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
+  padding: 0.625rem 1.25rem; /* ✅ Reducir padding vertical */
   background: transparent;
   border: 2px solid transparent;
   border-radius: 8px;
   color: rgba(255, 255, 255, 0.8);
-  font-size: 1rem;
+  font-size: 0.875rem; /* ✅ Reducir tamaño de fuente */
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -251,40 +252,37 @@ export default {
 }
 
 .tab-button i {
-  font-size: 1.125rem;
+  font-size: 1rem; /* ✅ Reducir tamaño del ícono */
 }
 
-/* Contenido de pestañas */
-.tab-content {
-  flex: 1;
-  min-height: 0;
-  overflow: hidden;
-  position: relative;
+/* ✅ SOLUCIÓN PRINCIPAL: Contenido de las vistas */
+.view-content {
+  flex: 1; /* ✅ Tomar todo el espacio restante */
+  min-height: 0; /* ✅ Permitir que el contenido se encoja */
+  overflow: hidden; /* ✅ Manejar scroll internamente */
+  display: flex;
+  flex-direction: column;
 }
 
-.tab-panel {
-  height: 100%;
-  background-color: #f8f9fa;
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  animation: fadeIn 0.3s ease-out;
+.view-panel {
+  height: 100%; /* ✅ Usar toda la altura disponible */
+  overflow: hidden; /* ✅ Cada panel maneja su propio scroll */
+  display: flex;
+  flex-direction: column;
 }
 
 /* Responsive */
 @media (max-width: 768px) {
   .supervisor-header {
-    padding: 1.5rem 1rem;
+    padding: 1rem;
   }
 
   .supervisor-title {
-    font-size: 1.5rem;
+    font-size: 1.25rem;
   }
 
   .supervisor-subtitle {
-    font-size: 1rem;
+    font-size: 0.875rem;
   }
 
   .tabs-navigation {
@@ -294,7 +292,7 @@ export default {
 
   .tab-button {
     justify-content: center;
-    padding: 0.75rem 1rem;
+    padding: 0.5rem 1rem;
   }
 
   .tab-button.active::after {
@@ -303,28 +301,32 @@ export default {
 }
 
 @media (max-width: 480px) {
+  .personnel-supervisor {
+    height: 100vh; /* ✅ Mantener altura completa en móvil */
+  }
+
   .supervisor-header {
-    padding: 1rem;
+    padding: 0.75rem;
   }
 
   .supervisor-title {
-    font-size: 1.25rem;
+    font-size: 1.125rem;
     flex-direction: column;
     gap: 0.5rem;
     text-align: center;
   }
 
   .supervisor-subtitle {
-    font-size: 0.875rem;
+    font-size: 0.8rem;
     text-align: center;
   }
 
   .tab-button {
-    font-size: 0.875rem;
+    font-size: 0.8rem;
   }
 
   .tab-button i {
-    font-size: 1rem;
+    font-size: 0.875rem;
   }
 }
 

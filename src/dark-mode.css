@@ -2241,6 +2241,7 @@
 [data-theme="dark"] .language-switcher-container {
     background-color: transparent !important;
 }
+
 /* QUITAR LA LÍNEA DEL HEADER EN DARK MODE */
 [data-theme="dark"] .logo-container {
     background-color: transparent !important;
@@ -2249,7 +2250,7 @@
     box-shadow: none !important;
 }
 
-/* Si hay algún elemento con clase que genere esa línea */
+
 [data-theme="dark"] .logo-container::after,
 [data-theme="dark"] .logo-container::before {
     display: none !important;
@@ -2280,4 +2281,271 @@
     [data-theme="dark"] .form-section {
         background-color: var(--bg-primary) !important;
     }
+}
+
+/* ================================================================
+   MACHINERY COMPONENT DARK MODE
+   ================================================================ */
+
+/* Machinery Supervisor Component */
+[data-theme="dark"] .machinery-supervisor {
+    background-color: var(--bg-primary) !important;
+}
+
+[data-theme="dark"] .detail-actions {
+    background-color: var(--bg-secondary) !important;
+    border-bottom-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .table-container {
+    background-color: var(--bg-secondary) !important;
+}
+
+[data-theme="dark"] .machinery-type-display {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .status-container {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .empty-state {
+    background-color: var(--bg-secondary) !important;
+}
+
+[data-theme="dark"] .empty-icon {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .empty-state h3 {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .empty-state p {
+    color: var(--text-secondary) !important;
+}
+
+/* Machinery Form */
+[data-theme="dark"] .machinery-form-page {
+    background-color: var(--bg-primary) !important;
+}
+
+[data-theme="dark"] .form-header {
+    background-color: var(--bg-secondary) !important;
+    border-bottom-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .header-title h1 {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .header-subtitle {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .form-section {
+    background-color: var(--bg-secondary) !important;
+    border-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .form-section-title {
+    color: var(--primary-color) !important;
+    border-bottom-color: var(--primary-color) !important;
+}
+
+/* Custom type input section */
+[data-theme="dark"] .custom-type-input {
+    background-color: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .custom-type-input:focus {
+    border-color: var(--primary-color) !important;
+    box-shadow: 0 0 0 2px rgba(255, 95, 1, 0.2) !important;
+}
+
+
+/* ========================================
+   DARK MODE
+   ======================================== */
+
+[data-theme="dark"] .machinery-manager {
+    background-color: var(--bg-primary) !important;
+}
+
+[data-theme="dark"] .summary-view {
+    background-color: var(--bg-primary) !important;
+}
+
+[data-theme="dark"] .stat-card {
+    background-color: var(--bg-secondary) !important;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-theme="dark"] .stat-label {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .controls-section {
+    background-color: var(--bg-secondary) !important;
+}
+
+[data-theme="dark"] .filter-select {
+    background-color: var(--bg-primary) !important;
+    border-color: var(--border-color) !important;
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .filter-select:focus {
+    border-color: #FF5F01 !important;
+    box-shadow: 0 0 0 3px rgba(255, 95, 1, 0.2) !important;
+}
+
+[data-theme="dark"] .filter-icon {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .table-section {
+    background-color: var(--bg-secondary) !important;
+}
+
+[data-theme="dark"] .empty-state {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .empty-state h3 {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .empty-icon {
+    color: var(--text-secondary) !important;
+    opacity: 0.5;
+}
+
+[data-theme="dark"] .loading-state {
+    color: var(--text-secondary) !important;
+}
+
+/* Tabla en dark mode */
+[data-theme="dark"] :deep(.machinery-table .p-datatable) {
+    background-color: var(--bg-secondary) !important;
+}
+
+[data-theme="dark"] :deep(.machinery-table .p-datatable-thead > tr > th) {
+    background-color: var(--bg-primary) !important;
+    border-color: var(--border-color) !important;
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] :deep(.machinery-table .p-datatable-tbody > tr) {
+    background-color: var(--bg-secondary) !important;
+    border-color: var(--border-color) !important;
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] :deep(.machinery-table .p-datatable-tbody > tr:hover) {
+    background-color: rgba(255, 95, 1, 0.1) !important;
+}
+
+[data-theme="dark"] :deep(.machinery-table .p-paginator) {
+    background-color: var(--bg-primary) !important;
+    border-color: var(--border-color) !important;
+    color: var(--text-primary) !important;
+}
+
+/* PERSONNEL FORM DARK MODE - CORREGIDO */
+[data-theme="dark"] .personnel-form-page {
+    background-color: var(--bg-primary) !important;
+}
+
+[data-theme="dark"] .personnel-form-page .form-header {
+    background-color: var(--bg-secondary) !important;
+    border-color: var(--border-color) !important;
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .personnel-form-page .form-section {
+    background-color: var(--bg-secondary) !important;
+    border-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .personnel-form-page .form-section-title {
+    color: #FF5F01 !important;
+    border-bottom-color: #FF5F01 !important;
+}
+
+/* MACHINERY FORM DARK MODE - CORREGIDO */
+[data-theme="dark"] .machinery-form-page {
+    background-color: var(--bg-primary) !important;
+}
+
+[data-theme="dark"] .machinery-form-page .form-header {
+    background-color: var(--bg-secondary) !important;
+    border-color: var(--border-color) !important;
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .machinery-form-page .form-section {
+    background-color: var(--bg-secondary) !important;
+    border-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .machinery-form-page .form-section-title {
+    color: #FF5F01 !important;
+    border-bottom-color: #FF5F01 !important;
+}
+
+[data-theme="dark"] .machinery-form-page .header-title h1 {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .machinery-form-page .header-subtitle {
+    color: var(--text-secondary) !important;
+}
+/* Custom Select Dark Mode - Agregar al archivo dark mode */
+[data-theme="dark"] .custom-select-container {
+    background-color: transparent !important;
+}
+
+[data-theme="dark"] .selected-option {
+    background: var(--input-bg) !important;
+    border-color: var(--border-color) !important;
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .selected-option:hover {
+    border-color: #FF5F01 !important;
+    background: var(--table-hover) !important;
+}
+
+[data-theme="dark"] .selected-option i {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .dropdown-options {
+    background: var(--bg-card) !important;
+    border-color: var(--border-color) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+}
+
+[data-theme="dark"] .option-item {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .option-item:hover {
+    background-color: var(--table-hover) !important;
+}
+
+[data-theme="dark"] .option-item.selected {
+    background-color: #FF5F01 !important;
+    color: white !important;
+}
+
+[data-theme="dark"] .option-item i {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .option-item.selected i {
+    color: white !important;
 }

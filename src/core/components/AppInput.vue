@@ -52,12 +52,39 @@ export default {
     }
   },
   mounted() {
-    // Si ya hay una imagen seleccionada, crear URL de vista previa
-    if (this.type === 'photo' && this.modelValue instanceof File) {
-      this.photoPreviewUrl = URL.createObjectURL(this.modelValue);
+    this.initializePreview();
+  },
+  watch: {
+    modelValue: {
+      handler(newValue) {
+        if (this.type === 'photo') {
+          if (newValue instanceof File) {
+            // Archivo nuevo
+            this.photoPreviewUrl = URL.createObjectURL(newValue);
+          } else if (typeof newValue === 'string' && newValue.startsWith('data:image')) {
+            // Imagen base64 existente
+            this.photoPreviewUrl = newValue;
+          } else if (!newValue) {
+            // Sin imagen
+            this.photoPreviewUrl = '';
+          }
+        }
+      },
+      immediate: true
     }
   },
   methods: {
+    initializePreview() {
+      if (this.type === 'photo') {
+        if (this.modelValue instanceof File) {
+          // Archivo nuevo
+          this.photoPreviewUrl = URL.createObjectURL(this.modelValue);
+        } else if (typeof this.modelValue === 'string' && this.modelValue.startsWith('data:image')) {
+          // Imagen base64 existente
+          this.photoPreviewUrl = this.modelValue;
+        }
+      }
+    },
     updateValue(value) {
       this.$emit('update:modelValue', value);
     },

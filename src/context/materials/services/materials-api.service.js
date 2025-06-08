@@ -124,6 +124,78 @@ class MaterialsApiService extends BaseService {
     updateUsage(id, data) {
         return this.usagesService.updateUsage(id, data);
     }
+    async exportInventoryToExcel(inventoryData, fileName = 'inventario') {
+        try {
+            const exportData = inventoryData.map(item => ({
+                'Nombre': item.name,
+                'Tipo': item.type,
+                'Unidad': item.unit,
+                'Stock Mínimo': item.minimumStock,
+                'Stock Actual': item.stockActual,
+                'Precio Unitario (S/)': item.price,
+                'Total (S/)': item.total
+            }));
+
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.json_to_sheet(exportData);
+            XLSX.utils.book_append_sheet(wb, ws, 'Inventario');
+            XLSX.writeFile(wb, `${fileName}_${this.getToday()}.xlsx`);
+        } catch (error) {
+            console.error('❌ Error exportando inventario:', error);
+        }
+    }
+    async exportEntriesToExcel(entriesData, fileName = 'entradas') {
+        try {
+            const exportData = entriesData.map(entry => ({
+                'Fecha': entry.date,
+                'Material': entry.materialName,
+                'Cantidad': entry.quantity,
+                'Proveedor': entry.provider,
+                'Comprobante': entry.comprobante,
+                'N° Comprobante': entry.comprobanteNumber,
+                'RUC': entry.ruc,
+                'Método de Pago': entry.payment,
+                'Precio Unitario (S/)': entry.unitCost,
+                'Costo Total (S/)': entry.totalCost,
+                'Estado': entry.status
+            }));
+
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.json_to_sheet(exportData);
+            XLSX.utils.book_append_sheet(wb, ws, 'Entradas');
+            XLSX.writeFile(wb, `${fileName}_${this.getToday()}.xlsx`);
+        } catch (error) {
+            console.error('❌ Error exportando entradas:', error);
+        }
+    }
+    async exportUsagesToExcel(usagesData, fileName = 'usos') {
+        try {
+            const exportData = usagesData.map(usage => ({
+                'Fecha': usage.date,
+                'Material': usage.materialName,
+                'Cantidad Usada': usage.quantity,
+                'Área': usage.area,
+                'Tipo de Uso': usage.usageType,
+                'Trabajador': usage.worker,
+                'Observaciones': usage.observations,
+                'Estado': usage.status
+            }));
+
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.json_to_sheet(exportData);
+            XLSX.utils.book_append_sheet(wb, ws, 'Usos');
+            XLSX.writeFile(wb, `${fileName}_${this.getToday()}.xlsx`);
+        } catch (error) {
+            console.error('❌ Error exportando usos:', error);
+        }
+    }
+    getToday() {
+        return new Date().toISOString().split('T')[0];
+    }
+
+
+
+
 
 
     // 📊 INVENTARIO corregido
@@ -163,6 +235,7 @@ class MaterialsApiService extends BaseService {
             };
         });
     }
+
 }
 
 export const materialsApiService = new MaterialsApiService();

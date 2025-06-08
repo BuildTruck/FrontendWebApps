@@ -3345,3 +3345,50 @@
 [data-theme="dark"] .profile-wrapper ::-webkit-scrollbar-thumb:hover {
     background: #666666;
 }
+/* ========================================
+   MANAGER MATERIALS COMPONENT - DARK MODE
+   ======================================== */
+
+/* Container principal */
+[data-theme="dark"] .inventory-manager-tabs {
+    background-color: #1a1a1a !important;
+    color: #ffffff !important;
+}
+
+/* Navegación de tabs */
+[data-theme="dark"] .tabs-navigation {
+    background-color: #2c2c2c !important;
+    border: 1px solid #404040 !important;
+}
+
+/* Botones de tab por defecto */
+[data-theme="dark"] .tab-button {
+    background-color: #333333 !important;
+    color: #cccccc !important;
+    border-color: #404040 !important;
+}
+
+/* Botones de tab en hover */
+[data-theme="dark"] .tab-button:hover {
+    background-color: #4a2c1a !important;
+    color: #ff8c42 !important;
+    border-color: #ff6b35 !important;
+}
+
+/* Tab activo mantiene el naranja */
+[data-theme="dark"] .tab-button.active {
+    background-color: #ff5f01 !important;
+    color: white !important;
+    border-color: #ff5f01 !important;
+    box-shadow: 0 4px 10px rgba(255, 95, 1, 0.4) !important;
+}
+
+/* Iconos en tabs */
+[data-theme="dark"] .tab-button i {
+    color: inherit !important;
+}
+
+/* Label de tabs */
+[data-theme="dark"] .tab-label {
+    color: inherit !important;
+}

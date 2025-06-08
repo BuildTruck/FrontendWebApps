@@ -2897,3 +2897,249 @@
 [data-theme="dark"] .empty-state p {
     color: var(--text-secondary) !important;
 }
+
+/* ================================================================
+   STATS CARD DARK MODE
+   ================================================================ */
+
+[data-theme="dark"] .stats-card {
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-theme="dark"] .stats-card:hover {
+    background: var(--table-hover) !important;
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.4) !important;
+    border-color: #FF5F01 !important;
+}
+
+/* Header */
+[data-theme="dark"] .stats-card__title {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .stats-card__subtitle {
+    color: var(--text-secondary) !important;
+}
+
+/* Content */
+[data-theme="dark"] .stats-card__value {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .stats-card__unit {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .stats-card__target,
+[data-theme="dark"] .stats-card__secondary-value {
+    color: var(--text-secondary) !important;
+}
+
+/* Progress bar */
+[data-theme="dark"] .stats-card__progress-bar {
+    background-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .stats-card__progress-text {
+    color: var(--text-primary) !important;
+}
+
+/* Trend */
+[data-theme="dark"] .stats-card__trend {
+    color: var(--text-primary) !important;
+}
+
+/* Badge variants for dark mode */
+[data-theme="dark"] .stats-card__badge--success {
+    background-color: rgba(34, 197, 94, 0.2) !important;
+    color: #4ade80 !important;
+}
+
+[data-theme="dark"] .stats-card__badge--warning {
+    background-color: rgba(245, 158, 11, 0.2) !important;
+    color: #fbbf24 !important;
+}
+
+[data-theme="dark"] .stats-card__badge--danger {
+    background-color: rgba(239, 68, 68, 0.2) !important;
+    color: #f87171 !important;
+}
+
+[data-theme="dark"] .stats-card__badge--info {
+    background-color: rgba(59, 130, 246, 0.2) !important;
+    color: #60a5fa !important;
+}
+
+/* Footer */
+[data-theme="dark"] .stats-card__footer {
+    border-top: 1px solid var(--border-color) !important;
+}
+
+[data-theme="dark"] .stats-card__footer-text,
+[data-theme="dark"] .stats-card__last-updated {
+    color: var(--text-secondary) !important;
+}
+
+/* Clickable states */
+[data-theme="dark"] .stats-card--clickable:hover {
+    border-color: #FF5F01 !important;
+}
+
+/* Variant borders for dark mode */
+[data-theme="dark"] .stats-card--primary {
+    border-left: 4px solid #FF5F01 !important;
+}
+
+[data-theme="dark"] .stats-card--success {
+    border-left: 4px solid #22c55e !important;
+}
+
+[data-theme="dark"] .stats-card--warning {
+    border-left: 4px solid #f59e0b !important;
+}
+
+[data-theme="dark"] .stats-card--danger {
+    border-left: 4px solid #ef4444 !important;
+}
+
+[data-theme="dark"] .stats-card--info {
+    border-left: 4px solid #3b82f6 !important;
+}
+/* ================================================================
+   MANAGER STATS DARK MODE
+   ================================================================ */
+
+[data-theme="dark"] .manager-stats {
+    background-color: var(--bg-primary) !important;
+}
+
+/* Header */
+[data-theme="dark"] .stats-header {
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-theme="dark"] .header-title h1 {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .header-subtitle {
+    color: var(--text-secondary) !important;
+}
+
+/* Alerts */
+[data-theme="dark"] .alert-card {
+    background: var(--bg-card) !important;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-theme="dark"] .alert-title {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .alert-message {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .alert-badge {
+    background: #FF5F01 !important;
+    color: white !important;
+}
+
+/* Comparison Section */
+[data-theme="dark"] .comparison-section {
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-theme="dark"] .section-header h2 {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .section-subtitle {
+    color: var(--text-secondary) !important;
+}
+
+/* Comparison Cards */
+[data-theme="dark"] .comparison-card {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+[data-theme="dark"] .comparison-header h4 {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .current-value .value,
+[data-theme="dark"] .previous-value .value {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .current-value .label,
+[data-theme="dark"] .previous-value .label {
+    color: var(--text-secondary) !important;
+}
+
+/* Loading & Error States */
+[data-theme="dark"] .loading-text {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .error-content h3 {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .error-content p {
+    color: var(--text-secondary) !important;
+}
+
+/* Goals Modal */
+[data-theme="dark"] .p-dialog {
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+[data-theme="dark"] .p-dialog .p-dialog-header {
+    background: var(--bg-card) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+}
+
+[data-theme="dark"] .p-dialog .p-dialog-title {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .p-dialog .p-dialog-content {
+    background: var(--bg-card) !important;
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .p-dialog .p-dialog-footer {
+    background: var(--bg-card) !important;
+    border-top: 1px solid var(--border-color) !important;
+}
+
+/* Alert priority colors for dark mode */
+[data-theme="dark"] .alert-card--high {
+    border-left-color: #ef4444 !important;
+}
+
+[data-theme="dark"] .alert-card--medium {
+    border-left-color: #f59e0b !important;
+}
+
+[data-theme="dark"] .alert-card--low {
+    border-left-color: #22c55e !important;
+}
+
+/* Hover effects */
+[data-theme="dark"] .alert-card:hover {
+    background: var(--table-hover) !important;
+}
+
+[data-theme="dark"] .comparison-card:hover {
+    background: rgba(255, 255, 255, 0.08) !important;
+}

@@ -835,5 +835,168 @@
     "assignment": "Asignación",
     "noIncidentsMatchFilter": "Ningún incidente coincide con los filtros actuales"
 
+  },
+  "stats": {
+    "title": "Estadísticas",
+    "subtitle": "Panel de control y métricas del proyecto",
+    "dashboard": "Panel de Control",
+    "summary": "Resumen",
+    "overview": "Vista General",
+    "performance": "Rendimiento",
+    "trends": "Tendencias",
+    "alerts": "Alertas",
+    "goals": "Metas",
+    "comparison": "Comparación",
+
+    "lastUpdated": "Última actualización",
+    "target": "Meta",
+    "current": "Actual",
+    "previous": "Anterior",
+    "change": "Cambio",
+    "trend": "Tendencia",
+    "progress": "Progreso",
+    "achievement": "Logro",
+
+    "period": "Período",
+    "selectPeriod": "Seleccionar período",
+    "currentMonth": "Mes Actual",
+    "currentQuarter": "Trimestre Actual",
+    "currentYear": "Año Actual",
+    "last30Days": "Últimos 30 días",
+    "last90Days": "Últimos 90 días",
+    "customPeriod": "Período Personalizado",
+    "startDate": "Fecha Inicio",
+    "endDate": "Fecha Fin",
+
+    "projects": "Proyectos",
+    "totalProjects": "Total de Proyectos",
+    "activeProjects": "Proyectos Activos",
+    "completedProjects": "Proyectos Completados",
+    "projectsInStudy": "En Estudio",
+    "projectsPlanned": "Planificados",
+    "projectsInProgress": "En Progreso",
+    "completionRate": "Tasa de Completación",
+
+    "personnel": "Personal",
+    "totalPersonnel": "Total de Personal",
+    "activePersonnel": "Personal Activo",
+    "inactivePersonnel": "Personal Inactivo",
+    "personnelActiveRate": "Tasa de Personal Activo",
+    "personnelByType": "Personal por Tipo",
+
+    "incidents": "Incidentes",
+    "totalIncidents": "Total de Incidentes",
+    "criticalIncidents": "Incidentes Críticos",
+    "openIncidents": "Incidentes Abiertos",
+    "resolvedIncidents": "Incidentes Resueltos",
+    "incidentRate": "Tasa de Incidentes",
+    "incidentsBySeverity": "Incidentes por Severidad",
+    "incidentsByType": "Incidentes por Tipo",
+    "safetyScore": "Puntuación de Seguridad",
+
+    "materials": "Materiales",
+    "totalMaterialCost": "Costo Total de Materiales",
+    "materialsByCategory": "Materiales por Categoría",
+    "averageCostPerProject": "Costo Promedio por Proyecto",
+    "budgetUtilization": "Utilización del Presupuesto",
+
+    "machinery": "Maquinaria",
+    "totalMachinery": "Total de Maquinaria",
+    "activeMachinery": "Maquinaria Activa",
+    "machineryAvailability": "Disponibilidad de Maquinaria",
+    "machineryByStatus": "Maquinaria por Estado",
+    "maintenanceNeeded": "Mantenimiento Requerido",
+
+    "documentation": "Documentación",
+    "totalDocuments": "Total de Documentos",
+    "recentDocuments": "Documentos Recientes",
+    "documentsThisMonth": "Documentos este Mes",
+
+    "efficiency": "Eficiencia",
+    "overallEfficiency": "Eficiencia General",
+    "targetEfficiency": "Meta de Eficiencia",
+    "performance": "Rendimiento",
+    "overallPerformance": "Rendimiento General",
+
+    "alerts": {
+      "title": "Alertas del Sistema",
+      "noAlerts": "No hay alertas activas",
+      "criticalIncidents": "Incidentes Críticos",
+      "budgetLimit": "Límite de Presupuesto",
+      "lowMachineryAvailability": "Baja Disponibilidad de Maquinaria",
+      "lowPersonnelEfficiency": "Baja Eficiencia de Personal",
+      "excellentSafety": "Excelente Seguridad",
+      "highPriority": "Alta Prioridad",
+      "mediumPriority": "Prioridad Media",
+      "lowPriority": "Baja Prioridad"
+    },
+
+    "comparison": {
+      "title": "Comparación de Rendimiento",
+      "subtitle": "Período actual vs anterior",
+      "improvement": "Mejora",
+      "decline": "Declive",
+      "stable": "Estable",
+      "increase": "Aumento",
+      "decrease": "Disminución",
+      "noChange": "Sin cambios",
+      "betterThanPrevious": "Mejor que el período anterior",
+      "worseThanPrevious": "Peor que el período anterior",
+      "sameAsPrevious": "Igual que el período anterior"
+    },
+
+    "goals": {
+      "title": "Metas y Objetivos",
+      "subtitle": "Establecer y seguir metas del proyecto",
+      "setGoals": "Establecer Metas",
+      "editGoals": "Editar Metas",
+      "saveGoals": "Guardar Metas",
+      "resetGoals": "Reiniciar Metas",
+      "targetProjects": "Meta de Proyectos",
+      "targetPersonnel": "Meta de Personal",
+      "maxIncidents": "Máximo de Incidentes",
+      "budgetLimit": "Límite de Presupuesto",
+      "targetEfficiency": "Meta de Eficiencia",
+      "goalsUpdated": "Metas actualizadas exitosamente",
+      "goalsNotSet": "Metas no establecidas",
+      "achievedGoal": "Meta alcanzada",
+      "belowGoal": "Por debajo de la meta",
+      "exceedsGoal": "Supera la meta"
+    },
+
+    "export": {
+      "title": "Exportar Estadísticas",
+      "exportExcel": "Exportar a Excel",
+      "exportPDF": "Exportar a PDF",
+      "exportSuccessful": "Estadísticas exportadas exitosamente",
+      "exportError": "Error al exportar estadísticas",
+      "fileName": "Nombre del archivo",
+      "includeCharts": "Incluir gráficos",
+      "includeBreakdown": "Incluir desglose detallado"
+    },
+
+    "refresh": "Actualizar",
+    "refreshData": "Actualizar Datos",
+    "refreshing": "Actualizando...",
+    "dataRefreshed": "Datos actualizados exitosamente",
+    "autoRefresh": "Actualización automática",
+    "lastRefresh": "Última actualización",
+
+    "loading": "Cargando estadísticas...",
+    "noData": "No hay datos disponibles",
+    "errorLoading": "Error al cargar las estadísticas",
+    "tryAgain": "Intentar de nuevo",
+    "dataNotAvailable": "Datos no disponibles para este período",
+
+    "filters": {
+      "title": "Filtros",
+      "applyFilters": "Aplicar Filtros",
+      "clearFilters": "Limpiar Filtros",
+      "filterByProject": "Filtrar por Proyecto",
+      "filterByPeriod": "Filtrar por Período",
+      "filterByStatus": "Filtrar por Estado"
+    },
+    "remaining": "Restante",
+    "projectsByStatus": "Proyectos por Estado"
   }
 }

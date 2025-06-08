@@ -833,5 +833,197 @@
     "unassigned": "Unassigned",
     "assignment": "Assignment",
     "noIncidentsMatchFilter": "No incidents match the current filters"
+  },
+  "stats": {
+    "title": "Statistics",
+    "subtitle": "Project dashboard and metrics",
+    "dashboard": "Dashboard",
+    "summary": "Summary",
+    "overview": "Overview",
+    "performance": "Performance",
+    "trends": "Trends",
+
+    "lastUpdated": "Last updated",
+    "target": "Target",
+    "current": "Current",
+    "previous": "Previous",
+    "change": "Change",
+    "trend": "Trend",
+    "progress": "Progress",
+
+    "period": "Period",
+    "selectPeriod": "Select period",
+    "currentMonth": "Current Month",
+    "currentQuarter": "Current Quarter",
+    "currentYear": "Current Year",
+    "last30Days": "Last 30 days",
+    "last90Days": "Last 90 days",
+    "customPeriod": "Custom Period",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+
+    "projects": "Projects",
+    "totalProjects": "Total Projects",
+    "activeProjects": "Active Projects",
+    "completedProjects": "Completed Projects",
+    "projectsInStudy": "In Study",
+    "projectsPlanned": "Planned",
+    "projectsInProgress": "In Progress",
+    "completionRate": "Completion Rate",
+
+    "personnel": "Personnel",
+    "totalPersonnel": "Total Personnel",
+    "activePersonnel": "Active Personnel",
+    "inactivePersonnel": "Inactive Personnel",
+    "personnelActiveRate": "Personnel Active Rate",
+    "personnelByType": "Personnel by Type",
+
+    "incidents": "Incidents",
+    "totalIncidents": "Total Incidents",
+    "criticalIncidents": "Critical Incidents",
+    "openIncidents": "Open Incidents",
+    "resolvedIncidents": "Resolved Incidents",
+    "incidentRate": "Incident Rate",
+    "incidentsBySeverity": "Incidents by Severity",
+    "incidentsByType": "Incidents by Type",
+    "safetyScore": "Safety Score",
+
+    "materials": "Materials",
+    "totalMaterialCost": "Total Material Cost",
+    "materialsByCategory": "Materials by Category",
+    "averageCostPerProject": "Average Cost per Project",
+    "budgetUtilization": "Budget Utilization",
+
+    "machinery": "Machinery",
+    "totalMachinery": "Total Machinery",
+    "activeMachinery": "Active Machinery",
+    "machineryAvailability": "Machinery Availability",
+    "machineryByStatus": "Machinery by Status",
+    "maintenanceNeeded": "Maintenance Needed",
+
+    "documentation": "Documentation",
+    "totalDocuments": "Total Documents",
+    "recentDocuments": "Recent Documents",
+    "documentsThisMonth": "Documents this Month",
+
+    "efficiency": "Efficiency",
+    "overallEfficiency": "Overall Efficiency",
+    "targetEfficiency": "Target Efficiency",
+    "overallPerformance": "Overall Performance",
+    "achievement": "Achievement",
+
+    "charts": {
+      "title": "Charts",
+      "subtitle": "Data visualization",
+      "noData": "No data to display",
+      "loading": "Loading chart...",
+      "clickToExplore": "Click to explore",
+      "dataPoints": "data points",
+      "total": "Total"
+    },
+
+    "alerts": {
+      "title": "System Alerts",
+      "noAlerts": "No active alerts",
+      "criticalIncidents": "Critical Incidents",
+      "budgetLimit": "Budget Limit",
+      "lowMachineryAvailability": "Low Machinery Availability",
+      "lowPersonnelEfficiency": "Low Personnel Efficiency",
+      "excellentSafety": "Excellent Safety",
+      "highPriority": "High Priority",
+      "mediumPriority": "Medium Priority",
+      "lowPriority": "Low Priority"
+    },
+
+    "comparison": {
+      "title": "Performance Comparison",
+      "subtitle": "Current vs previous period",
+      "improvement": "Improvement",
+      "decline": "Decline",
+      "stable": "Stable",
+      "increase": "Increase",
+      "decrease": "Decrease",
+      "noChange": "No change",
+      "betterThanPrevious": "Better than previous period",
+      "worseThanPrevious": "Worse than previous period",
+      "sameAsPrevious": "Same as previous period"
+    },
+
+    "goals": {
+      "title": "Goals and Objectives",
+      "subtitle": "Set and track project goals",
+      "setGoals": "Set Goals",
+      "editGoals": "Edit Goals",
+      "saveGoals": "Save Goals",
+      "resetGoals": "Reset Goals",
+      "targetProjects": "Target Projects",
+      "targetPersonnel": "Target Personnel",
+      "maxIncidents": "Max Incidents",
+      "budgetLimit": "Budget Limit",
+      "targetEfficiency": "Target Efficiency",
+      "goalsUpdated": "Goals updated successfully",
+      "goalsNotSet": "Goals not set",
+      "achievedGoal": "Goal achieved",
+      "belowGoal": "Below goal",
+      "exceedsGoal": "Exceeds goal"
+    },
+
+    "export": {
+      "title": "Export Statistics",
+      "exportExcel": "Export to Excel",
+      "exportPDF": "Export to PDF",
+      "exportSuccessful": "Statistics exported successfully",
+      "exportError": "Error exporting statistics",
+      "fileName": "File name",
+      "includeCharts": "Include charts",
+      "includeBreakdown": "Include detailed breakdown"
+    },
+
+    "refresh": "Refresh",
+    "refreshData": "Refresh Data",
+    "refreshing": "Refreshing...",
+    "dataRefreshed": "Data refreshed successfully",
+    "autoRefresh": "Auto refresh",
+    "lastRefresh": "Last refresh",
+
+    "loading": "Loading statistics...",
+    "noData": "No data available",
+    "errorLoading": "Error loading statistics",
+    "tryAgain": "Try again",
+    "dataNotAvailable": "Data not available for this period",
+
+    "filters": {
+      "title": "Filters",
+      "applyFilters": "Apply Filters",
+      "clearFilters": "Clear Filters",
+      "filterByProject": "Filter by Project",
+      "filterByPeriod": "Filter by Period",
+      "filterByStatus": "Filter by Status"
+    },
+
+    "colorSchemes": {
+      "default": "Default",
+      "primary": "Primary",
+      "success": "Success",
+      "warning": "Warning",
+      "danger": "Danger",
+      "cool": "Cool",
+      "warm": "Warm"
+    },
+
+    "chartTypes": {
+      "pie": "Pie Chart",
+      "doughnut": "Doughnut Chart",
+      "bar": "Bar Chart",
+      "line": "Line Chart",
+      "radar": "Radar Chart",
+      "polarArea": "Polar Area",
+      "horizontalBar": "Horizontal Bar",
+      "scatter": "Scatter Plot",
+      "bubble": "Bubble Chart"
+    },
+
+    "remaining": "Remaining",
+    "projectsByStatus": "Projects by status"
   }
 }

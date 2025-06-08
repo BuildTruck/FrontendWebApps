@@ -89,17 +89,6 @@
     "adminFeaturesInfo": "Las notificaciones de administrador incluyen alertas de seguridad, reportes de sistema y notificaciones de usuarios críticos"
   },
 
-
-
-  "profile": {
-    "profilePhoto": "Foto de perfil",
-    "editProfile": "Editar perfil",
-    "name": "Nombre",
-    "email": "Email",
-    "editName": "Editar tu nombre",
-    "editEmail": "Editar tu email",
-    "uploadNewPhoto": "Subir nueva foto"
-  },
   "documentation": {
     "new": "Nuevo",
     "add": "Agregar",
@@ -998,5 +987,35 @@
     },
     "remaining": "Restante",
     "projectsByStatus": "Proyectos por Estado"
+  },
+  "profile": {
+    "profilePhoto": "Foto de Perfil",
+    "editProfile": "Editar Perfil",
+    "name": "Nombre Completo",
+    "personalEmail": "Email Personal",
+    "changePhoto": "Cambiar Foto",
+    "removePhoto": "Quitar Foto",
+    "personalInformation": "Información Personal",
+    "corporateEmail": "Email Corporativo",
+    "role": "Cargo",
+    "unsavedChanges": "Tienes cambios sin guardar",
+    "photoProcessingError": "Error al procesar imagen. Selecciona otro archivo.",
+    "profileUpdateError": "Error al guardar perfil. Inténtalo de nuevo.",
+    "profileUpdated": "Perfil actualizado correctamente",
+    "invalidEmailFormat": "Formato de email inválido",
+    "corporateEmailNotAllowed": "No puedes usar un email corporativo como email personal",
+    "roles": {
+      "admin": "Administrador",
+      "manager": "Gerente",
+      "supervisor": "Supervisor",
+      "operator": "Operador"
+    },
+    "placeholders": {
+      "personalEmail": "ejemplo{'@'}gmail.com",
+      "fullName": "Ingresa tu nombre completo"
+    },
+    "info": {
+      "corporateEmailFixed": "Este email no puede ser modificado y se usa para acceder al sistema"
+    }
   }
 }

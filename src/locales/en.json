@@ -89,17 +89,6 @@
     "adminFeaturesInfo": "Administrator notifications include security alerts, system reports, and critical user notifications"
   },
 
-
-
-  "profile": {
-    "profilePhoto": "Profile photo",
-    "editProfile": "Edit profile",
-    "name": "Name",
-    "email": "Email",
-    "editName": "Edit your name",
-    "editEmail": "Edit your email",
-    "uploadNewPhoto": "Upload new photo"
-  },
   "documentation": {
     "new": "New",
     "add": "Add",
@@ -1025,5 +1014,35 @@
 
     "remaining": "Remaining",
     "projectsByStatus": "Projects by status"
+  },
+  "profile": {
+    "profilePhoto": "Profile Photo",
+    "editProfile": "Edit Profile",
+    "name": "Full Name",
+    "personalEmail": "Personal Email",
+    "changePhoto": "Change Photo",
+    "removePhoto": "Remove Photo",
+    "personalInformation": "Personal Information",
+    "corporateEmail": "Corporate Email",
+    "role": "Role",
+    "unsavedChanges": "You have unsaved changes",
+    "photoProcessingError": "Error processing image. Select another file.",
+    "profileUpdateError": "Error saving profile. Please try again.",
+    "profileUpdated": "Profile updated successfully",
+    "invalidEmailFormat": "Invalid email format",
+    "corporateEmailNotAllowed": "You cannot use a corporate email as personal email",
+    "roles": {
+      "admin": "Administrator",
+      "manager": "Manager",
+      "supervisor": "Supervisor",
+      "operator": "Operator"
+    },
+    "placeholders": {
+      "personalEmail": "ejemplo{'@'}gmail.com",
+      "fullName": "Enter your full name"
+    },
+    "info": {
+      "corporateEmailFixed": "This email cannot be modified and is used to access the system"
+    }
   }
 }

@@ -3143,3 +3143,205 @@
 [data-theme="dark"] .comparison-card:hover {
     background: rgba(255, 255, 255, 0.08) !important;
 }
+
+/* ========================================
+   PROFILE COMPONENTS - DARK MODE
+   Para Supervisor y Manager Profile
+   ======================================== */
+
+/* Container y wrapper principales */
+[data-theme="dark"] .profile-container {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%) !important;
+}
+
+[data-theme="dark"] .profile-wrapper {
+    background-color: #2c2c2c !important;
+    border-color: #404040 !important;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Header mantiene el gradiente naranja */
+[data-theme="dark"] .profile-header {
+    background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%) !important;
+}
+
+/* Formulario de edición */
+[data-theme="dark"] .edit-form {
+    background-color: #2c2c2c !important;
+}
+
+/* Títulos de sección */
+[data-theme="dark"] .section-title {
+    color: #ffffff !important;
+    border-bottom-color: #404040 !important;
+}
+
+[data-theme="dark"] .section-title i {
+    color: #ff6b35 !important;
+}
+
+/* Info cards */
+[data-theme="dark"] .info-card {
+    background-color: #1a1a1a !important;
+    border-left-color: #ff6b35 !important;
+}
+
+[data-theme="dark"] .info-card i {
+    color: #ff6b35 !important;
+}
+
+[data-theme="dark"] .info-content {
+    color: #cccccc !important;
+}
+
+[data-theme="dark"] .info-content strong {
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .info-content small {
+    color: #999999 !important;
+}
+
+/* Mensajes de error */
+[data-theme="dark"] .error-message {
+    background-color: #2d1b1b !important;
+    border-color: #4a2c2a !important;
+    color: #ff6b6b !important;
+}
+
+/* Indicador de cambios */
+[data-theme="dark"] .changes-indicator {
+    background-color: #2d1f0f !important;
+    border-color: #4a3319 !important;
+    color: #ff9500 !important;
+}
+
+[data-theme="dark"] .changes-indicator i {
+    color: #ff9500 !important;
+}
+
+/* Acciones del formulario */
+[data-theme="dark"] .form-actions {
+    border-top-color: #404040 !important;
+}
+
+/* Avatar y foto de perfil */
+[data-theme="dark"] .profile-image {
+    border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+[data-theme="dark"] .avatar-overlay {
+    background: rgba(0, 0, 0, 0.7) !important;
+}
+
+/* Inputs y controles de formulario */
+[data-theme="dark"] .profile-wrapper input,
+[data-theme="dark"] .profile-wrapper select,
+[data-theme="dark"] .profile-wrapper textarea {
+    background-color: #1a1a1a !important;
+    border-color: #404040 !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .profile-wrapper input:focus,
+[data-theme="dark"] .profile-wrapper select:focus,
+[data-theme="dark"] .profile-wrapper textarea:focus {
+    border-color: #ff6b35 !important;
+    box-shadow: 0 0 0 2px rgba(255, 107, 53, 0.25) !important;
+}
+
+[data-theme="dark"] .profile-wrapper input::placeholder,
+[data-theme="dark"] .profile-wrapper textarea::placeholder {
+    color: #888888 !important;
+}
+
+[data-theme="dark"] .profile-wrapper input:disabled {
+    background-color: #333333 !important;
+    color: #888888 !important;
+    border-color: #555555 !important;
+}
+
+/* Botones primary mantienen el naranja */
+[data-theme="dark"] .profile-wrapper .btn-primary,
+[data-theme="dark"] .profile-wrapper button[class*="primary"] {
+    background-color: #ff6b35 !important;
+    border-color: #ff6b35 !important;
+    color: white !important;
+}
+
+[data-theme="dark"] .profile-wrapper .btn-primary:hover,
+[data-theme="dark"] .profile-wrapper button[class*="primary"]:hover {
+    background-color: #f7931e !important;
+    border-color: #f7931e !important;
+}
+
+/* Botones secondary en dark mode */
+[data-theme="dark"] .profile-wrapper .btn-secondary,
+[data-theme="dark"] .profile-wrapper button[class*="secondary"] {
+    background-color: #1a1a1a !important;
+    border-color: #404040 !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .profile-wrapper .btn-secondary:hover,
+[data-theme="dark"] .profile-wrapper button[class*="secondary"]:hover {
+    background-color: #404040 !important;
+    border-color: #666666 !important;
+}
+
+/* Botones text en dark mode */
+[data-theme="dark"] .profile-wrapper .btn-text,
+[data-theme="dark"] .profile-wrapper button[class*="text"] {
+    color: #ff6b35 !important;
+    background-color: transparent !important;
+    border-color: transparent !important;
+}
+
+[data-theme="dark"] .profile-wrapper .btn-text:hover,
+[data-theme="dark"] .profile-wrapper button[class*="text"]:hover {
+    background-color: rgba(255, 107, 53, 0.1) !important;
+    color: #f7931e !important;
+}
+
+/* Labels de formulario */
+[data-theme="dark"] .profile-wrapper label {
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .profile-wrapper .form-label {
+    color: #ffffff !important;
+}
+
+/* Acciones de foto */
+[data-theme="dark"] .photo-actions-section {
+    background-color: transparent !important;
+}
+
+/* Estados de loading y disabled */
+[data-theme="dark"] .profile-wrapper button:disabled {
+    background-color: #333333 !important;
+    border-color: #555555 !important;
+    color: #888888 !important;
+}
+
+[data-theme="dark"] .profile-wrapper .loading {
+    color: #cccccc !important;
+}
+
+/* Scrollbars en dark mode (opcional) */
+[data-theme="dark"] .profile-wrapper ::-webkit-scrollbar {
+    width: 8px;
+}
+
+[data-theme="dark"] .profile-wrapper ::-webkit-scrollbar-track {
+    background: #2c2c2c;
+}
+
+[data-theme="dark"] .profile-wrapper ::-webkit-scrollbar-thumb {
+    background: #555555;
+    border-radius: 4px;
+}
+
+[data-theme="dark"] .profile-wrapper ::-webkit-scrollbar-thumb:hover {
+    background: #666666;
+}

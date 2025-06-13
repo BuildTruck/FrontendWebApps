@@ -9,9 +9,11 @@ class MaterialEntriesService extends BaseService {
         super('/material-entries');
     }
 
-    async getByProject(projectId) {
-        const res = await this.getAll({ projectId });
-        return (res.data || []).map(e => new MaterialEntryEntity(e));
+    async getAllFiltered(projectId) {
+        const res = await this.getAll();
+        return (res.data || [])
+            .filter(e => e.projectId === projectId)
+            .map(e => new MaterialEntryEntity(e));
     }
 
     async createEntry(data) {
@@ -32,9 +34,11 @@ class MaterialUsagesService extends BaseService {
         super('/material-usages');
     }
 
-    async getByProject(projectId) {
-        const res = await this.getAll({ projectId });
-        return (res.data || []).map(u => new MaterialUsageEntity(u));
+    async getAllFiltered(projectId) {
+        const res = await this.getAll();
+        return (res.data || [])
+            .filter(u => u.projectId === projectId)
+            .map(u => new MaterialUsageEntity(u));
     }
 
     async createUsage(data) {
@@ -74,8 +78,10 @@ class MaterialsApiService extends BaseService {
 
     async getByProject(projectId = null) {
         if (!projectId) projectId = this.getCurrentProjectIdSync();
-        const res = await this.getAll({ projectId });
-        return (res.data || []).map(m => new MaterialEntity(m));
+        const res = await this.getAll();
+        return (res.data || [])
+            .filter(m => m.projectId === projectId)
+            .map(m => new MaterialEntity(m));
     }
 
     async createMaterial(data) {
@@ -95,7 +101,7 @@ class MaterialsApiService extends BaseService {
 
     // 📥 ENTRADAS delegadas
     getEntriesByProject(projectId) {
-        return this.entriesService.getByProject(projectId);
+        return this.entriesService.getAllFiltered(projectId);
     }
 
     createEntry(data) {
@@ -106,9 +112,9 @@ class MaterialsApiService extends BaseService {
         return this.entriesService.updateEntry(id, data);
     }
 
-    // 📤 USOS delegados
+    // 📤 USOS delegadas
     getUsagesByProject(projectId) {
-        return this.usagesService.getByProject(projectId);
+        return this.usagesService.getAllFiltered(projectId);
     }
 
     createUsage(data) {
@@ -118,13 +124,93 @@ class MaterialsApiService extends BaseService {
     updateUsage(id, data) {
         return this.usagesService.updateUsage(id, data);
     }
+    async exportInventoryToExcel(inventoryData, fileName = 'inventario') {
+        try {
+            const exportData = inventoryData.map(item => ({
+                'Nombre': item.name,
+                'Tipo': item.type,
+                'Unidad': item.unit,
+                'Stock Mínimo': item.minimumStock,
+                'Stock Actual': item.stockActual,
+                'Precio Unitario (S/)': item.price,
+                'Total (S/)': item.total
+            }));
 
-    // 📊 INVENTARIO
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.json_to_sheet(exportData);
+            XLSX.utils.book_append_sheet(wb, ws, 'Inventario');
+            XLSX.writeFile(wb, `${fileName}_${this.getToday()}.xlsx`);
+        } catch (error) {
+            console.error('❌ Error exportando inventario:', error);
+        }
+    }
+    async exportEntriesToExcel(entriesData, fileName = 'entradas') {
+        try {
+            const exportData = entriesData.map(entry => ({
+                'Fecha': entry.date,
+                'Material': entry.materialName,
+                'Cantidad': entry.quantity,
+                'Proveedor': entry.provider,
+                'Comprobante': entry.comprobante,
+                'N° Comprobante': entry.comprobanteNumber,
+                'RUC': entry.ruc,
+                'Método de Pago': entry.payment,
+                'Precio Unitario (S/)': entry.unitCost,
+                'Costo Total (S/)': entry.totalCost,
+                'Estado': entry.status
+            }));
+
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.json_to_sheet(exportData);
+            XLSX.utils.book_append_sheet(wb, ws, 'Entradas');
+            XLSX.writeFile(wb, `${fileName}_${this.getToday()}.xlsx`);
+        } catch (error) {
+            console.error('❌ Error exportando entradas:', error);
+        }
+    }
+    async exportUsagesToExcel(usagesData, fileName = 'usos') {
+        try {
+            const exportData = usagesData.map(usage => ({
+                'Fecha': usage.date,
+                'Material': usage.materialName,
+                'Cantidad Usada': usage.quantity,
+                'Área': usage.area,
+                'Tipo de Uso': usage.usageType,
+                'Trabajador': usage.worker,
+                'Observaciones': usage.observations,
+                'Estado': usage.status
+            }));
+
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.json_to_sheet(exportData);
+            XLSX.utils.book_append_sheet(wb, ws, 'Usos');
+            XLSX.writeFile(wb, `${fileName}_${this.getToday()}.xlsx`);
+        } catch (error) {
+            console.error('❌ Error exportando usos:', error);
+        }
+    }
+    getToday() {
+        return new Date().toISOString().split('T')[0];
+    }
+
+
+
+
+
+
+    // 📊 INVENTARIO corregido
     async getInventorySummary(projectId = null) {
         if (!projectId) projectId = this.getCurrentProjectIdSync();
-        const materials = await this.getByProject(projectId);
-        const entries = await this.getEntriesByProject(projectId);
-        const usages = await this.getUsagesByProject(projectId);
+
+        const [materialsRes, entriesRes, usagesRes] = await Promise.all([
+            this.getAll(),
+            this.entriesService.getAll(),
+            this.usagesService.getAll()
+        ]);
+
+        const materials = (materialsRes.data || []).filter(m => m.projectId === projectId).map(m => new MaterialEntity(m));
+        const entries = (entriesRes.data || []).filter(e => e.projectId === projectId).map(e => new MaterialEntryEntity(e));
+        const usages = (usagesRes.data || []).filter(u => u.projectId === projectId).map(u => new MaterialUsageEntity(u));
 
         return materials.map(material => {
             const matId = material.id;
@@ -149,6 +235,7 @@ class MaterialsApiService extends BaseService {
             };
         });
     }
+
 }
 
 export const materialsApiService = new MaterialsApiService();

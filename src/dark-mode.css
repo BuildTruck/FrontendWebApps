@@ -2549,3 +2549,846 @@
 [data-theme="dark"] .option-item.selected i {
     color: white !important;
 }
+
+/* ================================================================
+   INCIDENTS COMPONENTS DARK MODE - COMPLETO
+   ================================================================ */
+
+/* ================================================================
+   1. INCIDENT FORM COMPONENT DARK MODE
+   ================================================================ */
+[data-theme="dark"] .incident-form-page {
+    background-color: var(--bg-primary) !important;
+}
+
+[data-theme="dark"] .form-header {
+    background: var(--bg-card) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-theme="dark"] .header-content {
+    background-color: transparent !important;
+}
+
+[data-theme="dark"] .header-title h1 {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .header-subtitle {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .header-actions {
+    background-color: transparent !important;
+}
+
+[data-theme="dark"] .form-content {
+    background-color: transparent !important;
+}
+
+[data-theme="dark"] .form-container {
+    background-color: transparent !important;
+}
+
+[data-theme="dark"] .form-section {
+    background: var(--bg-card) !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+[data-theme="dark"] .form-section-title {
+    color: #FF5F01 !important;
+    border-bottom: 2px solid #FF5F01 !important;
+}
+
+[data-theme="dark"] .form-grid {
+    background-color: transparent !important;
+}
+
+/* ================================================================
+   2. INCIDENTS MANAGER DARK MODE
+   ================================================================ */
+[data-theme="dark"] .incidents-manager {
+    background-color: var(--bg-primary) !important;
+}
+
+[data-theme="dark"] .summary-view {
+    background-color: var(--bg-primary) !important;
+}
+
+/* Estadísticas en dark mode */
+[data-theme="dark"] .stats-container {
+    background-color: transparent !important;
+}
+
+[data-theme="dark"] .stat-card {
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-theme="dark"] .stat-card:hover {
+    background: var(--table-hover) !important;
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.4) !important;
+}
+
+[data-theme="dark"] .stat-content {
+    background-color: transparent !important;
+}
+
+[data-theme="dark"] .stat-number {
+    color: var(--stat-color-dark, var(--text-primary)) !important;
+}
+
+[data-theme="dark"] .stat-label {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .stat-icon {
+    color: var(--stat-color-dark, var(--text-muted)) !important;
+}
+
+[data-theme="dark"] .stat-card.total { --stat-color-dark: #60a5fa; }
+[data-theme="dark"] .stat-card.open { --stat-color-dark: #fbbf24; }
+[data-theme="dark"] .stat-card.critical { --stat-color-dark: #f87171; }
+[data-theme="dark"] .stat-card.resolved { --stat-color-dark: #34d399; }
+
+/* Controles en dark mode */
+[data-theme="dark"] .controls-section {
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-theme="dark"] .filters-row {
+    background-color: transparent !important;
+}
+
+[data-theme="dark"] .search-container {
+    background-color: transparent !important;
+}
+
+[data-theme="dark"] .search-input {
+    background-color: var(--input-bg) !important;
+    border-color: var(--border-color) !important;
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .filter-dropdown {
+    background-color: transparent !important;
+}
+
+[data-theme="dark"] .filter-select {
+    background: var(--input-bg) !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .filter-select:focus {
+    border-color: #FF5F01 !important;
+    box-shadow: 0 0 0 3px rgba(255, 95, 1, 0.2) !important;
+}
+
+[data-theme="dark"] .filter-icon {
+    color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] .action-controls {
+    background-color: transparent !important;
+}
+
+/* Tabla en dark mode */
+[data-theme="dark"] .table-section {
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-theme="dark"] .incidents-table {
+    background-color: transparent !important;
+}
+
+/* Displays personalizados */
+[data-theme="dark"] .severity-display,
+[data-theme="dark"] .status-display {
+    color: var(--text-primary) !important;
+}
+
+/* Badge para días abiertos */
+[data-theme="dark"] .days-badge.days-normal {
+    background-color: rgba(96, 165, 250, 0.2) !important;
+    color: #60a5fa !important;
+}
+
+[data-theme="dark"] .days-badge.days-warning {
+    background-color: rgba(251, 191, 36, 0.2) !important;
+    color: #fbbf24 !important;
+}
+
+[data-theme="dark"] .days-badge.days-danger {
+    background-color: rgba(248, 113, 113, 0.2) !important;
+    color: #f87171 !important;
+}
+
+/* Estado vacío en dark mode */
+[data-theme="dark"] .empty-state {
+    color: var(--text-secondary) !important;
+    background-color: transparent !important;
+}
+
+[data-theme="dark"] .empty-icon {
+    color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] .empty-state h3 {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .empty-state p {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .empty-actions {
+    background-color: transparent !important;
+}
+
+/* Loading en dark mode */
+[data-theme="dark"] .loading-state {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .loading-state i {
+    color: #FF5F01 !important;
+}
+
+[data-theme="dark"] .loading-state p {
+    color: var(--text-secondary) !important;
+}
+
+/* Vista de detalle en dark mode */
+[data-theme="dark"] .detail-view {
+    background-color: var(--bg-primary) !important;
+}
+
+[data-theme="dark"] .detail-form-container {
+    background-color: transparent !important;
+}
+
+/* Dark mode para el formulario integrado */
+[data-theme="dark"] .detail-view :deep(.incident-form-page) {
+    background-color: transparent !important;
+}
+
+[data-theme="dark"] .detail-view :deep(.form-header) {
+    background: var(--bg-card) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+    color: var(--text-primary) !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-theme="dark"] .detail-view :deep(.form-content) {
+    background-color: transparent !important;
+}
+
+[data-theme="dark"] .detail-view :deep(.form-section) {
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-theme="dark"] .detail-view :deep(.form-section-title) {
+    color: #FF5F01 !important;
+    border-bottom: 2px solid #FF5F01 !important;
+}
+
+[data-theme="dark"] .detail-view :deep(.header-title h1) {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .detail-view :deep(.header-subtitle) {
+    color: var(--text-secondary) !important;
+}
+
+/* ================================================================
+   3. INCIDENT SUPERVISOR DARK MODE
+   ================================================================ */
+[data-theme="dark"] .incident-supervisor {
+    background-color: var(--bg-primary) !important;
+}
+
+[data-theme="dark"] .detail-actions {
+    background: var(--bg-card) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-theme="dark"] .table-container {
+    background: var(--bg-card) !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+[data-theme="dark"] .incident-type-display {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .severity-container,
+[data-theme="dark"] .status-container {
+    color: var(--text-primary) !important;
+}
+
+/* Colores de severidad - mantener colores específicos */
+[data-theme="dark"] .severity-dot.severity-low {
+    background-color: #22c55e !important;
+}
+
+[data-theme="dark"] .severity-dot.severity-medium {
+    background-color: #f59e0b !important;
+}
+
+[data-theme="dark"] .severity-dot.severity-high {
+    background-color: #f97316 !important;
+}
+
+[data-theme="dark"] .severity-dot.severity-critical {
+    background-color: #ef4444 !important;
+}
+
+[data-theme="dark"] .severity-dot.severity-default {
+    background-color: #6b7280 !important;
+}
+
+/* Colores de estado - mantener colores específicos */
+[data-theme="dark"] .status-dot.status-reported {
+    background-color: #3b82f6 !important;
+}
+
+[data-theme="dark"] .status-dot.status-progress {
+    background-color: #f59e0b !important;
+}
+
+[data-theme="dark"] .status-dot.status-resolved {
+    background-color: #22c55e !important;
+}
+
+[data-theme="dark"] .status-dot.status-closed {
+    background-color: #6b7280 !important;
+}
+
+[data-theme="dark"] .status-dot.status-default {
+    background-color: #6b7280 !important;
+}
+
+[data-theme="dark"] .empty-state {
+    background: var(--bg-card) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+[data-theme="dark"] .empty-icon {
+    color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] .empty-state h3 {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .empty-state p {
+    color: var(--text-secondary) !important;
+}
+
+/* ================================================================
+   STATS CARD DARK MODE
+   ================================================================ */
+
+[data-theme="dark"] .stats-card {
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-theme="dark"] .stats-card:hover {
+    background: var(--table-hover) !important;
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.4) !important;
+    border-color: #FF5F01 !important;
+}
+
+/* Header */
+[data-theme="dark"] .stats-card__title {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .stats-card__subtitle {
+    color: var(--text-secondary) !important;
+}
+
+/* Content */
+[data-theme="dark"] .stats-card__value {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .stats-card__unit {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .stats-card__target,
+[data-theme="dark"] .stats-card__secondary-value {
+    color: var(--text-secondary) !important;
+}
+
+/* Progress bar */
+[data-theme="dark"] .stats-card__progress-bar {
+    background-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .stats-card__progress-text {
+    color: var(--text-primary) !important;
+}
+
+/* Trend */
+[data-theme="dark"] .stats-card__trend {
+    color: var(--text-primary) !important;
+}
+
+/* Badge variants for dark mode */
+[data-theme="dark"] .stats-card__badge--success {
+    background-color: rgba(34, 197, 94, 0.2) !important;
+    color: #4ade80 !important;
+}
+
+[data-theme="dark"] .stats-card__badge--warning {
+    background-color: rgba(245, 158, 11, 0.2) !important;
+    color: #fbbf24 !important;
+}
+
+[data-theme="dark"] .stats-card__badge--danger {
+    background-color: rgba(239, 68, 68, 0.2) !important;
+    color: #f87171 !important;
+}
+
+[data-theme="dark"] .stats-card__badge--info {
+    background-color: rgba(59, 130, 246, 0.2) !important;
+    color: #60a5fa !important;
+}
+
+/* Footer */
+[data-theme="dark"] .stats-card__footer {
+    border-top: 1px solid var(--border-color) !important;
+}
+
+[data-theme="dark"] .stats-card__footer-text,
+[data-theme="dark"] .stats-card__last-updated {
+    color: var(--text-secondary) !important;
+}
+
+/* Clickable states */
+[data-theme="dark"] .stats-card--clickable:hover {
+    border-color: #FF5F01 !important;
+}
+
+/* Variant borders for dark mode */
+[data-theme="dark"] .stats-card--primary {
+    border-left: 4px solid #FF5F01 !important;
+}
+
+[data-theme="dark"] .stats-card--success {
+    border-left: 4px solid #22c55e !important;
+}
+
+[data-theme="dark"] .stats-card--warning {
+    border-left: 4px solid #f59e0b !important;
+}
+
+[data-theme="dark"] .stats-card--danger {
+    border-left: 4px solid #ef4444 !important;
+}
+
+[data-theme="dark"] .stats-card--info {
+    border-left: 4px solid #3b82f6 !important;
+}
+/* ================================================================
+   MANAGER STATS DARK MODE
+   ================================================================ */
+
+[data-theme="dark"] .manager-stats {
+    background-color: var(--bg-primary) !important;
+}
+
+/* Header */
+[data-theme="dark"] .stats-header {
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-theme="dark"] .header-title h1 {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .header-subtitle {
+    color: var(--text-secondary) !important;
+}
+
+/* Alerts */
+[data-theme="dark"] .alert-card {
+    background: var(--bg-card) !important;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-theme="dark"] .alert-title {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .alert-message {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .alert-badge {
+    background: #FF5F01 !important;
+    color: white !important;
+}
+
+/* Comparison Section */
+[data-theme="dark"] .comparison-section {
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-theme="dark"] .section-header h2 {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .section-subtitle {
+    color: var(--text-secondary) !important;
+}
+
+/* Comparison Cards */
+[data-theme="dark"] .comparison-card {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+[data-theme="dark"] .comparison-header h4 {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .current-value .value,
+[data-theme="dark"] .previous-value .value {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .current-value .label,
+[data-theme="dark"] .previous-value .label {
+    color: var(--text-secondary) !important;
+}
+
+/* Loading & Error States */
+[data-theme="dark"] .loading-text {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .error-content h3 {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .error-content p {
+    color: var(--text-secondary) !important;
+}
+
+/* Goals Modal */
+[data-theme="dark"] .p-dialog {
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+[data-theme="dark"] .p-dialog .p-dialog-header {
+    background: var(--bg-card) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+}
+
+[data-theme="dark"] .p-dialog .p-dialog-title {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .p-dialog .p-dialog-content {
+    background: var(--bg-card) !important;
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .p-dialog .p-dialog-footer {
+    background: var(--bg-card) !important;
+    border-top: 1px solid var(--border-color) !important;
+}
+
+/* Alert priority colors for dark mode */
+[data-theme="dark"] .alert-card--high {
+    border-left-color: #ef4444 !important;
+}
+
+[data-theme="dark"] .alert-card--medium {
+    border-left-color: #f59e0b !important;
+}
+
+[data-theme="dark"] .alert-card--low {
+    border-left-color: #22c55e !important;
+}
+
+/* Hover effects */
+[data-theme="dark"] .alert-card:hover {
+    background: var(--table-hover) !important;
+}
+
+[data-theme="dark"] .comparison-card:hover {
+    background: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* ========================================
+   PROFILE COMPONENTS - DARK MODE
+   Para Supervisor y Manager Profile
+   ======================================== */
+
+/* Container y wrapper principales */
+[data-theme="dark"] .profile-container {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%) !important;
+}
+
+[data-theme="dark"] .profile-wrapper {
+    background-color: #2c2c2c !important;
+    border-color: #404040 !important;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Header mantiene el gradiente naranja */
+[data-theme="dark"] .profile-header {
+    background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%) !important;
+}
+
+/* Formulario de edición */
+[data-theme="dark"] .edit-form {
+    background-color: #2c2c2c !important;
+}
+
+/* Títulos de sección */
+[data-theme="dark"] .section-title {
+    color: #ffffff !important;
+    border-bottom-color: #404040 !important;
+}
+
+[data-theme="dark"] .section-title i {
+    color: #ff6b35 !important;
+}
+
+/* Info cards */
+[data-theme="dark"] .info-card {
+    background-color: #1a1a1a !important;
+    border-left-color: #ff6b35 !important;
+}
+
+[data-theme="dark"] .info-card i {
+    color: #ff6b35 !important;
+}
+
+[data-theme="dark"] .info-content {
+    color: #cccccc !important;
+}
+
+[data-theme="dark"] .info-content strong {
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .info-content small {
+    color: #999999 !important;
+}
+
+/* Mensajes de error */
+[data-theme="dark"] .error-message {
+    background-color: #2d1b1b !important;
+    border-color: #4a2c2a !important;
+    color: #ff6b6b !important;
+}
+
+/* Indicador de cambios */
+[data-theme="dark"] .changes-indicator {
+    background-color: #2d1f0f !important;
+    border-color: #4a3319 !important;
+    color: #ff9500 !important;
+}
+
+[data-theme="dark"] .changes-indicator i {
+    color: #ff9500 !important;
+}
+
+/* Acciones del formulario */
+[data-theme="dark"] .form-actions {
+    border-top-color: #404040 !important;
+}
+
+/* Avatar y foto de perfil */
+[data-theme="dark"] .profile-image {
+    border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+[data-theme="dark"] .avatar-overlay {
+    background: rgba(0, 0, 0, 0.7) !important;
+}
+
+/* Inputs y controles de formulario */
+[data-theme="dark"] .profile-wrapper input,
+[data-theme="dark"] .profile-wrapper select,
+[data-theme="dark"] .profile-wrapper textarea {
+    background-color: #1a1a1a !important;
+    border-color: #404040 !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .profile-wrapper input:focus,
+[data-theme="dark"] .profile-wrapper select:focus,
+[data-theme="dark"] .profile-wrapper textarea:focus {
+    border-color: #ff6b35 !important;
+    box-shadow: 0 0 0 2px rgba(255, 107, 53, 0.25) !important;
+}
+
+[data-theme="dark"] .profile-wrapper input::placeholder,
+[data-theme="dark"] .profile-wrapper textarea::placeholder {
+    color: #888888 !important;
+}
+
+[data-theme="dark"] .profile-wrapper input:disabled {
+    background-color: #333333 !important;
+    color: #888888 !important;
+    border-color: #555555 !important;
+}
+
+/* Botones primary mantienen el naranja */
+[data-theme="dark"] .profile-wrapper .btn-primary,
+[data-theme="dark"] .profile-wrapper button[class*="primary"] {
+    background-color: #ff6b35 !important;
+    border-color: #ff6b35 !important;
+    color: white !important;
+}
+
+[data-theme="dark"] .profile-wrapper .btn-primary:hover,
+[data-theme="dark"] .profile-wrapper button[class*="primary"]:hover {
+    background-color: #f7931e !important;
+    border-color: #f7931e !important;
+}
+
+/* Botones secondary en dark mode */
+[data-theme="dark"] .profile-wrapper .btn-secondary,
+[data-theme="dark"] .profile-wrapper button[class*="secondary"] {
+    background-color: #1a1a1a !important;
+    border-color: #404040 !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .profile-wrapper .btn-secondary:hover,
+[data-theme="dark"] .profile-wrapper button[class*="secondary"]:hover {
+    background-color: #404040 !important;
+    border-color: #666666 !important;
+}
+
+/* Botones text en dark mode */
+[data-theme="dark"] .profile-wrapper .btn-text,
+[data-theme="dark"] .profile-wrapper button[class*="text"] {
+    color: #ff6b35 !important;
+    background-color: transparent !important;
+    border-color: transparent !important;
+}
+
+[data-theme="dark"] .profile-wrapper .btn-text:hover,
+[data-theme="dark"] .profile-wrapper button[class*="text"]:hover {
+    background-color: rgba(255, 107, 53, 0.1) !important;
+    color: #f7931e !important;
+}
+
+/* Labels de formulario */
+[data-theme="dark"] .profile-wrapper label {
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .profile-wrapper .form-label {
+    color: #ffffff !important;
+}
+
+/* Acciones de foto */
+[data-theme="dark"] .photo-actions-section {
+    background-color: transparent !important;
+}
+
+/* Estados de loading y disabled */
+[data-theme="dark"] .profile-wrapper button:disabled {
+    background-color: #333333 !important;
+    border-color: #555555 !important;
+    color: #888888 !important;
+}
+
+[data-theme="dark"] .profile-wrapper .loading {
+    color: #cccccc !important;
+}
+
+/* Scrollbars en dark mode (opcional) */
+[data-theme="dark"] .profile-wrapper ::-webkit-scrollbar {
+    width: 8px;
+}
+
+[data-theme="dark"] .profile-wrapper ::-webkit-scrollbar-track {
+    background: #2c2c2c;
+}
+
+[data-theme="dark"] .profile-wrapper ::-webkit-scrollbar-thumb {
+    background: #555555;
+    border-radius: 4px;
+}
+
+[data-theme="dark"] .profile-wrapper ::-webkit-scrollbar-thumb:hover {
+    background: #666666;
+}
+/* ========================================
+   MANAGER MATERIALS COMPONENT - DARK MODE
+   ======================================== */
+
+/* Container principal */
+[data-theme="dark"] .inventory-manager-tabs {
+    background-color: #1a1a1a !important;
+    color: #ffffff !important;
+}
+
+/* Navegación de tabs */
+[data-theme="dark"] .tabs-navigation {
+    background-color: #2c2c2c !important;
+    border: 1px solid #404040 !important;
+}
+
+/* Botones de tab por defecto */
+[data-theme="dark"] .tab-button {
+    background-color: #333333 !important;
+    color: #cccccc !important;
+    border-color: #404040 !important;
+}
+
+/* Botones de tab en hover */
+[data-theme="dark"] .tab-button:hover {
+    background-color: #4a2c1a !important;
+    color: #ff8c42 !important;
+    border-color: #ff6b35 !important;
+}
+
+/* Tab activo mantiene el naranja */
+[data-theme="dark"] .tab-button.active {
+    background-color: #ff5f01 !important;
+    color: white !important;
+    border-color: #ff5f01 !important;
+    box-shadow: 0 4px 10px rgba(255, 95, 1, 0.4) !important;
+}
+
+/* Iconos en tabs */
+[data-theme="dark"] .tab-button i {
+    color: inherit !important;
+}
+
+/* Label de tabs */
+[data-theme="dark"] .tab-label {
+    color: inherit !important;
+}

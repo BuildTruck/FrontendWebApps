@@ -8,6 +8,7 @@ export class User {
                     lastName,
                     phone = null,
                     role,
+                    photo = null,
                     createdAt = null
                 }) {
         this.id = id
@@ -15,9 +16,10 @@ export class User {
         this.password = password
         this.personalEmail = personalEmail
         this.name = name
-        this.lastName = lastName // ✅ Cambiar a camelCase
+        this.lastName = lastName
         this.phone = phone
         this.role = role
+        this.photo = photo
         this.createdAt = createdAt
     }
 
@@ -41,6 +43,7 @@ export class User {
             lastName: this.lastName,
             phone: this.phone,
             role: this.role,
+            photo: this.photo,
             createdAt: this.createdAt
         }
     }

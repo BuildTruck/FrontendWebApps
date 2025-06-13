@@ -57,11 +57,10 @@ export default {
         return {
           ...usage,
           materialName: material?.name || 'Desconocido',
-          workerName: worker ? `${worker.name} ${worker.lastname}` : 'No asignado' // ✅ Aquí el nombre completo
+          workerName: worker ? `${worker.name} ${worker.lastname}` : 'No asignado'
         };
       });
     },
-
 
     handleAdd() {
       this.selectedUsage = null;
@@ -100,7 +99,7 @@ export default {
         const user = JSON.parse(sessionStorage.getItem('user'));
 
         if (!material) {
-          alert('Material no encontrado. Por favor selecciona uno.');
+          alert('Material no encontrado.');
           return;
         }
 
@@ -111,7 +110,7 @@ export default {
           quantity: Number(data.quantity),
           date: data.date,
           area: data.area,
-          worker: data.worker, // Este es el workerId
+          worker: data.worker,
           usageType: data.usageType,
           observations: data.description,
           status: data.status || 'Normal',
@@ -122,7 +121,7 @@ export default {
           await materialsApiService.updateUsage(usagePayload.id, usagePayload);
         } else {
           if (Number(material.stock) < usagePayload.quantity) {
-            alert('No hay suficiente stock para este uso.');
+            alert('No hay suficiente stock.');
             return;
           }
 
@@ -145,8 +144,7 @@ export default {
     },
 
     async handleDelete(selected) {
-      const confirmDelete = window.confirm(`¿Eliminar ${selected.length} uso(s)?`);
-      if (!confirmDelete) return;
+      if (!window.confirm(`¿Eliminar ${selected.length} uso(s)?`)) return;
 
       for (const usage of selected) {
         const index = this.usages.findIndex(u => u.id === usage.id);

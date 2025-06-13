@@ -188,6 +188,72 @@ class UserService extends BaseService {
             return false
         }
     }
+
+    // ✅ NUEVO MÉTODO: Compresión de imágenes para fotos de perfil
+    /**
+     * Comprime una imagen a base64 con calidad reducida para foto de perfil
+     * @param {File} file - Archivo de imagen
+     * @param {number} maxWidth - Ancho máximo (por defecto 200px)
+     * @param {number} quality - Calidad de compresión (0.1 - 1.0, por defecto 0.7)
+     * @returns {Promise<string>} - Base64 comprimido
+     */
+    compressProfileImage(file, maxWidth = 200, quality = 0.7) {
+        return new Promise((resolve, reject) => {
+            if (!file || !file.type.startsWith('image/')) {
+                reject(new Error('El archivo debe ser una imagen'));
+                return;
+            }
+
+            // Validar tamaño máximo del archivo (5MB)
+            const maxFileSize = 5 * 1024 * 1024;
+            if (file.size > maxFileSize) {
+                reject(new Error('La imagen es demasiado grande. Máximo 5MB.'));
+                return;
+            }
+
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const img = new Image();
+
+            img.onload = () => {
+                try {
+                    // Calcular nuevas dimensiones manteniendo la proporción
+                    const ratio = Math.min(maxWidth / img.width, maxWidth / img.height);
+                    const newWidth = Math.round(img.width * ratio);
+                    const newHeight = Math.round(img.height * ratio);
+
+                    // Configurar canvas
+                    canvas.width = newWidth;
+                    canvas.height = newHeight;
+
+                    // Mejorar calidad del redimensionado
+                    ctx.imageSmoothingEnabled = true;
+                    ctx.imageSmoothingQuality = 'high';
+
+                    // Dibujar imagen redimensionada
+                    ctx.drawImage(img, 0, 0, newWidth, newHeight);
+
+                    // Convertir a base64 con compresión
+                    const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
+
+                    // Log del tamaño final
+                    const finalSize = Math.round(compressedBase64.length / 1024);
+                    console.log(`Imagen comprimida: ${finalSize}KB`);
+
+                    resolve(compressedBase64);
+                } catch (error) {
+                    reject(new Error('Error al procesar la imagen'));
+                }
+            };
+
+            img.onerror = () => {
+                reject(new Error('Error al cargar la imagen'));
+            };
+
+            // Crear URL temporal para la imagen
+            img.src = URL.createObjectURL(file);
+        });
+    }
 }
 
 export const userService = new UserService()

@@ -6,7 +6,7 @@ import ProjectsManagerComponent from '../../projects/components/projects-manager
 import DocumentationManager from '../../documentation/components/documentation-manager.component.vue'
 import PersonnelManager from '../../personnel/components/personnel-manager.component.vue'
 import MaterialsManager from '../../materials/components/materials-manager.component.vue'
-import IncidentsManager from '../../incidents/components/incidents-manager.component.vue'
+import IncidentManagerComponent from '../../incidents/components/incident-manager.component.vue'
 import MachineryManager from '../../machinery/components/machinery-manager.component.vue'
 import ConfigurationManagerProject from '../../projects/components/manager-project-configuration.vue'
 import StatsManagerComponentManager from '../../stats/components/stats-manager.component.vue'
@@ -98,7 +98,7 @@ export default [
             },
             {
                 path: 'incidentes',
-                component: IncidentsManager,
+                component: IncidentManagerComponent,
                 props: true
             },
             {

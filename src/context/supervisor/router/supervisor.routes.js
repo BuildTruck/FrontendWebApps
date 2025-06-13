@@ -4,7 +4,7 @@ import SupervisorLayout from '../layouts/SupervisorLayout.vue'
 
 import PersonnelSupervisorComponent from '../../personnel/components/personnel-supervisor.component.vue'
 import MachinerySupervisorComponent from '../../machinery/components/machinery-supervisor.component.vue'
-import IncidentsSupervisorComponent from '../../incidents/components/incidents-supervisor.component.vue'
+import IncidentSupervisorComponent from '../../incidents/components/incident-supervisor.component.vue'
 import DocumentationSupervisorComponent from '../../documentation/components/documentation-supervisor.component.vue'
 import ConfigurationSupervisorComponent from '../../configuration/components/supervisor-configuration.component.vue'
 import ProfileSupervisorComponent from '../../configuration/components/supervisor-profile-configuration.component.vue'
@@ -41,7 +41,7 @@ export default [
             },
             {
                 path: 'incidentes',
-                component: IncidentsSupervisorComponent,
+                component: IncidentSupervisorComponent,
                 props: true
             },
             {

@@ -43,8 +43,12 @@ export default {
     },
 
     async loadWorkers() {
-      this.workers = await personnelService.getAll();
+      const projectId = materialsApiService.getCurrentProjectIdSync();
+      this.workers = await personnelService.getByProject(projectId);
     },
+
+
+
 
     async loadUsages() {
       const projectId = materialsApiService.getCurrentProjectIdSync();
@@ -52,7 +56,10 @@ export default {
 
       this.usages = rawUsages.map(usage => {
         const material = this.materials.find(m => m.id === usage.materialId);
-        const worker = this.workers.find(w => w.id === usage.worker);
+        const worker = Array.isArray(this.workers)
+            ? this.workers.find(w => w.id === usage.worker)
+            : null;
+
 
         return {
           ...usage,

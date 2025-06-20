@@ -197,19 +197,26 @@
     "providerPlaceholder": "Ex: Maestro",
     "entryDate": "Entry Date",
     "unitPrice": "Unit Price",
+    "totalCost": "Total Cost",
     "documentType": "Document Type",
     "invoice": "Invoice",
     "receipt": "Receipt",
     "guide": "Guide",
+    "orderNote": "Order Note",
     "documentNumber": "Document Number",
     "documentNumberPlaceholder": "Ex: F001-00123",
     "status": "Status",
     "pending": "Pending",
+    "received": "Received",
     "canceled": "Canceled",
+    "approved": "Approved",
+    "rejected": "Rejected",
     "ruc": "TAX ID (RUC)",
     "paymentMethod": "Payment Method",
     "cash": "Cash",
     "credit": "Credit",
+    "transfer": "Transfer",
+    "check": "Check",
     "observations": "Observations",
     "usedQuantity": "Used Quantity",
     "usageDate": "Usage Date",
@@ -234,8 +241,60 @@
     "worker": "Worker",
     "other": "Other",
     "otherMaterial": "Other Material Type",
-    "otherMaterialPlaceholder": "e.g., Ceramics, Electrical"
-
+    "otherMaterialPlaceholder": "e.g., Ceramics, Electrical",
+    "comprobante": "Receipt",
+    "comprobanteNumber": "Receipt Number",
+    "customType": "Custom Type",
+    "units": {
+      "kg": "Kilogram",
+      "m": "Meter",
+      "l": "Liter",
+      "und": "Unit",
+      "saco": "Sack",
+      "caja": "Box",
+      "rollo": "Roll",
+      "gal": "Gallon",
+      "ton": "Ton"
+    },
+    "materialTypes": {
+      "cemento": "Cement",
+      "acero": "Steel",
+      "pintura": "Paint",
+      "herramienta": "Tool",
+      "limpieza": "Cleaning",
+      "otro": "Other"
+    },
+    "documentTypes": {
+      "invoice": "Invoice",
+      "receipt": "Receipt",
+      "guide": "Guide",
+      "order_note": "Order Note"
+    },
+    "paymentMethods": {
+      "cash": "Cash",
+      "credit": "Credit",
+      "transfer": "Bank Transfer",
+      "check": "Check"
+    },
+    "usageTypes": {
+      "construccion": "Construction",
+      "mantenimiento": "Maintenance",
+      "reparacion": "Repair",
+      "instalacion": "Installation",
+      "acabados": "Finishes",
+      "estructural": "Structural",
+      "sanitario": "Sanitary",
+      "electrico": "Electrical",
+      "herramientas": "Tools",
+      "limpieza": "Cleaning"
+    },
+    "statuses": {
+      "pending": "Pending",
+      "received": "Received",
+      "canceled": "Canceled",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    }
   },
   "projects": {
     "welcome": "Welcome",

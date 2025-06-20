@@ -2,6 +2,11 @@
 import AppInput from '../../../core/components/AppInput.vue'
 import AppButton from '../../../core/components/AppButton.vue'
 
+import { MaterialEntryEntity } from '../models/material-entries.entity.js'
+import {MaterialEntity} from "../models/materials.entity.js";
+import {MaterialUsageEntity} from "../models/material-usages.entity.js";
+
+
 const MATERIAL_TYPES_KEY = 'materialTypes'
 
 export default {
@@ -28,6 +33,15 @@ export default {
     }
   },
   computed: {
+    MaterialUsageEntity() {
+      return MaterialUsageEntity
+    },
+    MaterialEntity() {
+      return MaterialEntity
+    },
+    MaterialEntryEntity() {
+      return MaterialEntryEntity
+    },
     typeOptions() {
       return [
         { label: this.$t('inventory.material'), value: 'MAT' },
@@ -35,6 +49,37 @@ export default {
         ...this.materialTypes.map(type => ({ label: type, value: type })),
         { label: this.$t('inventory.other'), value: 'Otro' }
       ]
+    },
+    // Nuevas computed properties para las opciones i18n
+    unitOptions() {
+      return MaterialEntity.UNITS.map(u => ({
+        value: u.value,
+        label: this.$t('inventory.units.' + u.value.toLowerCase())
+      }))
+    },
+    comprobanteOptions() {
+      return MaterialEntryEntity.COMPROBANTE_TYPES.map(c => ({
+        value: c.value,
+        label: this.$t('inventory.documentTypes.' + c.value.toLowerCase())
+      }))
+    },
+    statusOptions() {
+      return MaterialEntryEntity.STATUSES.map(s => ({
+        value: s.value,
+        label: this.$t('inventory.statuses.' + s.value.toLowerCase())
+      }))
+    },
+    paymentOptions() {
+      return MaterialEntryEntity.PAYMENT_METHODS.map(p => ({
+        value: p.value,
+        label: this.$t('inventory.paymentMethods.' + p.value.toLowerCase())
+      }))
+    },
+    usageTypeOptions() {
+      return MaterialUsageEntity.USAGE_TYPES.map(u => ({
+        value: u.value,
+        label: this.$t('inventory.usageTypes.' + u.value.toLowerCase())
+      }))
     }
   },
   created() {
@@ -119,88 +164,58 @@ export default {
 <template>
   <div class="card p-4">
     <div class="grid grid-cols-2 gap-4">
-      <!-- SELECT MATERIAL (entry / usage) -->
-      <AppInput
-          v-if="mode !== 'material'"
-          v-model="localMaterial.id"
-          :disabled="readonly"
-          :label="$t('inventory.selectMaterial')"
-          type="select"
-          :options="materialsList.map(m => ({ label: m.name, value: m.id }))"
-      />
+      <AppInput v-if="mode !== 'material'" v-model="localMaterial.id" :disabled="readonly" :label="$t('inventory.selectMaterial')" type="select" :options="materialsList.map(m => ({ label: m.name, value: m.id }))" />
 
-      <!-- MATERIAL FORM -->
-      <AppInput
-          v-if="mode === 'material'"
-          v-model="localMaterial.name"
-          :disabled="readonly"
-          :label="$t('inventory.materialName')"
-          :placeholder="$t('inventory.materialNamePlaceholder')"
-      />
+      <AppInput v-if="mode === 'material'" v-model="localMaterial.name" :disabled="readonly" :label="$t('inventory.materialName')" :placeholder="$t('inventory.materialNamePlaceholder')" />
 
-      <AppInput
-          v-if="mode === 'material'"
-          v-model="localMaterial.type"
-          :disabled="readonly"
-          :label="$t('inventory.materialType')"
-          type="select"
-          :options="typeOptions"
-      />
+      <AppInput v-if="mode === 'material'" v-model="localMaterial.type" :disabled="readonly" :label="$t('inventory.materialType')" type="select" :options="typeOptions" />
 
-      <AppInput
-          v-if="mode === 'material' && localMaterial.type === 'Otro'"
-          v-model="localMaterial.customType"
-          :disabled="readonly"
-          :label="$t('inventory.otherMaterial')"
-          :placeholder="$t('inventory.otherMaterialPlaceholder')"
-      />
+      <AppInput v-if="mode === 'material' && localMaterial.type === 'Otro'" v-model="localMaterial.customType" :disabled="readonly" :label="$t('inventory.otherMaterial')" :placeholder="$t('inventory.otherMaterialPlaceholder')" />
 
+      <!-- Usando la computed property unitOptions -->
       <AppInput
           v-if="mode === 'material'"
           v-model="localMaterial.unit"
           :disabled="readonly"
           :label="$t('inventory.unit')"
-          :placeholder="$t('inventory.unitPlaceholder')"
+          type="select"
+          :options="unitOptions"
       />
 
-      <AppInput
-          v-if="mode === 'material'"
-          v-model="localMaterial.minimumStock"
-          :disabled="readonly"
-          :label="$t('inventory.minimumStock')"
-          type="number"
-      />
+      <AppInput v-if="mode === 'material'" v-model="localMaterial.minimumStock" :disabled="readonly" :label="$t('inventory.minimumStock')" type="number" />
 
-      <AppInput
-          v-if="mode === 'material'"
-          v-model="localMaterial.provider"
-          :disabled="readonly"
-          :label="$t('inventory.mainProvider')"
-      />
+      <AppInput v-if="mode === 'material'" v-model="localMaterial.provider" :disabled="readonly" :label="$t('inventory.mainProvider')" />
 
       <!-- ENTRY -->
       <AppInput v-if="mode === 'entry'" v-model="localMaterial.provider" :disabled="readonly" :label="$t('inventory.provider')" />
       <AppInput v-if="mode === 'entry'" v-model="localMaterial.quantity" :disabled="readonly" :label="$t('inventory.quantity')" type="number" />
       <AppInput v-if="mode === 'entry'" v-model="localMaterial.date" :disabled="readonly" :label="$t('inventory.entryDate')" type="date" />
       <AppInput v-if="mode === 'entry'" v-model="localMaterial.price" :disabled="readonly" :label="$t('inventory.unitPrice')" type="number" />
-      <AppInput v-if="mode === 'entry'" v-model="localMaterial.comprobante" :disabled="readonly" :label="$t('inventory.documentType')" type="select"
-                :options="[{ label: $t('inventory.invoice'), value: 'Factura' }, { label: $t('inventory.receipt'), value: 'Boleta' }, { label: $t('inventory.guide'), value: 'Guía' }]" />
+
+      <!-- Usando la computed property comprobanteOptions -->
+      <AppInput v-if="mode === 'entry'" v-model="localMaterial.comprobante" :disabled="readonly" :label="$t('inventory.documentType')" type="select" :options="comprobanteOptions" />
+
       <AppInput v-if="mode === 'entry'" v-model="localMaterial.comprobanteNumber" :disabled="readonly" :label="$t('inventory.documentNumber')" />
-      <AppInput v-if="mode === 'entry'" v-model="localMaterial.status" :disabled="readonly" :label="$t('inventory.status')" type="select"
-                :options="[{ label: $t('inventory.pending'), value: 'Pendiente' }, { label: $t('inventory.canceled'), value: 'Cancelado' }]" />
+
+      <!-- Usando la computed property statusOptions -->
+      <AppInput v-if="mode === 'entry'" v-model="localMaterial.status" :disabled="readonly" :label="$t('inventory.status')" type="select" :options="statusOptions" />
+
       <AppInput v-if="mode === 'entry'" v-model="localMaterial.ruc" :disabled="readonly" :label="$t('inventory.ruc')" />
-      <AppInput v-if="mode === 'entry'" v-model="localMaterial.payment" :disabled="readonly" :label="$t('inventory.paymentMethod')" type="select"
-                :options="[{ label: $t('inventory.cash'), value: 'Contado' }, { label: $t('inventory.credit'), value: 'Crédito' }]" />
+
+      <!-- Usando la computed property paymentOptions -->
+      <AppInput v-if="mode === 'entry'" v-model="localMaterial.payment" :disabled="readonly" :label="$t('inventory.paymentMethod')" type="select" :options="paymentOptions"/>
+
       <AppInput v-if="mode === 'entry'" v-model="localMaterial.description" :disabled="readonly" :label="$t('inventory.observations')" type="textarea" />
 
       <!-- USAGE -->
       <AppInput v-if="mode === 'usage'" v-model="localMaterial.quantity" :disabled="readonly" :label="$t('inventory.usedQuantity')" type="number" />
       <AppInput v-if="mode === 'usage'" v-model="localMaterial.date" :disabled="readonly" :label="$t('inventory.usageDate')" type="date" />
       <AppInput v-if="mode === 'usage'" v-model="localMaterial.area" :disabled="readonly" :label="$t('inventory.usageArea')" />
-      <AppInput v-if="mode === 'usage'" v-model="localMaterial.usageType" :disabled="readonly" :label="$t('inventory.usageType')" type="select"
-                :options="[{ label: $t('inventory.normal'), value: 'Normal' }, { label: $t('inventory.urgent'), value: 'Urgente' }, { label: $t('inventory.waste'), value: 'Desperdicio' }]" />
-      <AppInput v-if="mode === 'usage'" v-model="localMaterial.worker" :disabled="readonly" :label="$t('inventory.worker')" type="select"
-                :options="workersList.map(w => ({ label: w.name, value: w.id }))" />
+
+      <!-- Usando la computed property usageTypeOptions -->
+      <AppInput v-if="mode === 'usage'" v-model="localMaterial.usageType" :disabled="readonly" :label="$t('inventory.usageType')" type="select" :options="usageTypeOptions" />
+
+      <AppInput v-if="mode === 'usage'" v-model="localMaterial.worker" :disabled="readonly" :label="$t('inventory.worker')" type="select" :options="workersList.map(w => ({ label: w.name, value: w.id }))" />
       <AppInput v-if="mode === 'usage'" v-model="localMaterial.description" :disabled="readonly" :label="$t('inventory.observations')" type="textarea" />
     </div>
 

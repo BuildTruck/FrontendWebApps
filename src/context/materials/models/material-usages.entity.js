@@ -41,4 +41,27 @@ export class MaterialUsageEntity {
             observations: this.observations
         };
     }
+
+    static get USAGE_TYPES() {
+        return [
+            { value: 'CONSTRUCCION', label: 'construccion' },
+            { value: 'MANTENIMIENTO', label: 'mantenimiento' },
+            { value: 'REPARACION', label: 'reparacion' },
+            { value: 'INSTALACION', label: 'instalacion' },
+            { value: 'ACABADOS', label: 'acabados' },
+            { value: 'ESTRUCTURAL', label: 'estructural' },
+            { value: 'SANITARIO', label: 'sanitario' },
+            { value: 'ELECTRICO', label: 'electrico' },
+            { value: 'HERRAMIENTAS', label: 'herramientas' },
+            { value: 'LIMPIEZA', label: 'limpieza' }
+        ];
+    }
+
+    static get STATUSES() {
+        return [
+            { value: 'PENDING', label: 'pending' },
+            { value: 'APPROVED', label: 'approved' },
+            { value: 'REJECTED', label: 'rejected' }
+        ];
+    }
 }

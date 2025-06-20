@@ -42,4 +42,29 @@ export class MaterialEntity {
     get stock() {
         return this._stock;
     }
+
+    static get UNITS() {
+        return [
+            { value: 'KG', label: 'kg' },
+            { value: 'M', label: 'm' },
+            { value: 'L', label: 'l' },
+            { value: 'UND', label: 'und' },
+            { value: 'SACO', label: 'saco' },
+            { value: 'CAJA', label: 'caja' },
+            { value: 'ROLLO', label: 'rollo' },
+            { value: 'GAL', label: 'gal' },
+            { value: 'TON', label: 'ton' }
+        ];
+    }
+
+    static get TYPES() {
+        return [
+            { value: 'CEMENTO', label: 'cemento' },
+            { value: 'ACERO', label: 'acero' },
+            { value: 'PINTURA', label: 'pintura' },
+            { value: 'HERRAMIENTA', label: 'herramienta' },
+            { value: 'LIMPIEZA', label: 'limpieza' },
+            { value: 'OTRO', label: 'otro' }
+        ];
+    }
 }

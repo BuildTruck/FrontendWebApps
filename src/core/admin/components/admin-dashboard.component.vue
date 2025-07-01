@@ -18,12 +18,12 @@ export default {
           managers: 0,
           supervisors: 0,
           admins: 0,
-          totalProjects: 0,
-          activeProjects: 0,
-          completedProjects: 0
+          activeUsersThisWeek: 0,
+          newUsersThisMonth: 0,
+          usersWithoutLogin: 0
         },
         recentUsers: [],
-        projects: []
+        activeUsers: []
       },
       notification: {
         visible: false,
@@ -47,17 +47,17 @@ export default {
       }
     },
 
-    projectStatusChartData() {
+    userActivityChartData() {
       return {
-        labels: ['Total', 'Activos', 'Completados'],
+        labels: ['Activos esta semana', 'Nuevos este mes', 'Sin login'],
         datasets: [{
-          label: 'Proyectos',
+          label: 'Usuarios',
           data: [
-            this.dashboardData.stats.totalProjects,
-            this.dashboardData.stats.activeProjects,
-            this.dashboardData.stats.completedProjects
+            this.dashboardData.stats.activeUsersThisWeek,
+            this.dashboardData.stats.newUsersThisMonth,
+            this.dashboardData.stats.usersWithoutLogin
           ],
-          backgroundColor: ['#FF9800', '#4CAF50', '#2196F3']
+          backgroundColor: ['#4CAF50', '#2196F3', '#FF9800']
         }]
       }
     },
@@ -106,12 +106,40 @@ export default {
       return new Date(dateString).toLocaleDateString('es-ES')
     },
 
+    formatDateTime(dateString) {
+      if (!dateString) return 'Nunca'
+      return new Date(dateString).toLocaleString('es-ES', {
+        day: '2-digit',
+        month: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      })
+    },
+
     getRoleIcon(role) {
-      switch(role) {
+      switch(role?.toLowerCase()) {
         case 'admin': return 'pi pi-shield'
         case 'manager': return 'pi pi-briefcase'
         case 'supervisor': return 'pi pi-user'
         default: return 'pi pi-user'
+      }
+    },
+
+    getRoleColor(role) {
+      switch(role?.toLowerCase()) {
+        case 'admin': return '#f44336'
+        case 'manager': return '#2196F3'
+        case 'supervisor': return '#4CAF50'
+        default: return '#666'
+      }
+    },
+
+    getRoleLabel(role) {
+      switch(role?.toLowerCase()) {
+        case 'admin': return 'Admin'
+        case 'manager': return 'Manager'
+        case 'supervisor': return 'Supervisor'
+        default: return role
       }
     }
   }
@@ -122,14 +150,14 @@ export default {
   <div class="admin-dashboard">
     <!-- Header -->
     <div class="dashboard-header">
-      <h2>{{ $t('admin.dashboard.welcome') }}</h2>
-      <p>{{ $t('admin.dashboard.subtitle') }}</p>
+      <h2>Panel de Administración</h2>
+      <p>Gestión de usuarios del sistema BuildTruck</p>
     </div>
 
     <!-- Loading State -->
     <div v-if="loading" class="loading-container">
       <i class="pi pi-spin pi-spinner"></i>
-      <p>{{ $t('admin.actions.loading') }}</p>
+      <p>Cargando datos...</p>
     </div>
 
     <!-- Dashboard Content -->
@@ -142,7 +170,7 @@ export default {
           </div>
           <div class="stat-info">
             <h3>{{ dashboardData.stats.totalUsers }}</h3>
-            <p>{{ $t('admin.dashboard.totalUsers') }}</p>
+            <p>Total de Usuarios</p>
           </div>
         </div>
 
@@ -152,7 +180,7 @@ export default {
           </div>
           <div class="stat-info">
             <h3>{{ dashboardData.stats.managers }}</h3>
-            <p>{{ $t('admin.dashboard.managers') }}</p>
+            <p>Managers</p>
           </div>
         </div>
 
@@ -162,17 +190,37 @@ export default {
           </div>
           <div class="stat-info">
             <h3>{{ dashboardData.stats.supervisors }}</h3>
-            <p>{{ $t('admin.dashboard.supervisors') }}</p>
+            <p>Supervisores</p>
           </div>
         </div>
 
         <div class="stat-card">
-          <div class="stat-icon projects">
-            <i class="pi pi-folder"></i>
+          <div class="stat-icon active-users">
+            <i class="pi pi-clock"></i>
           </div>
           <div class="stat-info">
-            <h3>{{ dashboardData.stats.totalProjects }}</h3>
-            <p>{{ $t('admin.dashboard.projects') }}</p>
+            <h3>{{ dashboardData.stats.activeUsersThisWeek }}</h3>
+            <p>Activos esta semana</p>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon new-users">
+            <i class="pi pi-user-plus"></i>
+          </div>
+          <div class="stat-info">
+            <h3>{{ dashboardData.stats.newUsersThisMonth }}</h3>
+            <p>Nuevos este mes</p>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon inactive-users">
+            <i class="pi pi-exclamation-triangle"></i>
+          </div>
+          <div class="stat-info">
+            <h3>{{ dashboardData.stats.usersWithoutLogin }}</h3>
+            <p>Sin acceso nunca</p>
           </div>
         </div>
       </div>
@@ -180,44 +228,74 @@ export default {
       <!-- Charts Section -->
       <div class="charts-section">
         <div class="chart-card">
-          <h3>Usuarios por Rol</h3>
+          <h3>Distribución por Rol</h3>
           <pv-chart type="doughnut" :data="userRoleChartData" :options="chartOptions" />
         </div>
 
         <div class="chart-card">
-          <h3>Estado de Proyectos</h3>
-          <pv-chart type="bar" :data="projectStatusChartData" :options="chartOptions" />
+          <h3>Actividad de Usuarios</h3>
+          <pv-chart type="bar" :data="userActivityChartData" :options="chartOptions" />
         </div>
       </div>
 
       <!-- Quick Actions -->
       <div class="quick-actions">
-        <h3>{{ $t('admin.dashboard.quickActions') }}</h3>
+        <h3>Acciones Rápidas</h3>
         <div class="actions-grid">
           <app-button
-              :label="$t('admin.dashboard.manageUsers')"
+              label="Gestionar Usuarios"
               icon="pi pi-users"
               variant="primary"
               @click="goToUsers"
           />
+          <app-button
+              label="Crear Usuario"
+              icon="pi pi-user-plus"
+              variant="secondary"
+              @click="$router.push('/admin/usuarios')"
+          />
         </div>
       </div>
 
-      <!-- Recent Users -->
-      <div class="recent-users">
-        <h3>{{ $t('admin.dashboard.recentUsers') }}</h3>
-        <div class="users-list">
-          <div v-for="user in dashboardData.recentUsers" :key="user.id" class="user-item">
-            <div class="user-avatar">
-              <i :class="getRoleIcon(user.role)"></i>
+      <!-- Two Columns Layout -->
+      <div class="bottom-section">
+        <!-- Recent Users -->
+        <div class="recent-users">
+          <h3>Usuarios Recientes</h3>
+          <div class="users-list">
+            <div v-for="user in dashboardData.recentUsers" :key="'recent-' + user.id" class="user-item">
+              <div class="user-avatar">
+                <i :class="getRoleIcon(user.role)"></i>
+              </div>
+              <div class="user-info">
+                <h4>{{ user.name }} {{ user.lastName || user.lastname }}</h4>
+                <p>{{ user.email }}</p>
+                <span class="user-role" :style="{ backgroundColor: getRoleColor(user.role) }">
+                  {{ getRoleLabel(user.role) }}
+                </span>
+              </div>
+              <div class="user-date">
+                <small>{{ formatDate(user.createdAt) }}</small>
+              </div>
             </div>
-            <div class="user-info">
-              <h4>{{ user.name }} {{ user.lastname }}</h4>
-              <p>{{ user.email }}</p>
-              <span class="user-role">{{ $t(`admin.users.roles.${user.role}`) }}</span>
-            </div>
-            <div class="user-date">
-              <small>{{ formatDate(user.createdAt) }}</small>
+          </div>
+        </div>
+
+        <!-- Active Users -->
+        <div class="active-users">
+          <h3>Usuarios Más Activos</h3>
+          <div class="users-list">
+            <div v-for="user in dashboardData.activeUsers" :key="'active-' + user.id" class="user-item">
+              <div class="user-avatar">
+                <i :class="getRoleIcon(user.role)"></i>
+              </div>
+              <div class="user-info">
+                <h4>{{ user.name }} {{ user.lastName || user.lastname }}</h4>
+                <p>{{ user.email }}</p>
+                <span class="last-login">
+                  <i class="pi pi-clock"></i> {{ formatDateTime(user.lastLogin) }}
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -233,7 +311,6 @@ export default {
     />
   </div>
 </template>
-
 
 <style scoped>
 .admin-dashboard {
@@ -274,7 +351,7 @@ export default {
 
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 1.5rem;
   margin-bottom: 2rem;
 }
@@ -309,7 +386,15 @@ export default {
   background-color: #4CAF50;
 }
 
-.stat-icon.projects {
+.stat-icon.active-users {
+  background-color: #9C27B0;
+}
+
+.stat-icon.new-users {
+  background-color: #00BCD4;
+}
+
+.stat-icon.inactive-users {
   background-color: #FF9800;
 }
 
@@ -361,7 +446,13 @@ export default {
   flex-wrap: wrap;
 }
 
-.recent-users h3 {
+.bottom-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
+.recent-users h3, .active-users h3 {
   color: #333;
   margin-bottom: 1rem;
 }
@@ -413,11 +504,20 @@ export default {
 }
 
 .user-role {
-  background: #f0f0f0;
+  color: white;
   padding: 0.2rem 0.5rem;
   border-radius: 12px;
   font-size: 0.75rem;
-  color: #555;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.last-login {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: #4CAF50;
+  font-size: 0.75rem;
 }
 
 .user-date {
@@ -431,21 +531,19 @@ export default {
   }
 
   .stats-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
   }
 
   .charts-section {
     grid-template-columns: 1fr;
   }
 
-  .chart-card {
-    height: 300px;
+  .bottom-section {
+    grid-template-columns: 1fr;
   }
 
-  .user-item {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
+  .chart-card {
+    height: 300px;
   }
 }
 </style>

@@ -90,13 +90,13 @@ export default {
         // Procesar usuario según rol
         let user;
         switch (rawUser.role) {
-          case 'manager':
+          case 'Manager':
             user = new Manager(rawUser);
             break;
-          case 'supervisor':
+          case 'Supervisor':
             user = new Supervisor(rawUser);
             break;
-          case 'admin':
+          case 'Admin':
             user = new Admin(rawUser);
             break;
           default:
@@ -104,10 +104,9 @@ export default {
         }
 
         // Guardar en sessionStorage
-        sessionStorage.setItem('token', 'fake-token');
+        sessionStorage.setItem('token', rawUser.token || AuthService.getToken());
         sessionStorage.setItem('user', JSON.stringify(user.toJSON()));
 
-        // APLICAR TEMA DEL USUARIO
         await this.themeStore.initializeFromLogin(user.id);
 
         // Detectar Opera para redirección
@@ -116,14 +115,14 @@ export default {
             navigator.userAgent.indexOf(' OPR/') >= 0;
 
         // Redireccionar según rol
-        if (user.role === 'manager') {
+        if (user.role === 'Manager') {
           if (isOpera) {
             window.location.href = '/proyectos';
           } else {
             this.$router.push('/proyectos');
           }
         }
-        else if (user.role === 'supervisor') {
+        else if (user.role === 'Supervisor') {
           try {
             const project = await AuthService.getAssignedProject(user.id);
 
@@ -144,7 +143,7 @@ export default {
             return;
           }
         }
-        else if (user.role === 'admin') {
+        else if (user.role === 'Admin') {
           if (isOpera) {
             window.location.href = '/admin';
           } else {

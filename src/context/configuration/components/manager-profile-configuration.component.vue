@@ -3,7 +3,6 @@ import AppButton from "../../../core/components/AppButton.vue";
 import AppInput from "../../../core/components/AppInput.vue";
 import AppNotification from "../../../core/components/AppNotification.vue";
 import { AuthService } from "../../../auth/services/auth-api.service.js";
-import { ManagerService } from '../../manager/services/manager-api.service';
 import { userService } from "../../../core/services/user-api.service.js";
 
 export default {
@@ -14,16 +13,23 @@ export default {
     AppNotification
   },
   data() {
+    // Cargar datos inmediatamente desde sessionStorage para evitar parpadeo
+    const currentUser = AuthService.getCurrentUser() || {};
+
     return {
-      user: AuthService.getCurrentUser(),
+      user: currentUser, // ← Inicializar con datos existentes
       form: {
-        name: '',
-        email: '',
+        name: currentUser.name || '',
+        fullName: currentUser.fullName || '',
+        email: currentUser.email || '',
+        personalEmail: currentUser.personalEmail || '',
+        phone: currentUser.phone || '',
         photoFile: null
       },
       loading: false,
       editMode: false,
-      photoPreviewUrl: '',
+      // Inicializar también photoPreviewUrl con datos existentes
+      photoPreviewUrl: currentUser.profileImageUrl || currentUser.photo || '',
       photoError: null,
       notification: {
         show: false,
@@ -33,11 +39,48 @@ export default {
       }
     }
   },
-  mounted() {
-    if (this.user) {
-      this.form.name = this.user.name;
-      this.form.email = this.user.email;
-      this.photoPreviewUrl = this.user.photo || '';
+  async mounted() {
+    const currentUser = AuthService.getCurrentUser();
+
+    if (currentUser?.id) {
+      try {
+        const response = await userService.getById(currentUser.id);
+        const fullUserData = response.data;
+
+        sessionStorage.setItem('user', JSON.stringify(fullUserData));
+
+        // Actualizar datos pero sin parpadeo visible
+        this.user = { ...fullUserData };
+        this.form.name = fullUserData.name;
+        this.form.fullName = fullUserData.fullName;
+        this.form.email = fullUserData.email;
+        this.form.personalEmail = fullUserData.personalEmail || '';
+        this.form.phone = fullUserData.phone || '';
+
+        // Solo actualizar la imagen si es diferente para evitar parpadeo
+        const newImageUrl = fullUserData.profileImageUrl || '';
+        if (newImageUrl !== this.photoPreviewUrl) {
+          this.photoPreviewUrl = newImageUrl;
+        }
+
+      } catch (error) {
+        console.error('Error cargando datos del usuario:', error);
+        // this.user ya tiene datos del sessionStorage como fallback
+      }
+    }
+  },
+  activated() {
+    if (!this.user || !this.user.id) {
+      const currentUser = AuthService.getCurrentUser();
+      if (currentUser) {
+        this.user = currentUser;
+        this.form.name = currentUser.name;
+        this.form.fullName = currentUser.fullName || `${currentUser.name} ${currentUser.lastName}`;
+        this.form.email = currentUser.email;
+        this.form.personalEmail = currentUser.personalEmail || '';
+        this.form.phone = currentUser.phone || '';
+        this.photoPreviewUrl = currentUser.profileImageUrl || currentUser.photo || '';
+      }
     }
   },
   computed: {
@@ -45,9 +88,9 @@ export default {
       if (!this.user) return false;
 
       return (
-          this.form.name !== this.user.name ||
-          this.form.email !== this.user.email ||
-          this.photoPreviewUrl !== (this.user.photo || '')
+          this.form.personalEmail !== (this.user.personalEmail || '') ||
+          this.form.phone !== (this.user.phone || '') ||
+          this.photoPreviewUrl !== (this.user.profileImageUrl || this.user.photo || '')
       );
     }
   },
@@ -59,9 +102,13 @@ export default {
 
       try {
         this.photoError = null;
-        const compressedBase64 = await userService.compressProfileImage(file, 200, 0.7);
-        this.photoPreviewUrl = compressedBase64;
-        console.log('Imagen comprimida correctamente');
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          this.photoPreviewUrl = e.target.result;
+        };
+        reader.readAsDataURL(file);
+
+        console.log('Archivo seleccionado para subir:', file.name);
       } catch (error) {
         console.error('Error procesando imagen:', error);
         this.photoError = error.message || this.$t('profile.photoProcessingError');
@@ -72,21 +119,38 @@ export default {
     async saveProfile() {
       this.loading = true;
       try {
+        let photoUrl = this.user.photo;
+
+        // Si hay un archivo nuevo, subirlo a Cloudinary
+        if (this.form.photoFile) {
+          const uploadResponse = await userService.uploadProfileImage(this.user.id, this.form.photoFile);
+          photoUrl = uploadResponse.data.profileImageUrl;
+        }
+
         const updatedUser = {
-          ...this.user,
           name: this.form.name,
-          email: this.form.email,
-          photo: this.photoPreviewUrl || this.user.photo || ''
+          lastName: this.user.lastName,
+          personalEmail: this.form.personalEmail,
+          phone: this.form.phone,
+          role: this.user.role
         };
 
-        const managerService = new ManagerService();
-        await managerService.update(this.user.id, updatedUser);
+        await userService.updateProfile(this.user.id, updatedUser);
 
-        sessionStorage.setItem('user', JSON.stringify(updatedUser));
+        // Actualizar usuario en sesión
+        const newUserData = {
+          ...this.user,
+          name: this.form.name,
+          personalEmail: this.form.personalEmail,
+          phone: this.form.phone,
+          photo: photoUrl
+        };
 
-        this.user = updatedUser;
+        sessionStorage.setItem('user', JSON.stringify(newUserData));
+        this.user = newUserData;
         this.editMode = false;
         this.photoError = null;
+        this.form.photoFile = null;
 
         this.showNotification(this.$t('profile.profileUpdated'), 'success', true);
 
@@ -101,22 +165,43 @@ export default {
     cancelEdit() {
       this.editMode = false;
       this.form.name = this.user.name;
+      this.form.fullName = this.user.fullName;
       this.form.email = this.user.email;
-      this.photoPreviewUrl = this.user.photo || '';
+      this.form.personalEmail = this.user.personalEmail || '';
+      this.form.phone = this.user.phone || '';
+      this.photoPreviewUrl = this.user.profileImageUrl || this.user.photo || '';
       this.form.photoFile = null;
       this.photoError = null;
     },
 
     getPhotoUrl() {
-      return this.photoPreviewUrl || this.user?.photo || '/images/default-avatar.png';
+      return this.photoPreviewUrl || this.user?.profileImageUrl || this.user?.photo || '/src/assets/default-avatar.png';
     },
 
-    removePhoto() {
-      this.photoPreviewUrl = '';
-      this.form.photoFile = null;
-      this.photoError = null;
-      if (this.$refs.fileInput) {
-        this.$refs.fileInput.value = '';
+    async removePhoto() {
+      try {
+        if (this.user.photo) {
+          // Eliminar del servidor usando el método que ya existe
+          await userService.deleteProfileImage(this.user.id);
+
+          // Actualizar sessionStorage
+          const updatedUser = { ...this.user, photo: null };
+          sessionStorage.setItem('user', JSON.stringify(updatedUser));
+          this.user = updatedUser;
+        }
+
+        // Limpiar preview
+        this.photoPreviewUrl = '';
+        this.form.photoFile = null;
+        this.photoError = null;
+        if (this.$refs.fileInput) {
+          this.$refs.fileInput.value = '';
+        }
+
+        this.showNotification(this.$t('profile.photoRemoved'), 'success');
+      } catch (error) {
+        console.error('Error eliminando foto:', error);
+        this.showNotification(this.$t('profile.photoRemoveError'), 'error');
       }
     },
 
@@ -160,7 +245,7 @@ export default {
                 :src="getPhotoUrl()"
                 :alt="$t('profile.profilePhoto')"
                 class="profile-image"
-                @error="photoPreviewUrl = '/images/default-avatar.png'"
+                @error="photoPreviewUrl = ''"
             />
             <div v-if="editMode" class="avatar-overlay">
               <i class="pi pi-camera"></i>
@@ -180,7 +265,7 @@ export default {
         </div>
 
         <div class="user-info">
-          <h1 class="user-name">{{ user.name }}</h1>
+          <h1 class="user-name">{{ user.name }} {{ user.lastName }}</h1>
           <div class="user-details">
             <div class="detail-item">
               <i class="pi pi-briefcase"></i>
@@ -191,6 +276,16 @@ export default {
               <i class="pi pi-envelope"></i>
               <span class="detail-label">{{ $t('profile.corporateEmail') }}:</span>
               <span class="detail-value">{{ user.email }}</span>
+            </div>
+            <div v-if="user.personalEmail" class="detail-item">
+              <i class="pi pi-at"></i>
+              <span class="detail-label">{{ $t('profile.personalEmail') }}:</span>
+              <span class="detail-value">{{ user.personalEmail }}</span>
+            </div>
+            <div v-if="user.phone" class="detail-item">
+              <i class="pi pi-phone"></i>
+              <span class="detail-label">{{ $t('profile.phone') }}:</span>
+              <span class="detail-value">{{ user.phone }}</span>
             </div>
           </div>
         </div>
@@ -215,15 +310,17 @@ export default {
           </h3>
 
           <div class="form-grid">
+
             <AppInput
-                v-model="form.name"
+                v-model="form.fullName"
                 :label="$t('profile.name')"
-                :placeholder="$t('profile.placeholders.fullName')"
+                :placeholder="user.fullName"
+                type="text"
                 icon="pi pi-user"
                 fullWidth
-                required
+                disabled
+                readonly
             />
-
             <AppInput
                 v-model="form.email"
                 :label="$t('profile.corporateEmail')"
@@ -232,6 +329,24 @@ export default {
                 icon="pi pi-envelope"
                 fullWidth
                 disabled
+            />
+
+            <AppInput
+                v-model="form.personalEmail"
+                :label="$t('profile.personalEmail')"
+                :placeholder="$t('profile.placeholders.personalEmail')"
+                type="email"
+                icon="pi pi-at"
+                fullWidth
+            />
+
+            <AppInput
+                v-model="form.phone"
+                :label="$t('profile.phone')"
+                :placeholder="$t('profile.placeholders.phone')"
+                type="tel"
+                icon="pi pi-phone"
+                fullWidth
             />
           </div>
 
@@ -242,11 +357,11 @@ export default {
                 <strong>{{ $t('profile.corporateEmail') }}:</strong> {{ user.email }}
                 <br>
                 <small>{{ $t('profile.info.corporateEmailFixed') }}</small>
+                <br>
               </div>
             </div>
           </div>
 
-          <!-- Botón para quitar foto -->
           <div v-if="photoPreviewUrl && user.photo" class="photo-actions-section">
             <AppButton
                 :label="$t('profile.removePhoto')"
@@ -266,7 +381,7 @@ export default {
           </div>
         </div>
 
-        <!-- Acciones -->
+
         <div class="form-actions">
           <AppButton
               :label="$t('general.cancel')"
@@ -285,7 +400,6 @@ export default {
           />
         </div>
 
-        <!-- Indicador de cambios -->
         <div v-if="hasChanges && !photoError" class="changes-indicator">
           <i class="pi pi-info-circle"></i>
           {{ $t('profile.unsavedChanges') }}
@@ -293,7 +407,6 @@ export default {
       </div>
     </div>
 
-    <!-- Notificación -->
     <AppNotification
         v-model="notification.show"
         :message="notification.message"

@@ -60,17 +60,17 @@ export class Configuration {
         };
     }
 
-    // Para el backend (API necesita booleanos)
-    toAPIFormat() {
-        return {
-            user_id: this.user_id,
-            theme: this.theme,  // El tema se mantiene como string
-            plan: this.plan,
-            notifications_enable: this.parseToBoolean(this.notifications_enable),  // Boolean para API
-            email_notifications: this.parseToBoolean(this.email_notifications)     // Boolean para API
-        };
-    }
 
+    toAPIFormat() {
+        const result = {
+            Theme: this.theme,
+            Plan: this.plan,
+            NotificationsEnable: this.notifications_enable,
+            EmailNotifications: this.email_notifications
+        };
+        console.log('🔍 toAPIFormat result:', result);
+        return result;
+    }
     // Validar configuración
     isValid() {
         const validThemes = ['light', 'dark', 'auto'];

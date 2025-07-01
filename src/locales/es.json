@@ -297,6 +297,11 @@
 
   },
   "projects": {
+    "changeImage": "Cambiar imagen",
+    "selectNewImage": "Seleccionar nueva imagen",
+    "deleteProject": "Eliminar proyecto",
+    "confirmDelete": "¿Confirmar eliminación?",
+    "deleteWarning": "Esta acción no se puede deshacer. Se eliminará permanentemente:",
     "welcome": "Bienvenido",
     "addNewProject": "Agregar Nuevo Proyecto",
     "projectName": "Nombre del Proyecto",
@@ -362,7 +367,7 @@
         "actions": "Acciones"
       },
       "roles": {
-        "admin": "Administrador",
+        "admin": "Admin",
         "manager": "Manager",
         "supervisor": "Supervisor"
       },
@@ -1072,7 +1077,8 @@
     },
     "placeholders": {
       "personalEmail": "ejemplo{'@'}gmail.com",
-      "fullName": "Ingresa tu nombre completo"
+      "fullName": "Ingresa tu nombre completo",
+      "phone": "Ingresa tu numero de celular"
     },
     "info": {
       "corporateEmailFixed": "Este email no puede ser modificado y se usa para acceder al sistema"

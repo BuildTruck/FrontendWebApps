@@ -31,7 +31,7 @@ export default {
         location: '',
         locationData: null,
         start_date: '',
-        supervisorEmail: '',
+        supervisorId: '',
         state: 'En estudio',
         image: null
       },
@@ -40,7 +40,7 @@ export default {
         description: '',
         location: '',
         start_date: '',
-        supervisorEmail: '',
+        supervisorId: '',
         image: ''
       },
       notification: {
@@ -119,14 +119,13 @@ export default {
 
     openModal() {
       this.showModal = true;
-      // Reset form
       this.newProject = {
         name: '',
         description: '',
         location: '',
         locationData: null,
         start_date: new Date().toISOString().split('T')[0],
-        supervisorEmail: '',
+        supervisorId: '',
         state: 'En estudio',
         image: null
       };
@@ -135,7 +134,7 @@ export default {
         description: '',
         location: '',
         start_date: '',
-        supervisorEmail: '',
+        supervisorId: '',
         image: ''
       };
     },
@@ -148,51 +147,39 @@ export default {
     validateForm() {
       let isValid = true;
 
-      // Nombre
-      if (!this.newProject.name || !this.newProject.name.trim()) {
+      if (!this.newProject.name?.trim()) {
         this.errors.name = 'El nombre del proyecto es obligatorio';
         isValid = false;
       } else {
         this.errors.name = '';
       }
 
-      // Descripción
-      if (!this.newProject.description || !this.newProject.description.trim()) {
+      if (!this.newProject.description?.trim()) {
         this.errors.description = 'La descripción es obligatoria';
         isValid = false;
       } else {
         this.errors.description = '';
       }
 
-      // Ubicación
-      if (!this.newProject.location || !this.newProject.location.trim()) {
+      if (!this.newProject.location?.trim()) {
         this.errors.location = 'La ubicación es obligatoria';
         isValid = false;
       } else {
         this.errors.location = '';
       }
 
-      // Fecha de inicio
-      if (!this.newProject.start_date) {
-        this.errors.start_date = 'La fecha de inicio es obligatoria';
+      if (!this.newProject.location?.trim()) {
+        this.errors.location = 'La ubicación es obligatoria';
         isValid = false;
       } else {
-        this.errors.start_date = '';
+        this.errors.location = '';
       }
 
-      // Supervisor (email)
-      if (!this.newProject.supervisorEmail || !this.newProject.supervisorEmail.trim()) {
-        this.errors.supervisorEmail = 'El correo del supervisor es obligatorio';
+      if (!this.newProject.location?.trim()) {
+        this.errors.location = 'La ubicación es obligatoria';
         isValid = false;
       } else {
-        // Validación del formato de correo electrónico
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(this.newProject.supervisorEmail)) {
-          this.errors.supervisorEmail = 'Formato de correo electrónico inválido';
-          isValid = false;
-        } else {
-          this.errors.supervisorEmail = '';
-        }
+        this.errors.location = '';
       }
 
       return isValid;
@@ -240,12 +227,8 @@ export default {
         return;
       }
 
-      // ✅ Prevenir múltiples clicks
-      if (this.creating) {
-        return;
-      }
-
-      this.creating = true; // ✅ Activar estado de carga
+      if (this.creating) return;
+      this.creating = true;
 
       try {
         const user = AuthService.getCurrentUser();
@@ -254,91 +237,42 @@ export default {
           return;
         }
 
-
-        let supervisorId = null;
-        try {
-          const supervisorResponse = await projectService.getSupervisorByEmail(this.newProject.supervisorEmail);
-
-          if (!supervisorResponse.data) {
-            this.errors.supervisorEmail = 'No existe un supervisor con este correo';
-            this.showNotification(`No existe un supervisor con el correo ${this.newProject.supervisorEmail}`, 'error', false);
-            return;
-          }
-
-          const supervisor = supervisorResponse.data;
-          if (supervisor.projectId) {
-            this.errors.supervisorEmail = 'Este supervisor ya está asignado a otro proyecto';
-            this.showNotification(`El supervisor ${supervisor.name} ya está asignado a otro proyecto`, 'error', false);
-            return;
-          }
-
-          supervisorId = supervisor.id;
-        } catch (supervisorError) {
-          console.error('Error al verificar supervisor:', supervisorError);
-          this.errors.supervisorEmail = 'Error al verificar el supervisor';
-          this.showNotification('Error al verificar el supervisor', 'error');
-          return;
-        }
-
-        // ✅ Subir imagen con mejor manejo de errores
-        let imageUrl;
-        try {
-          this.showNotification('Procesando imagen...', 'info', false);
-          imageUrl = await projectService.uploadProjectImage(this.newProject.image);
-          console.log('Imagen procesada exitosamente');
-        } catch (imageError) {
-          console.error('Error procesando imagen:', imageError);
-
-          // Mostrar error específico de imagen
-          if (imageError.message.includes('demasiado grande')) {
-            this.errors.image = 'La imagen es demasiado grande. Prueba con una imagen más pequeña.';
-            this.showNotification('La imagen es demasiado grande. Prueba con una imagen más pequeña.', 'error', false);
-          } else if (imageError.message.includes('imagen')) {
+        // ✅ Simplificado: Ya no necesitamos buscar supervisor por email
+        let validatedImageFile = null;
+        if (this.newProject.image) {
+          try {
+            validatedImageFile = await projectService.uploadProjectImage(this.newProject.image);
+          } catch (imageError) {
             this.errors.image = imageError.message;
             this.showNotification(imageError.message, 'error', false);
-          } else {
-            this.showNotification('Error procesando la imagen. Se usará imagen predeterminada.', 'warning');
-            imageUrl = '/images/proyecto-default.jpg';
-          }
-
-          if (this.errors.image) {
-            return; // Detener si hay error de imagen
+            return;
           }
         }
-
 
         const project = new Projects({
           name: this.newProject.name,
           description: this.newProject.description,
-          image: imageUrl,
           managerId: user.id,
           location: this.newProject.location,
           coordinates: this.newProject.locationData?.coordinates || null,
           start_date: this.newProject.start_date,
-          supervisorId: supervisorId,
+          supervisorId: this.newProject.supervisorId || null, // ✅ Usar directamente el ID
           state: this.newProject.state
         });
 
         this.showNotification('Creando proyecto...', 'info', false);
 
-        // Crear proyecto usando el servicio
-        await projectService.createFullProject(project);
+        await projectService.createFullProject(project, validatedImageFile);
 
-        // Mostrar notificación de éxito
         this.showNotification(`Proyecto "${this.newProject.name}" creado correctamente`, 'success');
 
-        // Recargar proyectos
         await this.loadProjects();
-
-        // Cerrar modal
         this.closeModal();
 
       } catch (error) {
         console.error('Error al crear el proyecto:', error);
 
-        // ✅ Manejo específico de errores
         let errorMessage = 'Error al crear el proyecto';
-
         if (error.message) {
           if (error.message.includes('supervisor')) {
             errorMessage = `Error: ${error.message}`;
@@ -353,10 +287,28 @@ export default {
 
         this.showNotification(errorMessage, 'error', false);
       } finally {
-        this.creating = false; // ✅ Desactivar estado de carga
+        this.creating = false;
       }
     }
-  }
+  },
+  computed: {
+    supervisorOptions() {
+      const options = [
+        { value: '', label: 'Seleccionar supervisor...' }
+      ];
+
+      if (this.supervisors && this.supervisors.length > 0) {
+        this.supervisors.forEach(supervisor => {
+          options.push({
+            value: supervisor.value,
+            label: `${supervisor.name || supervisor.label} (${supervisor.email})`
+          });
+        });
+      }
+
+      return options;
+    }
+  },
 }
 </script>
 
@@ -417,7 +369,7 @@ export default {
     <div v-if="showModal" class="modal-overlay">
       <div class="modal-content">
         <div class="form-container">
-          <!-- Primera fila: Nombre y Estado -->
+
           <div class="form-row">
             <div class="form-group">
               <AppInput
@@ -442,7 +394,6 @@ export default {
             </div>
           </div>
 
-          <!-- Segunda fila: Ubicación y Descripción -->
           <div class="form-row">
             <div class="form-group">
               <LocationInput
@@ -484,18 +435,21 @@ export default {
             </div>
           </div>
 
-          <!-- Cuarta fila: Supervisor -->
           <div class="form-row">
             <div class="form-group">
               <AppInput
-                  v-model="newProject.supervisorEmail"
+                  v-model="newProject.supervisorId"
                   :label="$t('projects.assignedSupervisor')"
-                  :placeholder="$t('projects.enterSupervisorEmail')"
-                  type="email"
-                  :error="errors.supervisorEmail"
+                  type="select"
+                  :options="supervisorOptions"
+                  :error="errors.supervisorId"
                   required
                   fullWidth
+                  :disabled="loading.supervisors || supervisors.length === 0"
               />
+              <small v-if="!loading.supervisors && supervisors.length === 0" class="no-supervisors-message">
+                No supervisors
+              </small>
             </div>
           </div>
 
@@ -696,8 +650,18 @@ export default {
   gap: 10px;
   margin-top: 10px;
 }
+.no-supervisors-message {
+  color: #888;
+  font-style: italic;
+  margin-top: 5px;
+  display: block;
+}
 
-/* Responsive */
+.form-group select:disabled {
+  background-color: #f5f5f5;
+  cursor: not-allowed;
+}
+
 @media (max-width: 768px) {
   .form-row {
     flex-direction: column;

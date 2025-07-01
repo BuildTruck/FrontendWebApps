@@ -4,23 +4,34 @@ export class Projects {
                     name,
                     description,
                     image,
+                    imageUrl,
+                    thumbnailUrl,  // ← AGREGADO: faltaba este parámetro
                     managerId,
                     location = '',
                     coordinates = null,
                     start_date = null,
+                    startDate = null,    // ← El backend puede usar startDate
                     supervisorId = null,
                     state = 'En estudio',
-                    createdAt = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Lima" })).toISOString(),
-                    updatedAt = new Date(new Date().toLocaleString("en-US", { timeZone: "America/Lima" })).toISOString()
+                    createdAt = new Date().toISOString(),
+                    updatedAt = new Date().toISOString()
                 }) {
         this.id = id || `p${Date.now()}`
         this.name = name
         this.description = description
-        this.image = image || '/images/proyecto-default.jpg'
+
+        // ✅ Ahora thumbnailUrl está definido como parámetro
+        this.image = imageUrl || thumbnailUrl || image || '/images/proyecto-default.jpg'
+        console.log('=== PROJECTS ENTITY IMAGE MAPPING ===')
+        console.log('imageUrl recibido:', imageUrl)
+        console.log('thumbnailUrl recibido:', thumbnailUrl)
+        console.log('image final asignado:', this.image)
+
         this.managerId = managerId
         this.location = location
         this.coordinates = coordinates
-        this.start_date = start_date
+        this.start_date = start_date || startDate
+
         this.supervisorId = supervisorId
         this.state = state
         this.createdAt = createdAt

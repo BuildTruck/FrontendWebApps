@@ -4,22 +4,20 @@ import { Configuration } from '../models/configuration.entity.js';
 
 class ConfigurationService extends BaseService {
     constructor() {
-        super('/user_settings');
+        // CAMBIO 1: Solo cambiar el endpoint
+        super('/configurations');
     }
 
-    /**
-     * Obtiene la configuración de un usuario por su ID.
-     * @param {string} userId - El ID del usuario.
-     * @returns {Promise<Object|null>} - La configuración del usuario o null si no se encuentra.
-     */
     async getByUserId(userId) {
         if (!userId) {
             throw new Error('User ID is required');
         }
 
         try {
-            const response = await this.getAll({ user_id: userId });
-            return response.data.length ? response.data[0] : null;
+            // CAMBIO 2: Para la API real, hacer GET directo (sin parámetros user_id)
+            // La API real maneja automáticamente el usuario autenticado
+            const response = await this.getAll();
+            return response.data || null;
         } catch (error) {
             if (error.response && error.response.status === 404) {
                 return null;
@@ -29,12 +27,6 @@ class ConfigurationService extends BaseService {
         }
     }
 
-    /**
-     * Crea o actualiza la configuración de un usuario según si ya existe.
-     * @param {string} userId - El ID del usuario.
-     * @param {Object} configData - Los datos de configuración.
-     * @returns {Promise<Object>} - La configuración creada o actualizada.
-     */
     async saveOrUpdate(userId, configData) {
         if (!userId) {
             throw new Error('User ID is required');
@@ -44,24 +36,30 @@ class ConfigurationService extends BaseService {
         }
 
         try {
-            const existing = await this.getByUserId(userId);
-            if (existing) {
-                return await this.update(existing.id, { ...existing, ...configData });
-            } else {
-                return await this.create({ user_id: userId, ...configData });
-            }
+            // CAMBIO 3: Para la API real, usar PUT directo (sin verificar si existe)
+            // La API real maneja create/update automáticamente
+            return await this.updateViaAPI(configData);
         } catch (error) {
             console.error(`Error saving or updating settings for user ${userId}:`, error);
+            console.error('🔍 Backend error details:', error.response?.data); // ⭐ AGREGAR ESTA LÍNEA
             throw error;
         }
     }
 
-    /**
-     * Actualiza la configuración del usuario.
-     * @param {string} userId - El ID del usuario.
-     * @param {Object} settings - Los nuevos settings.
-     * @returns {Promise<Object>} - La configuración actualizada.
-     */
+    // NUEVO MÉTODO: Para hacer PUT directo sin ID
+    async updateViaAPI(configData) {
+        console.log('🚀 Datos enviando a API:', configData);
+
+        // DEBUG: Verificar el token
+        const token = sessionStorage.getItem('token');
+        console.log('🔑 Token:', token ? 'Existe' : 'No existe');
+
+        // DEBUG: Verificar el header Authorization
+        const http = await import('../../../core/services/http.service.js');
+
+        const response = await http.default.put(this.resourceEndpoint, configData);
+        return response;
+    }
     async updateSettings(userId, settings) {
         try {
             return await this.saveOrUpdate(userId, settings);
@@ -71,23 +69,11 @@ class ConfigurationService extends BaseService {
         }
     }
 
-    // ========================================
-    // MÉTODOS DE LÓGICA DE NEGOCIO
-    // ========================================
-
-    /**
-     * Obtiene el ID del usuario actual de forma consistente
-     * @returns {string|null} - El ID del usuario actual
-     */
     getCurrentUserId() {
         const user = AuthService.getCurrentUser();
         return user?.id || user?.user_id || user?.userId || user?.User_id || null;
     }
 
-    /**
-     * Carga la configuración del usuario actual
-     * @returns {Promise<Configuration>} - La configuración cargada
-     */
     async loadCurrentUserSettings() {
         try {
             const user = AuthService.getCurrentUser();
@@ -104,18 +90,15 @@ class ConfigurationService extends BaseService {
                 return new Configuration();
             }
 
-            // Intentar cargar desde sessionStorage primero
             if (user?.settings) {
                 console.log('Loading settings from sessionStorage');
                 return new Configuration(user.settings);
             }
 
-            // Si no hay settings en sessionStorage, cargar desde API
             console.log('Loading settings from API');
             const settingsFromAPI = await this.getByUserId(userId);
 
             if (settingsFromAPI) {
-                // Actualizar sessionStorage con los datos cargados
                 const updatedUser = {
                     ...user,
                     settings: settingsFromAPI
@@ -135,11 +118,6 @@ class ConfigurationService extends BaseService {
         }
     }
 
-    /**
-     * Guarda la configuración del usuario actual
-     * @param {Configuration} configuration - La configuración a guardar
-     * @returns {Promise<Object>} - La respuesta del servidor
-     */
     async saveCurrentUserSettings(configuration) {
         const user = AuthService.getCurrentUser();
 
@@ -153,16 +131,14 @@ class ConfigurationService extends BaseService {
             throw new Error('Could not get user ID');
         }
 
-        // Convertir a formato API (con booleanos)
         const apiData = configuration.toAPIFormat();
-        apiData.user_id = userId;
+        // CAMBIO 4: No necesitas enviar user_id, la API lo maneja automáticamente
+        // apiData.user_id = userId; // Comentado
 
         console.log('Saving settings to API');
 
-        // Enviar a la API
         const response = await this.updateSettings(userId, apiData);
 
-        // Actualizar sessionStorage
         const updatedUser = {
             ...user,
             settings: apiData
@@ -173,9 +149,6 @@ class ConfigurationService extends BaseService {
         return response;
     }
 
-    /**
-     * Limpia la configuración del usuario del sessionStorage
-     */
     clearUserSettings() {
         const user = AuthService.getCurrentUser();
         if (user) {

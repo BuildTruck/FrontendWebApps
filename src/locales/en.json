@@ -297,6 +297,11 @@
     }
   },
   "projects": {
+    "changeImage": "Change image",
+    "selectNewImage": "Select new image",
+    "deleteProject": "Delete project",
+    "confirmDelete": "Confirm deletion?",
+    "deleteWarning": "This action cannot be undone. It will permanently delete:",
     "welcome": "Welcome",
     "addNewProject": "Add New Project",
     "projectName": "Project Name",
@@ -362,7 +367,7 @@
         "actions": "Actions"
       },
       "roles": {
-        "admin": "Administrator",
+        "admin": "Admin",
         "manager": "Manager",
         "supervisor": "Supervisor"
       },
@@ -1097,8 +1102,9 @@
       "operator": "Operator"
     },
     "placeholders": {
-      "personalEmail": "ejemplo{'@'}gmail.com",
-      "fullName": "Enter your full name"
+      "personalEmail": "example{'@'}gmail.com",
+      "fullName": "Enter your full name",
+      "phone": "Enter your phone number"
     },
     "info": {
       "corporateEmailFixed": "This email cannot be modified and is used to access the system"

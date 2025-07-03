@@ -13,6 +13,13 @@ http.interceptors.request.use(
         const token = sessionStorage.getItem('token');
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
+
+            if (config.url?.includes('/projects/') && config.method === 'delete') {
+                const user = JSON.parse(sessionStorage.getItem('user') || '{}');
+                if (user.id) {
+                    config.headers['X-User-Id'] = user.id;
+                }
+            }
         }
         return config;
     },

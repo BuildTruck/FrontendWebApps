@@ -7,14 +7,10 @@ import { Documentation } from '../models/documentation.entity'
 export class DocumentationApiService extends BaseService {
     constructor() {
         // Endpoint para documentos - usando la colección "documents" del DB
-        super('/documents')
+        super('/documentation')
     }
 
-    /**
-     * Obtiene todos los documentos con filtros opcionales
-     * @param {Object} params - Parámetros de filtrado
-     * @returns {Promise<Array<Documentation>>} - Promesa con los resultados convertidos a entidades
-     */
+
     async getAll(params = {}) {
         try {
             const response = await super.getAll(params)
@@ -28,11 +24,7 @@ export class DocumentationApiService extends BaseService {
         }
     }
 
-    /**
-     * Obtiene todos los documentos de un proyecto específico
-     * @param {string|number} projectId - ID del proyecto
-     * @returns {Promise<Array<Documentation>>} - Promesa con los resultados filtrados
-     */
+
     async getByProjectId(projectId) {
         if (!projectId) {
             console.warn('⚠️ ProjectId no proporcionado en getByProjectId')
@@ -42,21 +34,8 @@ export class DocumentationApiService extends BaseService {
         try {
             console.log(`🔍 Buscando documentos para proyecto: ${projectId}`)
 
-            // Intentar filtrar por projectId en el servidor
-            let documents = []
-            try {
-                const response = await super.getAll({ projectId })
-                documents = Documentation.fromJsonArray(response.data || [])
-
-                // Verificar que realmente pertenecen al proyecto (filtro adicional del lado cliente)
-                documents = Documentation.filterByProject(documents, projectId)
-            } catch (filterError) {
-                console.log('⚠️ Filtro del servidor falló, filtrando en cliente...')
-
-                // Si el filtro del servidor falla, obtener todos y filtrar en cliente
-                const allDocs = await this.getAll()
-                documents = Documentation.filterByProject(allDocs, projectId)
-            }
+            const response = await super.getAll({ projectId })
+            const documents = Documentation.fromJsonArray(response.data || [])
 
             console.log(`📄 Encontrados ${documents.length} documentos para proyecto ${projectId}`)
             return documents

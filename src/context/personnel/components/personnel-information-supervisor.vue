@@ -149,7 +149,7 @@ export default {
     async handleExport(format = 'xlsx') {
       try {
         const fileName = this.$t('personnel.personnelList');
-        await this.personnelService.exportToExcel(this.personnel, fileName);
+        await this.personnelService.exportToExcel(this.projectId, fileName);
         this.showNotificationMessage(this.$t('personnel.exportSuccess'), 'success');
       } catch (error) {
         console.error('Error al exportar:', error);

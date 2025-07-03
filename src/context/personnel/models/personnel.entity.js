@@ -36,7 +36,14 @@ export class Personnel {
         // Contact fields
         this.phone = data.phone || '';
         this.email = data.email || '';
-        this.avatar = data.avatar || null;
+
+        // Image fields - manejar tanto avatar como avatarUrl
+        this.avatar = data.avatar || data.avatarUrl || null;
+        this.avatarUrl = data.avatarUrl || data.avatar || null;
+
+        // Image handling fields (para formulario)
+        this.imageFile = data.imageFile || null;
+        this.removeImage = data.removeImage || false;
 
         // Audit fields
         this.createdAt = data.createdAt ? new Date(data.createdAt) : this.getCurrentPeruDate();
@@ -116,7 +123,13 @@ export class Personnel {
             monthlyAttendance: this.monthlyAttendance || {},
             phone: this.phone ? this.phone.trim() : '',
             email: this.email ? this.email.trim() : '',
-            avatar: this.avatar,
+            avatarUrl: this.avatarUrl || this.avatar || null,
+            avatar: this.avatarUrl || this.avatar || null,
+
+            // Image handling fields (for form submission)
+            imageFile: this.imageFile || null,
+            removeImage: this.removeImage || false,
+
             createdAt: this.createdAt,
             updatedAt: this.getCurrentPeruDate()
         };
@@ -137,6 +150,25 @@ export class Personnel {
     }
 
     static fromAPI(apiData) {
+        // 🆕 PRIORITIZAR monthlyAttendanceData del backend
+        let monthlyAttendance = apiData.monthlyAttendanceData || apiData.monthlyAttendance || {};
+
+        // Si está vacío pero hay totales, generar un monthlyAttendance básico
+        if (Object.keys(monthlyAttendance).length === 0 &&
+            (apiData.workedDays > 0 || apiData.compensatoryDays > 0 || apiData.absences > 0 || apiData.sundays > 0)) {
+
+            // Crear estructura básica vacía para el mes actual
+            const currentDate = new Date();
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth() + 1;
+            const monthKey = `${year}-${month.toString().padStart(2, '0')}`;
+            const daysInMonth = new Date(year, month, 0).getDate();
+
+            // Crear array vacío con el número correcto de días
+            const emptyAttendance = new Array(daysInMonth).fill('');
+            monthlyAttendance[monthKey] = emptyAttendance.join('|');
+        }
+
         return new Personnel({
             id: apiData.id,
             projectId: apiData.projectId || apiData.project_id,
@@ -160,13 +192,16 @@ export class Personnel {
             absences: parseInt(apiData.absences || apiData.faltas || 0),
             sundays: parseInt(apiData.sundays || apiData.domingos || 0),
             totalDays: parseInt(apiData.totalDays || apiData.totalDias || 0),
-            monthlyAttendance: apiData.monthlyAttendance || {},
+
+            // 🆕 USAR monthlyAttendanceData del backend
+            monthlyAttendance: monthlyAttendance,
+
             phone: apiData.phone || apiData.telefono || '',
             email: apiData.email || apiData.correo || '',
-            avatar: apiData.avatar || apiData.profileImage || null,
+            avatar: apiData.avatarUrl || apiData.avatar || apiData.profileImage || null,
+            avatarUrl: apiData.avatarUrl || apiData.avatar || apiData.profileImage || null,
             createdAt: Personnel.parseAPIDate(apiData.createdAt),
             updatedAt: Personnel.parseAPIDate(apiData.updatedAt),
-            // Handle old format migration
             dailyAttendance: apiData.dailyAttendance || apiData.asistenciaDiaria || null
         });
     }
@@ -217,9 +252,19 @@ export class Personnel {
             phone: this.phone,
             email: this.email,
             avatar: this.avatar,
+            avatarUrl: this.avatarUrl,
             createdAt: this.createdAt,
             updatedAt: this.updatedAt
         });
+    }
+
+    // Image methods
+    getAvatarUrl() {
+        return this.avatarUrl || this.avatar || null;
+    }
+
+    hasAvatar() {
+        return !!(this.avatarUrl || this.avatar);
     }
 
     // Date methods
@@ -263,24 +308,6 @@ export class Personnel {
         } catch (error) {
             return null;
         }
-    }
-
-    static formatPeruDate(date) {
-        if (!date) return '';
-        return new Date(date).toLocaleDateString('es-PE', {
-            timeZone: 'America/Lima',
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric'
-        });
-    }
-
-    static formatCurrency(amount) {
-        if (!amount && amount !== 0) return '';
-        return new Intl.NumberFormat('es-PE', {
-            style: 'currency',
-            currency: 'PEN'
-        }).format(amount);
     }
 
     belongsToProject(projectId) {
@@ -460,25 +487,6 @@ export class Personnel {
     }
 
     /**
-     * Auto-mark Sundays for a month
-     */
-    autoMarkSundays(year, month) {
-        const daysInMonth = Personnel.getDaysInMonth(year, month);
-
-        for (let day = 1; day <= daysInMonth; day++) {
-            const date = new Date(year, month - 1, day);
-            const dayOfWeek = date.getDay();
-
-            if (dayOfWeek === 0) { // Sunday
-                const currentStatus = this.getDayAttendance(year, month, day);
-                if (!currentStatus) { // Only mark if empty
-                    this.setDayAttendance(year, month, day, 'DD');
-                }
-            }
-        }
-    }
-
-    /**
      * Migrate from old string format (without separators) to new format
      */
     migrateAttendanceFormat(year, month) {
@@ -525,35 +533,6 @@ export class Personnel {
 
         // Save in new format
         this.monthlyAttendance[monthKey] = attendanceArray.join('|');
-    }
-
-    /**
-     * Get attendance array for display purposes
-     */
-    getAttendanceArray(year, month) {
-        const monthKey = Personnel.getMonthKey(year, month);
-        const attendanceString = this.monthlyAttendance[monthKey] || '';
-
-        if (!attendanceString) return [];
-
-        return attendanceString.split('|');
-    }
-
-    /**
-     * Clear month attendance
-     */
-    clearMonthAttendance(year, month) {
-        const monthKey = Personnel.getMonthKey(year, month);
-        delete this.monthlyAttendance[monthKey];
-
-        // Reset totals
-        this.workedDays = 0;
-        this.compensatoryDays = 0;
-        this.unpaidLeave = 0;
-        this.absences = 0;
-        this.sundays = 0;
-        this.totalDays = 0;
-        this.totalAmount = 0;
     }
 
     /**
@@ -670,7 +649,6 @@ export class Personnel {
         ];
     }
 
-    // Utility methods
     getStatusColor() {
         if (!this.status) return 'info';
 

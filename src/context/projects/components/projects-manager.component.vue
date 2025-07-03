@@ -80,7 +80,6 @@ export default {
     async loadProjects() {
       this.loading = true;
       try {
-        // ✅ Usar AuthService
         const user = AuthService.getCurrentUser();
         if (!user) {
           this.$router.push('/login');
@@ -141,7 +140,7 @@ export default {
 
     closeModal() {
       this.showModal = false;
-      this.creating = false; // ✅ Reset estado de creación
+      this.creating = false;
     },
 
     validateForm() {
@@ -188,7 +187,6 @@ export default {
     handleImageChange(file) {
       console.log("Archivo recibido en handleImageChange:", file);
 
-      // ✅ Validaciones adicionales del lado del cliente
       if (file) {
         // Validar tipo
         if (!file.type.startsWith('image/')) {

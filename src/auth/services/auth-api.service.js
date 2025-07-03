@@ -27,16 +27,13 @@ export const AuthService = {
         try {
             this.clearAllStorages();
 
-            // Llamar al endpoint real de login (nota el /v1)
             const response = await http.post('/auth/login', {
                 email: email,
                 password: password
             });
 
-            // El backend devuelve el token y los datos del usuario
             const authData = response.data;
 
-            // Guardar en sessionStorage
             sessionStorage.setItem('token', authData.token || authData);
             sessionStorage.setItem('user', JSON.stringify(authData.user || {email}));
 
@@ -73,14 +70,16 @@ export const AuthService = {
      */
     async getAssignedProject(supervisorId) {
         try {
-            // Ajustar según tu endpoint de proyectos
-            const res = await http.get(`/projects?supervisorId=${supervisorId}`);
-            return res.data && res.data.length > 0 ? res.data[0] : null;
+            console.log('🔍 Buscando proyecto para supervisor:', supervisorId);
+            const res = await http.get(`/projects/by-supervisor/${supervisorId}`);
+            console.log('✅ Proyecto encontrado:', res.data);
+            return res.data;
         } catch (error) {
-            console.error('Error buscando proyecto del supervisor:', error);
+            console.log('❌ No se encontró proyecto para el supervisor');
             return null;
         }
     },
+
     getToken() {
         return sessionStorage.getItem('token');
     },

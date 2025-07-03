@@ -2,8 +2,6 @@
 import AppButton from "../../../core/components/AppButton.vue";
 import AppTable from "../../../core/components/AppTable.vue";
 import AppNotification from "../../../core/components/AppNotification.vue";
-import AppInput from "../../../core/components/AppInput.vue";
-import PersonnelForm from "./personnel-form.vue";
 import { Personnel } from "../models/personnel.entity.js";
 import { PersonnelApiService } from "../services/personnel-api.service.js";
 
@@ -12,9 +10,7 @@ export default {
   components: {
     AppButton,
     AppTable,
-    AppNotification,
-    AppInput,
-    PersonnelForm
+    AppNotification
   },
   props: {
     projectId: {
@@ -24,28 +20,22 @@ export default {
   },
   data() {
     return {
-      // Vista activa: 'summary' o 'detail'
-      currentView: 'summary',
+      // Vistas: 'list' | 'attendance'
+      currentView: 'list',
 
-      // Datos principales
+      // Datos
       allPersonnel: [],
+      selectedPerson: null,
       loading: false,
 
-      // Personal seleccionado para detalle
-      selectedPersonnel: null,
+      // Filtros
+      selectedTypeFilter: '',
+      selectedStatusFilter: '',
 
-      // Selector de mes para asistencia
-      selectedYear: new Date().getFullYear(),
+      // Asistencia
       selectedMonth: new Date().getMonth() + 1,
-
-      // Filtros y agrupaciones
-      personnelByType: {
-        TECHNICAL: [],
-        SPECIALIST: [],
-        ADMINISTRATIVE: [],
-        RENTED_OPERATOR: [],
-        LABORER: []
-      },
+      selectedYear: new Date().getFullYear(),
+      monthDays: [],
 
       // Notificaciones
       showNotification: false,
@@ -53,349 +43,265 @@ export default {
       notificationType: 'success',
 
       // Servicio
-      personnelService: new PersonnelApiService(),
-
-      // Búsqueda global
-      globalSearchTerm: '',
-
-      // Performance optimizations
-      isCalculating: false,
-      debounceTimer: null
+      personnelService: new PersonnelApiService()
     };
   },
+
   computed: {
     personnelTypes() {
       return [
-        {
-          key: 'TECHNICAL',
-          label: this.$t('personnel.typeTechnical'),
-          color: '#3b82f6',
-          icon: 'pi pi-cog'
-        },
-        {
-          key: 'SPECIALIST',
-          label: this.$t('personnel.typeSpecialist'),
-          color: '#8b5cf6',
-          icon: 'pi pi-star'
-        },
-        {
-          key: 'ADMINISTRATIVE',
-          label: this.$t('personnel.typeAdministrative'),
-          color: '#10b981',
-          icon: 'pi pi-file-o'
-        },
-        {
-          key: 'RENTED_OPERATOR',
-          label: this.$t('personnel.typeRentedOperator'),
-          color: '#f59e0b',
-          icon: 'pi pi-wrench'
-        },
-        {
-          key: 'LABORER',
-          label: this.$t('personnel.typeLaborer'),
-          color: '#ef4444',
-          icon: 'pi pi-users'
-        }
+        { key: 'TECHNICAL', label: this.safeTranslate('personnel.typeTechnical', 'Technical') },
+        { key: 'SPECIALIST', label: this.safeTranslate('personnel.typeSpecialist', 'Specialist') },
+        { key: 'ADMINISTRATIVE', label: this.safeTranslate('personnel.typeAdministrative', 'Administrative') },
+        { key: 'RENTED_OPERATOR', label: this.safeTranslate('personnel.typeRentedOperator', 'Rented Operator') },
+        { key: 'LABORER', label: this.safeTranslate('personnel.typeLaborer', 'Laborer') }
       ];
     },
 
-    summaryTableColumns() {
+    attendanceStatuses() {
       return [
-        { field: 'fullName', header: this.$t('personnel.name'), sortable: true, style: 'min-width: 200px' },
-        { field: 'documentNumber', header: this.$t('personnel.documentNumber'), sortable: true, style: 'width: 120px' },
-        { field: 'position', header: this.$t('personnel.position'), sortable: true, style: 'min-width: 150px' },
-        { field: 'monthlyAmount', header: this.$t('personnel.monthlyAmount'), sortable: true, dataType: 'numeric', style: 'width: 110px' },
-        { field: 'startDate', header: this.$t('personnel.startDate'), sortable: true, dataType: 'date', style: 'width: 100px' },
-        { field: 'week1', header: `${this.$t('personnel.week')} 1`, sortable: false, style: 'width: 80px; text-align: center;' },
-        { field: 'week2', header: `${this.$t('personnel.week')} 2`, sortable: false, style: 'width: 80px; text-align: center;' },
-        { field: 'week3', header: `${this.$t('personnel.week')} 3`, sortable: false, style: 'width: 80px; text-align: center;' },
-        { field: 'week4', header: `${this.$t('personnel.week')} 4`, sortable: false, style: 'width: 80px; text-align: center;' },
-        { field: 'week5', header: `${this.$t('personnel.week')} 5`, sortable: false, style: 'width: 80px; text-align: center;' },
-        { field: 'totalDays', header: this.$t('personnel.totalDays'), sortable: true, style: 'width: 90px; text-align: center;' },
-        { field: 'totalAmount', header: this.$t('personnel.totalAmount'), sortable: true, dataType: 'numeric', style: 'width: 120px' },
-        { field: 'status', header: this.$t('personnel.status'), sortable: true, style: 'width: 100px' }
+        { value: 'X', label: this.safeTranslate('personnel.worked', 'Worked'), color: '#22c55e' },
+        { value: 'F', label: this.safeTranslate('personnel.absence', 'Absence'), color: '#ef4444' },
+        { value: 'P', label: this.safeTranslate('personnel.leave', 'Leave'), color: '#3b82f6' },
+        { value: 'DD', label: this.safeTranslate('personnel.sunday', 'Sunday'), color: '#6b7280' },
+        { value: 'PD', label: this.safeTranslate('personnel.unpaidLeave', 'Unpaid Leave'), color: '#f97316' }
       ];
     },
 
-    filteredPersonnelByType() {
-      const filtered = {};
-
-      Object.keys(this.personnelByType).forEach(type => {
-        filtered[type] = this.personnelByType[type].filter(person => {
-          if (!this.globalSearchTerm) return true;
-
-          const searchTerm = this.globalSearchTerm.toLowerCase();
-          return (
-              person.name.toLowerCase().includes(searchTerm) ||
-              person.lastname.toLowerCase().includes(searchTerm) ||
-              person.documentNumber.toLowerCase().includes(searchTerm) ||
-              person.position.toLowerCase().includes(searchTerm) ||
-              person.department.toLowerCase().includes(searchTerm)
-          );
-        });
-      });
-
-      return filtered;
+    personnelTableColumns() {
+      return [
+        { field: 'fullName', header: this.safeTranslate('personnel.name', 'Name'), sortable: true, style: 'min-width: 200px' },
+        { field: 'documentNumber', header: this.safeTranslate('personnel.document', 'Document'), sortable: true, style: 'width: 120px' },
+        { field: 'position', header: this.safeTranslate('personnel.position', 'Position'), sortable: true, style: 'min-width: 150px' },
+        { field: 'department', header: this.safeTranslate('personnel.department', 'Department'), sortable: true, style: 'min-width: 120px' },
+        { field: 'personnelType', header: this.safeTranslate('personnel.type', 'Type'), sortable: true, style: 'width: 120px' },
+        { field: 'status', header: this.safeTranslate('personnel.status', 'Status'), sortable: true, style: 'width: 100px' },
+        { field: 'monthlyAmount', header: this.safeTranslate('personnel.monthlyAmount', 'Monthly'), sortable: true, style: 'width: 120px' },
+        { field: 'startDate', header: this.safeTranslate('personnel.startDate', 'Start Date'), sortable: true, style: 'width: 120px' },
+        { field: 'phone', header: this.safeTranslate('personnel.phone', 'Phone'), sortable: true, style: 'width: 120px' },
+        { field: 'email', header: this.safeTranslate('personnel.email', 'Email'), sortable: true, style: 'min-width: 180px' },
+        { field: 'workedDays', header: this.safeTranslate('personnel.workedDays', 'Worked'), sortable: true, style: 'width: 80px; text-align: center;' },
+        { field: 'absences', header: this.safeTranslate('personnel.absences', 'Absences'), sortable: true, style: 'width: 80px; text-align: center;' },
+        { field: 'totalAmount', header: this.safeTranslate('personnel.amount', 'Amount'), sortable: true, style: 'width: 120px' }
+      ];
     },
 
-    totalStats() {
-      return {
-        total: this.allPersonnel.length,
-        active: this.allPersonnel.filter(p => p.isActive()).length,
-        inactive: this.allPersonnel.filter(p => !p.isActive()).length,
-        byType: this.personnelTypes.map(type => ({
-          ...type,
-          count: this.personnelByType[type.key].length,
-          activeCount: this.personnelByType[type.key].filter(p => p.isActive()).length
-        }))
-      };
-    }
-  },
-  watch: {
-    globalSearchTerm() {
-      // Debounce para búsqueda - SOLO ESTA OPTIMIZACIÓN
-      clearTimeout(this.debounceTimer);
-      this.debounceTimer = setTimeout(() => {
-        this.$forceUpdate();
-      }, 300);
+    filteredPersonnel() {
+      return this.allPersonnel.filter(person => {
+        // Filtro por tipo
+        if (this.selectedTypeFilter && person.personnelType !== this.selectedTypeFilter) {
+          return false;
+        }
+
+        // Filtro por estado
+        if (this.selectedStatusFilter) {
+          if (this.selectedStatusFilter === 'ACTIVE' && (!person.isActive || !person.isActive())) {
+            return false;
+          }
+          if (this.selectedStatusFilter === 'INACTIVE' && person.isActive && person.isActive()) {
+            return false;
+          }
+        }
+
+        return true;
+      });
+    },
+
+    formattedPersonnelData() {
+      return this.filteredPersonnel.map(person => ({
+        ...person,
+        fullName: `${person.name || ''} ${person.lastname || ''}`.trim(),
+        personnelType: this.getPersonnelTypeLabel(person.personnelType),
+        status: this.formatStatus(person.status),
+        monthlyAmount: this.formatCurrency(person.monthlyAmount || 0),
+        totalAmount: this.formatCurrency(person.totalAmount || 0),
+        startDate: this.formatDate(person.startDate),
+        phone: person.phone || '-',
+        email: person.email || '-',
+        workedDays: person.workedDays || 0,
+        absences: person.absences || 0
+      }));
     }
   },
 
   async mounted() {
-    await this.loadPersonnel();
+    this.generateMonthDays();
+    await this.loadPersonnelWithAttendance();
   },
 
-  beforeUnmount() {
-    clearTimeout(this.debounceTimer);
-  },
   methods: {
-    async loadPersonnel() {
+    safeTranslate(key, fallback = '') {
+      try {
+        return this.$t ? this.$t(key) : fallback;
+      } catch (error) {
+        return fallback;
+      }
+    },
+
+    async loadPersonnelWithAttendance() {
       this.loading = true;
       try {
-        this.allPersonnel = await this.personnelService.getByProject(this.projectId);
-
-        // TODO: Cuando implementes backend, reemplazar esta línea con:
-        // this.allPersonnel = await this.personnelService.getPersonnelWithAttendance(this.projectId, this.selectedYear, this.selectedMonth);
-
-        this.groupPersonnelByType();
+        // Cargar personal con datos de asistencia del mes seleccionado
+        this.allPersonnel = await this.personnelService.getByProject(
+            this.projectId,
+            true, // includeAttendance
+            this.selectedYear,
+            this.selectedMonth
+        );
       } catch (error) {
         console.error('Error loading personnel:', error);
-        this.showNotificationMessage(this.$t('personnel.errorLoading'), 'error');
+        this.showNotificationMessage(
+            this.safeTranslate('personnel.errorLoading', 'Error loading personnel'),
+            'error'
+        );
       } finally {
         this.loading = false;
       }
     },
 
-    groupPersonnelByType() {
-      // Reinicializar grupos
-      Object.keys(this.personnelByType).forEach(type => {
-        this.personnelByType[type] = [];
-      });
-
-      // Agrupar personal por tipo
-      this.allPersonnel.forEach(person => {
-        if (this.personnelByType[person.personnelType]) {
-          this.personnelByType[person.personnelType].push(person);
-        }
-      });
+    generateMonthDays() {
+      this.monthDays = Personnel.generateMonthDays(this.selectedYear, this.selectedMonth);
     },
 
-    handleRowClick(event, personnelType) {
+    handlePersonnelClick(event) {
       if (event.data && event.data.id) {
-        const originalPersonnel = this.personnelByType[personnelType].find(p => p.id === event.data.id);
-        if (originalPersonnel) {
-          this.selectedPersonnel = originalPersonnel.clone();
-          this.currentView = 'detail';
+        const person = this.allPersonnel.find(p => p.id === event.data.id);
+        if (person) {
+          this.selectedPerson = person;
+          this.currentView = 'attendance';
         }
       }
     },
 
-    handleBackToSummary() {
-      this.currentView = 'summary';
-      this.selectedPersonnel = null;
+    backToList() {
+      this.currentView = 'list';
+      this.selectedPerson = null;
     },
 
-    onPersonnelSaved(savedPersonnel) {
-      // Actualizar en la lista local
-      if (this.selectedPersonnel && this.selectedPersonnel.id) {
-        // Actualización existente
-        const index = this.allPersonnel.findIndex(p => p.id === savedPersonnel.id);
-        if (index !== -1) {
-          this.allPersonnel[index] = savedPersonnel;
-        }
-      } else {
-        // Nuevo personal
-        this.allPersonnel.push(savedPersonnel);
+    getPersonAttendance(day) {
+      if (!this.selectedPerson) return '';
+
+      if (this.selectedPerson.getDayAttendance) {
+        return this.selectedPerson.getDayAttendance(this.selectedYear, this.selectedMonth, day);
       }
 
-      this.groupPersonnelByType();
-      this.currentView = 'summary';
-      this.selectedPersonnel = null;
-    },
+      // Fallback
+      const monthKey = `${this.selectedYear}-${this.selectedMonth.toString().padStart(2, '0')}`;
+      const attendanceString = this.selectedPerson.monthlyAttendance?.[monthKey] || '';
 
-    onFormCancelled() {
-      this.currentView = 'summary';
-      this.selectedPersonnel = null;
-    },
-
-    async handleExportAll() {
-      try {
-        const fileName = this.$t('personnel.personnelManagerReport');
-        await this.personnelService.exportToExcel(this.allPersonnel, fileName);
-        this.showNotificationMessage(this.$t('personnel.exportSuccess'), 'success');
-      } catch (error) {
-        console.error('Error exporting:', error);
-        this.showNotificationMessage(this.$t('personnel.exportError'), 'error');
-      }
-    },
-
-    async handleExportByType(personnelType) {
-      try {
-        const typeLabel = this.personnelTypes.find(t => t.key === personnelType)?.label || personnelType;
-        const fileName = `${this.$t('personnel.personnelManagerReport')}_${typeLabel}`;
-        await this.personnelService.exportToExcel(this.personnelByType[personnelType], fileName);
-        this.showNotificationMessage(this.$t('personnel.exportSuccess'), 'success');
-      } catch (error) {
-        console.error('Error exporting:', error);
-        this.showNotificationMessage(this.$t('personnel.exportError'), 'error');
-      }
-    },
-
-    formatPersonnelForTable(personnelList) {
-      if (!personnelList.length) return [];
-
-      return personnelList.map(p => {
-        // TODO: Cuando implementes backend, estos cálculos vendrán ya hechos del servidor
-        // Y solo necesitarás: return { ...p, formattedFields... }
-
-        // ⚠️ TEMPORAL: Cálculos en frontend (remover cuando tengas backend)
-        this.calculateAttendanceData(p);
-
-        return {
-          ...p,
-          fullName: `${p.name} ${p.lastname}`.trim(),
-          status: this.formatStatus(p.status),
-          monthlyAmount: this.formatCurrency(p.monthlyAmount),
-          startDate: this.formatDate(p.startDate),
-          // Estos datos vendrán del backend calculados:
-          week1: p._weekData?.week1 || 0,
-          week2: p._weekData?.week2 || 0,
-          week3: p._weekData?.week3 || 0,
-          week4: p._weekData?.week4 || 0,
-          week5: p._weekData?.week5 || 0,
-          totalDays: p._calculatedTotalDays || 0,
-          totalAmount: this.formatCurrency(p.totalAmount || 0)
-        };
-      });
-    },
-
-    // ⚠️ TEMPORAL: Este método será reemplazado por cálculos del backend
-    calculateAttendanceData(person) {
-      if (person.initializeMonthAttendance) {
-        person.initializeMonthAttendance(this.selectedYear, this.selectedMonth);
-      }
-      if (person.calculateMonthlyTotals) {
-        person.calculateMonthlyTotals(this.selectedYear, this.selectedMonth);
+      if (!attendanceString) {
+        const dayData = this.monthDays.find(d => d.day === day);
+        return dayData?.isSunday ? 'DD' : '';
       }
 
-      // Calcular semanas (temporal)
-      const weekDays = this.getWeekDaysWorked(person, this.selectedYear, this.selectedMonth);
-      person._weekData = weekDays;
-      person._calculatedTotalDays = weekDays.week1 + weekDays.week2 + weekDays.week3 + weekDays.week4 + weekDays.week5;
-    },
+      const attendanceArray = attendanceString.split('|');
+      const status = attendanceArray[day - 1] || '';
 
-    getWeekDaysWorked(person, year, month) {
-      const daysInMonth = new Date(year, month, 0).getDate();
-      const weeks = { week1: 0, week2: 0, week3: 0, week4: 0, week5: 0 };
-
-      for (let day = 1; day <= daysInMonth; day++) {
-        const status = person.getDayAttendance ?
-            person.getDayAttendance(year, month, day) : '';
-
-        // Solo contar días trabajados (X) y compensatorios (P)
-        if (status === 'X' || status === 'P') {
-          const weekNumber = Math.ceil(day / 7);
-          if (weekNumber <= 5) {
-            weeks[`week${weekNumber}`]++;
-          }
-        }
+      if (!status) {
+        const dayData = this.monthDays.find(d => d.day === day);
+        return dayData?.isSunday ? 'DD' : '';
       }
 
-      return weeks;
+      return status;
+    },
+
+    getAttendanceColor(status) {
+      const statusInfo = this.attendanceStatuses.find(s => s.value === status);
+      return statusInfo ? statusInfo.color : '#f3f4f6';
+    },
+
+    getPersonInitials(person) {
+      const firstName = person.name || '';
+      const lastName = person.lastname || '';
+      return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+    },
+
+    getPersonnelTypeLabel(type) {
+      const typeInfo = this.personnelTypes.find(t => t.key === type);
+      return typeInfo ? typeInfo.label : type;
     },
 
     formatStatus(status) {
       const statuses = {
-        'ACTIVE': this.$t('personnel.statusActive'),
-        'INACTIVE': this.$t('personnel.statusInactive'),
-        'PENDING': this.$t('personnel.statusPending'),
-        'SUSPENDED': this.$t('personnel.statusSuspended'),
-        'FINISHED': this.$t('personnel.statusFinished')
+        'ACTIVE': this.safeTranslate('personnel.active', 'Active'),
+        'INACTIVE': this.safeTranslate('personnel.inactive', 'Inactive'),
+        'PENDING': this.safeTranslate('personnel.pending', 'Pending'),
+        'SUSPENDED': this.safeTranslate('personnel.suspended', 'Suspended'),
+        'FINISHED': this.safeTranslate('personnel.finished', 'Finished')
       };
       return statuses[status] || status;
     },
 
     formatCurrency(amount) {
       if (!amount && amount !== 0) return '';
-      return new Intl.NumberFormat('es-PE', {
-        style: 'currency',
-        currency: 'PEN'
-      }).format(amount);
+      try {
+        return new Intl.NumberFormat('es-PE', {
+          style: 'currency',
+          currency: 'PEN'
+        }).format(amount);
+      } catch (error) {
+        return `S/. ${amount}`;
+      }
     },
 
     formatDate(date) {
-      if (!date) return '';
-      return new Date(date).toLocaleDateString('es-PE', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
-      });
+      if (!date) return '-';
+      try {
+        return new Date(date).toLocaleDateString('es-PE', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric'
+        });
+      } catch (error) {
+        return String(date);
+      }
+    },
+
+    getMonthName(month) {
+      const months = [
+        'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+        'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+      ];
+      return months[month - 1] || month;
+    },
+
+    getAvailableYears() {
+      const currentYear = new Date().getFullYear();
+      return [currentYear - 1, currentYear, currentYear + 1];
+    },
+
+    async handleExportAll() {
+      try {
+        const fileName = this.safeTranslate('personnel.personnelReport', 'Personnel Report');
+        if (this.personnelService.exportToExcel) {
+          await this.personnelService.exportToExcel(this.projectId, fileName);
+          this.showNotificationMessage(
+              this.safeTranslate('personnel.exportSuccess', 'Export successful'),
+              'success'
+          );
+        }
+      } catch (error) {
+        console.error('Error exporting:', error);
+        this.showNotificationMessage(
+            this.safeTranslate('personnel.exportError', 'Export failed'),
+            'error'
+        );
+      }
     },
 
     showNotificationMessage(message, type = 'success') {
       this.notificationMessage = message;
       this.notificationType = type;
       this.showNotification = true;
+    }
+  },
+
+  watch: {
+    selectedMonth() {
+      this.generateMonthDays();
     },
-
-    onMonthChange() {
-      // TODO: Cuando implementes backend, llamar al endpoint con el nuevo mes:
-      // await this.loadPersonnelForMonth(this.selectedYear, this.selectedMonth);
-
-      // ⚠️ TEMPORAL: Recalcular en frontend
-      this.groupPersonnelByType();
-    },
-
-    // TODO: Implementar cuando tengas backend
-    async loadPersonnelForMonth(year, month) {
-      this.loading = true;
-      try {
-        // this.allPersonnel = await this.personnelService.getPersonnelWithAttendance(this.projectId, year, month);
-        // this.groupPersonnelByType();
-      } catch (error) {
-        this.showNotificationMessage(this.$t('personnel.errorLoading'), 'error');
-      } finally {
-        this.loading = false;
-      }
-    },
-
-    getMonthName(monthNumber) {
-      const monthKeys = [
-        'january', 'february', 'march', 'april', 'may', 'june',
-        'july', 'august', 'september', 'october', 'november', 'december'
-      ];
-      const monthKey = monthKeys[monthNumber - 1];
-      return this.$t(`personnel.${monthKey}`);
-    },
-
-    invalidateCache() {
-      this._formattedDataCache = null;
-      this._personCache = {};
-    },
-
-    getAvailableYears() {
-      const currentYear = new Date().getFullYear();
-      return [currentYear - 1, currentYear, currentYear + 1];
+    selectedYear() {
+      this.generateMonthDays();
     }
   }
 };
@@ -403,74 +309,31 @@ export default {
 
 <template>
   <div class="personnel-manager">
-    <!-- Vista de Resumen -->
-    <div v-if="currentView === 'summary'" class="summary-view">
-      <!-- Estadísticas generales -->
-      <div class="stats-section">
-        <div class="general-stats">
-          <div class="stat-card total">
-            <div class="stat-number">{{ totalStats.total }}</div>
-            <div class="stat-label">{{ $t('personnel.totalPersonnel') }}</div>
-            <i class="pi pi-users"></i>
-          </div>
-          <div class="stat-card active">
-            <div class="stat-number">{{ totalStats.active }}</div>
-            <div class="stat-label">{{ $t('personnel.activePersonnel') }}</div>
-            <i class="pi pi-check-circle"></i>
-          </div>
-          <div class="stat-card inactive">
-            <div class="stat-number">{{ totalStats.inactive }}</div>
-            <div class="stat-label">{{ $t('personnel.inactivePersonnel') }}</div>
-            <i class="pi pi-times-circle"></i>
-          </div>
+    <!-- Vista de Lista -->
+    <div v-if="currentView === 'list'" class="list-view">
+      <!-- Header con controles -->
+      <div class="manager-header">
+        <div class="header-left">
+          <h1 class="page-title">{{ $t('personnel.personnelManagement') }}</h1>
+          <p class="page-subtitle">{{ $t('personnel.viewPersonnelAndAttendance') }}</p>
         </div>
 
-        <!-- Estadísticas por tipo -->
-        <div class="type-stats">
-          <div
-              v-for="typeInfo in totalStats.byType"
-              :key="typeInfo.key"
-              class="type-stat-card"
-              :style="{ borderLeftColor: typeInfo.color }"
-          >
-            <div class="type-header">
-              <i :class="typeInfo.icon" :style="{ color: typeInfo.color }"></i>
-              <span class="type-name">{{ typeInfo.label }}</span>
-            </div>
-            <div class="type-counts">
-              <span class="total-count">{{ typeInfo.count }}</span>
-              <span class="active-count">{{ typeInfo.activeCount }} {{ $t('personnel.active') }}</span>
-            </div>
+        <div class="header-controls">
+          <!-- Selector de mes para asistencia -->
+          <div class="month-selector">
+            <label>{{ $t('personnel.attendanceMonth') }}:</label>
+            <select v-model="selectedMonth" @change="loadPersonnelWithAttendance">
+              <option v-for="month in 12" :key="month" :value="month">
+                {{ getMonthName(month) }}
+              </option>
+            </select>
+            <select v-model="selectedYear" @change="loadPersonnelWithAttendance">
+              <option v-for="year in getAvailableYears()" :key="year" :value="year">
+                {{ year }}
+              </option>
+            </select>
           </div>
-        </div>
-      </div>
 
-      <!-- Controles de búsqueda, mes y exportación -->
-      <div class="controls-section">
-        <div class="month-selector">
-          <label class="month-label">{{ $t('personnel.viewMonth') }}:</label>
-          <select v-model="selectedMonth" @change="onMonthChange" class="month-select">
-            <option v-for="month in 12" :key="month" :value="month">
-              {{ getMonthName(month) }}
-            </option>
-          </select>
-          <select v-model="selectedYear" @change="onMonthChange" class="year-select">
-            <option v-for="year in getAvailableYears()" :key="year" :value="year">
-              {{ year }}
-            </option>
-          </select>
-        </div>
-
-        <div class="search-container">
-          <AppInput
-              v-model="globalSearchTerm"
-              :placeholder="$t('personnel.searchPlaceholder')"
-              icon="pi pi-search"
-              class="global-search"
-          />
-        </div>
-
-        <div class="export-controls">
           <AppButton
               :label="$t('personnel.exportAll')"
               icon="pi pi-download"
@@ -481,65 +344,194 @@ export default {
         </div>
       </div>
 
-      <!-- Tablas por tipo de personal -->
-      <div class="personnel-tables" v-if="!loading">
-        <div
-            v-for="typeInfo in personnelTypes"
-            :key="typeInfo.key"
-            class="personnel-type-section"
-            v-show="filteredPersonnelByType[typeInfo.key].length > 0"
-        >
-          <div class="section-header">
-            <div class="section-title">
-              <i :class="typeInfo.icon" :style="{ color: typeInfo.color }"></i>
-              <h3>{{ typeInfo.label }}</h3>
-              <span class="count-badge" :style="{ backgroundColor: typeInfo.color }">
-                {{ filteredPersonnelByType[typeInfo.key].length }}
-              </span>
-            </div>
-
-            <AppButton
-                :label="$t('personnel.export')"
-                icon="pi pi-download"
-                variant="secondary"
-                size="small"
-                @click="handleExportByType(typeInfo.key)"
-                v-if="filteredPersonnelByType[typeInfo.key].length > 0"
-            />
+      <!-- Filtros -->
+      <div class="filters-section">
+        <div class="filter-group">
+          <div class="filter-select">
+            <label>{{ $t('personnel.filterByType') }}:</label>
+            <select v-model="selectedTypeFilter">
+              <option value="">{{ $t('personnel.allTypes') }}</option>
+              <option v-for="type in personnelTypes" :key="type.key" :value="type.key">
+                {{ type.label }}
+              </option>
+            </select>
           </div>
 
-          <AppTable
-              :columns="summaryTableColumns"
-              :data="formatPersonnelForTable(filteredPersonnelByType[typeInfo.key])"
-              :loading="false"
-              :paginator="true"
-              :rows="10"
-              :show-export-button="false"
-              :show-filter-button="true"
-              data-key="id"
-              @row-click="(event) => handleRowClick(event, typeInfo.key)"
-              class="personnel-table"
-              :row-hover="true"
-          />
+          <div class="filter-select">
+            <label>{{ $t('personnel.filterByStatus') }}:</label>
+            <select v-model="selectedStatusFilter">
+              <option value="">{{ $t('personnel.allStatuses') }}</option>
+              <option value="ACTIVE">{{ $t('personnel.active') }}</option>
+              <option value="INACTIVE">{{ $t('personnel.inactive') }}</option>
+            </select>
+          </div>
         </div>
       </div>
 
-      <!-- Estado de carga -->
-      <div v-if="loading" class="loading-state">
-        <i class="pi pi-spin pi-spinner"></i>
-        <p>{{ $t('personnel.loading') }}</p>
+      <!-- Tabla de personal -->
+      <div class="personnel-table-section">
+        <AppTable
+            :columns="personnelTableColumns"
+            :data="formattedPersonnelData"
+            :loading="loading"
+            :paginator="true"
+            :rows="15"
+            :show-export-button="false"
+            :show-filter-button="true"
+            data-key="id"
+            @row-click="handlePersonnelClick"
+            class="personnel-table"
+            :row-hover="true"
+        />
+      </div>
+
+      <!-- Estado sin datos -->
+      <div v-if="!loading && filteredPersonnel.length === 0" class="empty-state">
+        <i class="pi pi-users"></i>
+        <h3>{{ $t('personnel.noPersonnelFound') }}</h3>
+        <p>{{ $t('personnel.tryAdjustingFilters') }}</p>
       </div>
     </div>
 
-    <!-- Vista de Detalle -->
-    <div v-if="currentView === 'detail'" class="detail-view">
-      <PersonnelForm
-          :personnel="selectedPersonnel"
-          :project-id="projectId"
-          @save="onPersonnelSaved"
-          @cancel="onFormCancelled"
-          class="detail-form-container"
-      />
+    <!-- Vista de Detalle de Asistencia Individual -->
+    <div v-if="currentView === 'attendance'" class="attendance-view">
+      <div class="detail-header">
+        <div class="header-back">
+          <AppButton
+              icon="pi pi-arrow-left"
+              :label="$t('common.back')"
+              variant="secondary"
+              @click="backToList"
+          />
+        </div>
+
+        <div class="person-info" v-if="selectedPerson">
+          <div class="person-avatar">
+            <img v-if="selectedPerson.avatarUrl"
+                 :src="selectedPerson.avatarUrl"
+                 :alt="selectedPerson.fullName"
+                 class="avatar-image" />
+            <div v-else class="avatar-placeholder">
+              {{ getPersonInitials(selectedPerson) }}
+            </div>
+          </div>
+
+          <!-- Todos los datos del personal -->
+          <div class="person-details">
+            <h2>{{ selectedPerson.fullName }}</h2>
+
+            <!-- Grid completo de información -->
+            <div class="person-meta">
+              <div class="meta-item">
+                <span class="meta-label">{{ $t('personnel.document') }}</span>
+                <span class="meta-value">{{ selectedPerson.documentNumber }}</span>
+              </div>
+              <div class="meta-item">
+                <span class="meta-label">{{ $t('personnel.position') }}</span>
+                <span class="meta-value">{{ selectedPerson.position }}</span>
+              </div>
+              <div class="meta-item">
+                <span class="meta-label">{{ $t('personnel.department') }}</span>
+                <span class="meta-value">{{ selectedPerson.department }}</span>
+              </div>
+              <div class="meta-item">
+                <span class="meta-label">{{ $t('personnel.type') }}</span>
+                <span class="meta-value">{{ getPersonnelTypeLabel(selectedPerson.personnelType) }}</span>
+              </div>
+              <div class="meta-item">
+                <span class="meta-label">{{ $t('personnel.status') }}</span>
+                <span class="meta-value">{{ formatStatus(selectedPerson.status) }}</span>
+              </div>
+              <div class="meta-item">
+                <span class="meta-label">{{ $t('personnel.monthlyAmount') }}</span>
+                <span class="meta-value">{{ formatCurrency(selectedPerson.monthlyAmount) }}</span>
+              </div>
+              <div class="meta-item">
+                <span class="meta-label">{{ $t('personnel.startDate') }}</span>
+                <span class="meta-value">{{ formatDate(selectedPerson.startDate) }}</span>
+              </div>
+              <div class="meta-item" v-if="selectedPerson.endDate">
+                <span class="meta-label">{{ $t('personnel.endDate') }}</span>
+                <span class="meta-value">{{ formatDate(selectedPerson.endDate) }}</span>
+              </div>
+              <div class="meta-item" v-if="selectedPerson.phone">
+                <span class="meta-label">{{ $t('personnel.phone') }}</span>
+                <span class="meta-value">{{ selectedPerson.phone }}</span>
+              </div>
+              <div class="meta-item" v-if="selectedPerson.email">
+                <span class="meta-label">{{ $t('personnel.email') }}</span>
+                <span class="meta-value">{{ selectedPerson.email }}</span>
+              </div>
+              <div class="meta-item" v-if="selectedPerson.bank">
+                <span class="meta-label">{{ $t('personnel.bank') }}</span>
+                <span class="meta-value">{{ selectedPerson.bank }}</span>
+              </div>
+              <div class="meta-item" v-if="selectedPerson.accountNumber">
+                <span class="meta-label">{{ $t('personnel.accountNumber') }}</span>
+                <span class="meta-value">{{ selectedPerson.accountNumber }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Resumen de asistencia -->
+        <div class="attendance-summary" v-if="selectedPerson">
+          <div class="summary-item">
+            <span class="label">{{ $t('personnel.workedDays') }}</span>
+            <span class="value worked">{{ selectedPerson.workedDays || 0 }}</span>
+          </div>
+          <div class="summary-item">
+            <span class="label">{{ $t('personnel.absences') }}</span>
+            <span class="value absences">{{ selectedPerson.absences || 0 }}</span>
+          </div>
+          <div class="summary-item">
+            <span class="label">{{ $t('personnel.totalAmount') }}</span>
+            <span class="value amount">{{ formatCurrency(selectedPerson.totalAmount || 0) }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Calendario de asistencia mejorado -->
+      <div class="attendance-calendar" v-if="selectedPerson">
+        <div class="calendar-header">
+          <h3>{{ $t('personnel.attendanceFor') }} {{ getMonthName(selectedMonth) }} {{ selectedYear }}</h3>
+
+          <!-- Leyenda -->
+          <div class="attendance-legend">
+            <div v-for="status in attendanceStatuses"
+                 :key="status.value"
+                 class="legend-item">
+              <div class="legend-color" :style="{ backgroundColor: status.color }"></div>
+              <span>{{ status.label }} ({{ status.value }})</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Grid del calendario en DOS FILAS -->
+        <div class="calendar-grid">
+          <!-- PRIMERA FILA: Días del mes -->
+          <div class="calendar-days-header">
+            <div v-for="day in monthDays"
+                 :key="day.date"
+                 class="day-header"
+                 :class="{ 'sunday': day.isSunday }">
+              <span class="day-number">{{ day.day }}</span>
+              <span class="day-name">{{ day.dayName }}</span>
+            </div>
+          </div>
+
+          <!-- SEGUNDA FILA: Asistencia -->
+          <div class="calendar-attendance">
+            <div v-for="day in monthDays"
+                 :key="day.date"
+                 class="attendance-day"
+                 :class="{ 'sunday': day.isSunday }"
+                 :style="{ backgroundColor: getAttendanceColor(getPersonAttendance(day.day)) }">
+              <span class="attendance-status">{{ getPersonAttendance(day.day) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Notificaciones -->
@@ -561,224 +553,127 @@ export default {
   background-color: #f8f9fa;
 }
 
-/* ========================================
-   VISTA DE RESUMEN
-   ======================================== */
-
-.summary-view {
+/* ========== VISTA DE LISTA ========== */
+.list-view {
   flex: 1;
   overflow-y: auto;
   padding: 2rem;
 }
 
-.stats-section {
-  margin-bottom: 2rem;
-}
-
-.general-stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
-}
-
-.stat-card {
-  background: white;
-  border-radius: 12px;
-  padding: 2rem;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
-  position: relative;
-  overflow: hidden;
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.stat-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
-}
-
-.stat-card i {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  font-size: 2rem;
-  opacity: 0.2;
-}
-
-.stat-number {
-  font-size: 3rem;
-  font-weight: 700;
-  line-height: 1;
-  margin-bottom: 0.5rem;
-}
-
-.stat-label {
-  font-size: 0.875rem;
-  color: #666;
-  font-weight: 500;
-}
-
-.stat-card.total .stat-number { color: #3b82f6; }
-.stat-card.active .stat-number { color: #10b981; }
-.stat-card.inactive .stat-number { color: #ef4444; }
-
-.type-stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1rem;
-}
-
-.type-stat-card {
-  background: white;
-  border-radius: 8px;
-  padding: 1.5rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  border-left: 4px solid;
-  transition: transform 0.2s;
-}
-
-.type-stat-card:hover {
-  transform: translateX(4px);
-}
-
-.type-header {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 1rem;
-}
-
-.type-header i {
-  font-size: 1.25rem;
-}
-
-.type-name {
-  font-weight: 600;
-  color: #333;
-}
-
-.type-counts {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.total-count {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #333;
-}
-
-.active-count {
-  font-size: 0.875rem;
-  color: #666;
-}
-
-.controls-section {
+.manager-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 1rem;
   margin-bottom: 2rem;
-  flex-wrap: wrap;
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
 }
 
-.search-container {
-  flex: 1;
-  max-width: 400px;
+.header-left .page-title {
+  margin: 0 0 0.5rem 0;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #333;
 }
 
-.global-search {
-  width: 100%;
+.header-left .page-subtitle {
+  margin: 0;
+  color: #666;
+  font-size: 1.125rem;
 }
 
-.export-controls {
+.header-controls {
   display: flex;
-  gap: 0.75rem;
+  align-items: center;
+  gap: 1rem;
 }
 
 .month-selector {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  background: white;
+  gap: 0.5rem;
+  background: #f8f9fa;
   padding: 0.75rem 1rem;
-  border-radius: 6px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  border: 1px solid #e9ecef;
 }
 
-.month-label {
+.month-selector label {
   font-size: 0.875rem;
   color: #666;
-  font-weight: 500;
   white-space: nowrap;
+  font-weight: 500;
 }
 
-.month-select,
-.year-select {
+.month-selector select {
   border: 1px solid #ddd;
-  border-radius: 4px;
-  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  padding: 0.5rem;
   font-size: 0.875rem;
-  color: #333;
-  background-color: white;
-  cursor: pointer;
   min-width: 100px;
+  background: white;
+  color: #333;
 }
 
-.month-select:focus,
-.year-select:focus {
+.month-selector select:focus {
   outline: none;
   border-color: #FF5F01;
   box-shadow: 0 0 0 2px rgba(255, 95, 1, 0.2);
 }
 
-.personnel-tables {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
+.filters-section {
+  background: white;
+  padding: 1.5rem 2rem;
+  border-radius: 12px;
+  margin-bottom: 2rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e9ecef;
 }
 
-.personnel-type-section {
+.filter-group {
+  display: flex;
+  gap: 1.5rem;
+  align-items: end;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+
+.filter-select {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.filter-select label {
+  font-size: 0.875rem;
+  color: #666;
+  font-weight: 500;
+}
+
+.filter-select select {
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 0.75rem;
+  font-size: 0.875rem;
+  min-width: 150px;
+  background: white;
+  color: #333;
+}
+
+.filter-select select:focus {
+  outline: none;
+  border-color: #FF5F01;
+  box-shadow: 0 0 0 2px rgba(255, 95, 1, 0.2);
+}
+
+.personnel-table-section {
   background: white;
   border-radius: 12px;
   padding: 1.5rem;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
-}
-
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1.5rem;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-
-.section-title {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.section-title h3 {
-  margin: 0;
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #333;
-}
-
-.section-title i {
-  font-size: 1.5rem;
-}
-
-.count-badge {
-  background-color: #3b82f6;
-  color: white;
-  padding: 0.25rem 0.75rem;
-  border-radius: 20px;
-  font-size: 0.75rem;
-  font-weight: 600;
+  border: 1px solid #e9ecef;
 }
 
 .personnel-table {
@@ -786,338 +681,529 @@ export default {
   overflow: hidden;
 }
 
-/* ========================================
-   VISTA DE DETALLE
-   ======================================== */
-
-.detail-view {
+/* ========== VISTA DE ASISTENCIA ========== */
+.attendance-view {
   flex: 1;
   overflow-y: auto;
   padding: 2rem;
-  background-color: #f8f9fa;
 }
 
-.detail-form-container {
-  width: 100%;
-  height: 100%;
+.detail-header {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+  border: 1px solid #e9ecef;
 }
 
-/* Hacer que el formulario se comporte igual que summary-view */
-:deep(.personnel-form-page) {
-  height: auto !important;
-  width: 100% !important;
-  background-color: transparent !important;
+.header-back {
+  margin-bottom: 2rem;
 }
 
-:deep(.form-header) {
-  background: white !important;
-  padding: 1.5rem 2rem !important;
-  border-bottom: 1px solid #e0e0e0 !important;
-  border-radius: 8px 8px 0 0 !important;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
-  margin-bottom: 0 !important;
+.person-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 2rem;
+  margin-bottom: 2rem;
 }
 
-:deep(.form-content) {
-  flex: none !important;
-  padding: 0 !important;
-  overflow-y: visible !important;
-  background-color: transparent !important;
-}
-
-:deep(.form-container) {
-  max-width: none !important;
-  width: 100% !important;
-  margin: 0 !important;
-}
-
-:deep(.form-section) {
-  background: white !important;
-  border-radius: 8px !important;
-  padding: 2rem !important;
-  margin-bottom: 1.5rem !important;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
-  width: 100% !important;
-}
-
-:deep(.form-section:first-child) {
-  border-radius: 0 0 8px 8px !important;
-  margin-top: 0 !important;
-}
-
-:deep(.form-grid) {
-  display: grid !important;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)) !important;
-  gap: 1.5rem !important;
-}
-
-.no-selection-state {
-  flex: 1;
+/* IMAGEN MÁS GRANDE - 200px */
+.person-avatar {
+  width: 350px;
+  height: 500px;
+  border-radius: 20px;
+  overflow: hidden;
+  background: #f3f4f6;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 4rem 2rem;
+  border: 4px solid #e9ecef;
+  flex-shrink: 0;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
-.no-selection-content {
+.avatar-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-placeholder {
+  font-size: 3rem;
+  font-weight: 600;
+  color: #666;
+}
+
+/* DATOS COMPLETOS MÁS VISIBLES */
+.person-details {
+  flex: 1;
+}
+
+.person-details h2 {
+  margin: 0 0 1.5rem 0;
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: #333;
+  line-height: 1.2;
+}
+
+.person-meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.meta-item {
+  background: #f8f9fa;
+  padding: 1.25rem 1.5rem;
+  border-radius: 10px;
+  border-left: 4px solid #FF5F01;
+  transition: all 0.2s ease;
+}
+
+.meta-item:hover {
+  background: #f1f3f4;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.meta-label {
+  display: block;
+  font-size: 0.75rem;
+  color: #666;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.5rem;
+}
+
+.meta-value {
+  display: block;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.attendance-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1.5rem;
+  padding: 2rem;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 12px;
+  border: 1px solid #e9ecef;
+}
+
+.summary-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
   text-align: center;
-  max-width: 400px;
 }
 
-.no-selection-content i {
+.summary-item .label {
+  font-size: 0.875rem;
+  color: #666;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.summary-item .value {
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.value.worked { color: #22c55e; }
+.value.absences { color: #ef4444; }
+.value.amount { color: #3b82f6; }
+
+.attendance-calendar {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+  border: 1px solid #e9ecef;
+}
+
+.calendar-header {
+  margin-bottom: 2rem;
+}
+
+.calendar-header h3 {
+  margin: 0 0 1.5rem 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #333;
+}
+
+.attendance-legend {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  background: white;
+  border-radius: 6px;
+  border: 1px solid #e9ecef;
+}
+
+.legend-color {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  border: 2px solid rgba(255, 255, 255, 0.8);
+}
+
+.calendar-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+/* CALENDARIO EN 2 FILAS RESPONSIVO */
+.calendar-days-header {
+  display: grid;
+  gap: 4px;
+  padding: 1rem;
+  background: #f1f3f4;
+  border-radius: 8px;
+  border: 2px solid #e9ecef;
+  /* Grid dinámico basado en el número de días */
+  grid-template-columns: repeat(auto-fit, minmax(40px, 1fr));
+}
+
+.day-header {
+  text-align: center;
+  padding: 0.5rem 0.25rem;
+  background: white;
+  border-radius: 6px;
+  border: 1px solid #e9ecef;
+  min-height: 50px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.day-header.sunday {
+  background: #f8f9fa;
+  border-color: #dee2e6;
+}
+
+.day-number {
+  display: block;
+  font-weight: 700;
+  font-size: 0.875rem;
+  color: #333;
+  margin-bottom: 0.25rem;
+}
+
+.day-name {
+  display: block;
+  font-size: 0.625rem;
+  color: #666;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.calendar-attendance {
+  display: grid;
+  gap: 4px;
+  padding: 1rem;
+  background: #e9ecef;
+  border-radius: 8px;
+  border: 2px solid #dee2e6;
+  /* Grid dinámico basado en el número de días */
+  grid-template-columns: repeat(auto-fit, minmax(40px, 1fr));
+}
+
+.attendance-day {
+  height: 50px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 700;
+  font-size: 0.875rem;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  transition: all 0.2s ease;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  min-height: 50px;
+}
+
+.attendance-day:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.attendance-day.sunday {
+  border-color: rgba(107, 114, 128, 0.5);
+}
+
+.attendance-status {
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem;
+  color: #666;
+  text-align: center;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e9ecef;
+}
+
+.empty-state i {
   font-size: 4rem;
   color: #FF5F01;
   margin-bottom: 1.5rem;
   opacity: 0.7;
 }
 
-.no-selection-content h3 {
+.empty-state h3 {
   margin: 0 0 1rem 0;
   font-size: 1.5rem;
   font-weight: 600;
   color: #333;
 }
 
-.no-selection-content p {
-  margin: 0 0 2rem 0;
-  font-size: 1rem;
-  color: #666;
-  line-height: 1.5;
-}
-
-/* ========================================
-   ESTADOS
-   ======================================== */
-
-.loading-state {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  color: #666;
-  padding: 4rem;
-}
-
-.loading-state i {
-  font-size: 3rem;
-  color: #FF5F01;
-}
-
-.loading-state p {
+.empty-state p {
   margin: 0;
-  font-size: 1.125rem;
-  font-weight: 500;
+  color: #666;
+  font-size: 1rem;
 }
 
-/* ========================================
-   RESPONSIVE DESIGN
-   ======================================== */
+@media (max-width: 1400px) {
+  .calendar-days-header,
+  .calendar-attendance {
+    grid-template-columns: repeat(auto-fit, minmax(35px, 1fr));
+  }
+
+  .day-number {
+    font-size: 0.75rem;
+  }
+
+  .day-name {
+    font-size: 0.5rem;
+  }
+
+  .attendance-status {
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 1200px) {
+  .calendar-days-header,
+  .calendar-attendance {
+    grid-template-columns: repeat(auto-fit, minmax(32px, 1fr));
+  }
+}
 
 @media (max-width: 768px) {
-  .summary-view {
-    padding: 1rem;
+  .calendar-days-header,
+  .calendar-attendance {
+    grid-template-columns: repeat(auto-fit, minmax(30px, 1fr));
+    padding: 0.75rem;
+    gap: 3px;
   }
 
-  :deep(.form-content) {
-    padding: 1rem !important;
-    overflow-y: auto !important;
+  .day-header {
+    padding: 0.25rem;
+    min-height: 40px;
   }
 
-  :deep(.form-section) {
-    padding: 1.5rem !important;
-    margin-bottom: 1rem !important;
+  .attendance-day {
+    height: 40px;
+    min-height: 40px;
   }
 
-  :deep(.form-grid) {
-    grid-template-columns: 1fr !important;
-    gap: 1rem !important;
+  .day-number {
+    font-size: 0.625rem;
+    margin-bottom: 0.125rem;
   }
 
-  :deep(.form-header) {
-    padding: 1rem !important;
+  .day-name {
+    font-size: 0.5rem;
   }
 
-  .general-stats {
-    grid-template-columns: 1fr;
-  }
-
-  .type-stats {
-    grid-template-columns: 1fr;
-  }
-
-  .controls-section {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .search-container {
-    max-width: 100%;
-  }
-
-  .export-controls {
-    justify-content: center;
-  }
-
-  .section-header {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .section-title {
-    justify-content: center;
-  }
-
-  .detail-header {
-    padding: 1rem;
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .detail-actions {
-    justify-content: center;
-  }
-
-  .detail-content {
-    padding: 1rem;
-  }
-
-  .form-section {
-    padding: 1.5rem;
-  }
-
-  .form-grid {
-    grid-template-columns: 1fr;
-    gap: 1rem;
+  .attendance-status {
+    font-size: 0.625rem;
   }
 }
 
 @media (max-width: 480px) {
-  .manager-header {
+  .calendar-days-header,
+  .calendar-attendance {
+    grid-template-columns: repeat(auto-fit, minmax(25px, 1fr));
+    padding: 0.5rem;
+    gap: 2px;
+  }
+
+  .day-header {
+    padding: 0.125rem;
+    min-height: 35px;
+  }
+
+  .attendance-day {
+    height: 35px;
+    min-height: 35px;
+  }
+
+  .day-number {
+    font-size: 0.5rem;
+  }
+
+  .day-name {
+    font-size: 0.375rem;
+  }
+
+  .attendance-status {
+    font-size: 0.5rem;
+  }
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 1200px) {
+  .calendar-days-header,
+  .calendar-attendance {
+    grid-template-columns: repeat(16, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .list-view, .attendance-view {
     padding: 1rem;
   }
 
-  .manager-title {
-    font-size: 1.25rem;
-  }
-
-  .stat-card {
+  .manager-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
     padding: 1.5rem;
   }
 
-  .stat-number {
-    font-size: 2rem;
+  .header-controls {
+    justify-content: center;
   }
 
-  .type-stat-card {
-    padding: 1rem;
+  .filter-group {
+    flex-direction: column;
+    align-items: stretch;
   }
 
-  .personnel-type-section {
-    padding: 1rem;
+  .person-info {
+    flex-direction: column;
+    text-align: center;
+    align-items: center;
   }
 
-  :deep(.form-content) {
-    padding: 0.75rem !important;
+  .person-avatar {
+    width: 150px;
+    height: 150px;
   }
 
-  :deep(.form-section) {
-    padding: 0.75rem !important;
-    margin-bottom: 0.5rem !important;
+  .person-details h2 {
+    font-size: 1.75rem;
+    text-align: center;
   }
 
-  :deep(.form-header) {
-    padding: 0.75rem !important;
+  .person-meta {
+    grid-template-columns: 1fr;
   }
 
-  .detail-content {
-    padding: 0.75rem;
+  .attendance-summary {
+    grid-template-columns: repeat(2, 1fr);
+    padding: 1.5rem;
   }
 
-  .form-section {
-    padding: 1rem;
+  .calendar-days-header,
+  .calendar-attendance {
+    grid-template-columns: repeat(8, 1fr);
+  }
+
+  .attendance-legend {
+    flex-direction: column;
+  }
+
+  .day-header {
+    padding: 0.5rem 0.25rem;
+    min-height: 50px;
+  }
+
+  .attendance-day {
+    height: 50px;
+    min-height: 50px;
+    font-size: 0.875rem;
   }
 }
 
-/* ========================================
-   ANIMACIONES Y TRANSICIONES
-   ======================================== */
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
+@media (max-width: 480px) {
+  .person-avatar {
+    width: 120px;
+    height: 120px;
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+
+  .avatar-placeholder {
+    font-size: 2.5rem;
+  }
+
+  .person-details h2 {
+    font-size: 1.5rem;
+  }
+
+  .summary-item .value {
+    font-size: 1.5rem;
+  }
+
+  .attendance-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .calendar-header h3 {
+    font-size: 1.25rem;
+  }
+
+  .attendance-day {
+    height: 40px;
+    min-height: 40px;
+    font-size: 0.75rem;
+  }
+
+  .day-header {
+    min-height: 40px;
+    padding: 0.25rem;
+  }
+
+  .calendar-days-header,
+  .calendar-attendance {
+    grid-template-columns: repeat(7, 1fr);
   }
 }
 
-.personnel-type-section {
-  animation: fadeIn 0.3s ease-out;
-}
-
-.form-section {
-  animation: fadeIn 0.3s ease-out;
-}
-
-.form-section {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.form-section:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-/* ========================================
-   MEJORAS VISUALES
-   ======================================== */
-
-.manager-header::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.05) 50%, transparent 70%);
-  pointer-events: none;
-}
-
-button:focus,
-.custom-checkbox:focus,
-input:focus {
-  outline: 2px solid #FF5F01;
-  outline-offset: 2px;
-}
-
-/* Scrollbar personalizado */
-.summary-view::-webkit-scrollbar,
-.detail-content::-webkit-scrollbar {
-  width: 8px;
-}
-
-.summary-view::-webkit-scrollbar-track,
-.detail-content::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 4px;
-}
-
-.summary-view::-webkit-scrollbar-thumb,
-.detail-content::-webkit-scrollbar-thumb {
-  background: #c1c1c1;
-  border-radius: 4px;
-}
-
-.summary-view::-webkit-scrollbar-thumb:hover,
-.detail-content::-webkit-scrollbar-thumb:hover {
-  background: #a8a8a8;
-}
-
-/* Hover effects para las tablas */
+/* ========== HOVER EFFECTS ========== */
 :deep(.personnel-table .p-datatable-tbody > tr:hover) {
   background-color: rgba(255, 95, 1, 0.05) !important;
   cursor: pointer;
@@ -1127,42 +1213,5 @@ input:focus {
 
 :deep(.personnel-table .p-datatable-tbody > tr) {
   transition: all 0.2s ease;
-}
-
-/* Efectos de entrada para las estadísticas */
-.stat-card {
-  transform: translateY(20px);
-  opacity: 0;
-  animation: slideInUp 0.6s ease-out forwards;
-}
-
-.stat-card:nth-child(1) { animation-delay: 0.1s; }
-.stat-card:nth-child(2) { animation-delay: 0.2s; }
-.stat-card:nth-child(3) { animation-delay: 0.3s; }
-
-@keyframes slideInUp {
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-.type-stat-card {
-  transform: translateX(-20px);
-  opacity: 0;
-  animation: slideInLeft 0.6s ease-out forwards;
-}
-
-.type-stat-card:nth-child(1) { animation-delay: 0.1s; }
-.type-stat-card:nth-child(2) { animation-delay: 0.2s; }
-.type-stat-card:nth-child(3) { animation-delay: 0.3s; }
-.type-stat-card:nth-child(4) { animation-delay: 0.4s; }
-.type-stat-card:nth-child(5) { animation-delay: 0.5s; }
-
-@keyframes slideInLeft {
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
 }
 </style>

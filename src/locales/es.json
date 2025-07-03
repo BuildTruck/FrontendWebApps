@@ -1,5 +1,6 @@
 {
   "general": {
+    "deleting": "Eliminando",
     "back": "Atrás",
     "save": "Guardar",
     "cancel": "Cancelar",
@@ -455,7 +456,33 @@
       "cancelled": "Cancelado"
     }
   },
+  "common": {
+    "back": "Salir"
+  },
   "personnel": {
+    "personnelManagement": "Gestión de Personal",
+    "viewPersonnelAndAttendance": "Ver personal y seguimiento de asistencia",
+    "attendanceMonth": "Mes de asistencia",
+    "searchPersonnel": "Buscar personal...",
+    "filterByStatus": "Filtrar por estado",
+    "allStatuses": "Todos los estados",
+    "tryAdjustingFilters": "Intenta ajustar los filtros de búsqueda",
+    "attendanceFor": "Asistencia para",
+    "worked": "Trabajado",
+    "absence": "Falta",
+    "leave": "Permiso",
+    "sunday": "Domingo",
+    "document": "Documento",
+    "type": "Tipo",
+    "inactive": "Inactivo",
+    "pending": "Pendiente",
+    "suspended": "Suspendido",
+    "finished": "Finalizado",
+    "personnelReport": "Reporte de Personal",
+    "addPhoto": "Agregar photo",
+    "clickToSelect" : "Presionar para seleccionar",
+    "changePhoto" : "Cambiar photo",
+    "departmentPlaceholder" : "Área",
     "name": "Nombre",
     "documentNumber": "Número de Documento",
     "position": "Cargo",

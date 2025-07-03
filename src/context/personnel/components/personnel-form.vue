@@ -74,20 +74,6 @@ export default {
       return this.personnelService.getBanks();
     },
 
-    departmentOptions() {
-      const options = this.departments.map(department => ({
-        value: department,
-        label: department
-      }));
-
-      // Agregar opcion de "Nuevo departamento"
-      options.push({
-        value: '__custom__',
-        label: '+ Agregar nuevo departamento'
-      });
-
-      return options;
-    }
   },
   watch: {
     personnel: {
@@ -102,6 +88,47 @@ export default {
     await this.initializeForm();
   },
   methods: {
+    handlePhotoChange(event) {
+      const file = event.target.files[0];
+
+      if (file) {
+        // Validar tamaño (max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+          this.errors.avatar = 'La imagen es muy grande. Máximo 5MB';
+          return;
+        }
+
+        // Validar tipo de archivo
+        if (!file.type.startsWith('image/')) {
+          this.errors.avatar = 'Solo se permiten archivos de imagen';
+          return;
+        }
+
+        // Limpiar errores previos
+        this.errors.avatar = '';
+
+        // Asignar archivo al modelo
+        this.localPersonnel.avatar = file;
+
+        console.log('📸 Foto cambiada:', file.name, file.size, 'bytes');
+      }
+    },
+
+    getImageUrl(file) {
+      if (!file) return null;
+
+      // Si es un File object (recién seleccionado)
+      if (file instanceof File) {
+        return URL.createObjectURL(file);
+      }
+
+      // Si es una URL (desde el servidor)
+      if (typeof file === 'string') {
+        return file;
+      }
+
+      return null;
+    },
     async getCurrentProjectId() {
       if (this.projectId) {
         return this.projectId;
@@ -125,16 +152,14 @@ export default {
           this.localPersonnel = new Personnel({ ...this.personnel });
           this.localPersonnel.projectId = this.currentProjectId;
 
+          // Para edición, conservar avatar existente (URL de Cloudinary)
           if (this.personnel.avatar) {
             this.localPersonnel.avatar = this.personnel.avatar;
           }
-          console.log('Editing personnel with avatar:', this.personnel.avatar ? 'Yes' : 'No');
-          console.log('Local personnel avatar:', this.localPersonnel.avatar ? 'Yes' : 'No');
         } else {
           this.localPersonnel = new Personnel({
             projectId: this.currentProjectId
           });
-          console.log('Nuevo personal para proyecto:', this.currentProjectId);
         }
 
         await this.loadFormData();
@@ -148,7 +173,6 @@ export default {
       try {
         this.banks = this.personnelService.getBanks();
         this.departments = await this.personnelService.getDepartmentsWithStored(this.currentProjectId);
-        console.log('Departamentos cargados para proyecto', this.currentProjectId, ':', this.departments);
       } catch (error) {
         console.error('Error loading form data:', error);
       }
@@ -231,34 +255,10 @@ export default {
       return validation.isValid;
     },
 
-    async processAvatar() {
-      if (this.localPersonnel.avatar && this.localPersonnel.avatar instanceof File) {
-        try {
-          console.log('Procesando avatar...');
-          const compressedAvatar = await this.personnelService.uploadAvatar(
-              this.localPersonnel.avatar,
-              this.currentProjectId
-          );
-          this.localPersonnel.avatar = compressedAvatar;
-          console.log('Avatar comprimido y listo');
-        } catch (error) {
-          console.error('Error procesando avatar:', error);
-          this.showNotificationMessage('Error procesando la imagen: ' + error.message, 'error');
-          return false;
-        }
-      }
-      return true;
-    },
-
     async handleSave() {
       this.loading = true;
 
       try {
-        const avatarProcessed = await this.processAvatar();
-        if (!avatarProcessed) {
-          return;
-        }
-
         const isValid = await this.validateForm();
 
         if (!isValid) {
@@ -266,13 +266,21 @@ export default {
           return;
         }
 
+        // NUEVO: Preparar datos con imagen
+        const personnelData = { ...this.localPersonnel };
+
+        // Si hay una imagen seleccionada, asignarla a imageFile
+        if (this.localPersonnel.avatar && this.localPersonnel.avatar instanceof File) {
+          personnelData.imageFile = this.localPersonnel.avatar;
+        }
+
         let savedPersonnel;
 
         if (this.isEditing) {
-          savedPersonnel = await this.personnelService.update(this.localPersonnel.id, this.localPersonnel);
+          savedPersonnel = await this.personnelService.update(this.localPersonnel.id, personnelData);
           this.showNotificationMessage(this.$t('personnel.personnelUpdated'), 'success');
         } else {
-          savedPersonnel = await this.personnelService.create(this.localPersonnel);
+          savedPersonnel = await this.personnelService.create(personnelData);
           this.showNotificationMessage(this.$t('personnel.personnelCreated'), 'success');
         }
 
@@ -309,37 +317,6 @@ export default {
       this.showNotification = true;
     },
 
-    onDepartmentChange(value) {
-      if (value === '__custom__') {
-        this.showCustomDepartmentInput = true;
-        this.customDepartmentValue = '';
-        this.localPersonnel.department = '';
-      } else {
-        this.showCustomDepartmentInput = false;
-        this.localPersonnel.department = value;
-      }
-      console.log('Departamento seleccionado:', value);
-    },
-
-    onCustomDepartmentInput(value) {
-      this.customDepartmentValue = value;
-      this.localPersonnel.department = value;
-      console.log('Departamento personalizado:', value);
-    },
-
-    onCustomDepartmentBlur() {
-      if (this.customDepartmentValue && this.customDepartmentValue.trim()) {
-        this.localPersonnel.department = this.customDepartmentValue.trim();
-        this.showCustomDepartmentInput = false;
-      }
-    },
-
-    getDepartmentsForSelect() {
-      return this.departments.map(department => ({
-        value: department,
-        label: department
-      }));
-    }
   }
 };
 </script>
@@ -383,6 +360,75 @@ export default {
     <!-- Content -->
     <div class="form-content">
       <div class="form-container">
+
+        <!-- Contact Information & Photo - PRIMERA SECCIÓN -->
+        <div class="form-section cv-section">
+          <h2 class="form-section-title">{{ $t('personnel.contactInfo') }}</h2>
+
+          <div class="cv-layout">
+            <!-- Lado izquierdo: Imagen grande estilo CV -->
+            <div class="photo-section">
+              <div class="photo-container" @click="$refs.photoInput.click()" :class="{ 'has-image': localPersonnel.avatar }">
+                <div v-if="localPersonnel.avatar" class="photo-preview">
+                  <img
+                      :src="getImageUrl(localPersonnel.avatar)"
+                      :alt="$t('personnel.avatarPreview')"
+                      class="cv-photo"
+                  />
+                  <div class="photo-overlay">
+                    <i class="pi pi-camera"></i>
+                    <span>{{ $t('personnel.changePhoto') }}</span>
+                  </div>
+                </div>
+
+                <div v-else class="photo-placeholder">
+                  <i class="pi pi-camera"></i>
+                  <span>{{ $t('personnel.addPhoto') }}</span>
+                  <small>{{ $t('personnel.clickToSelect') }}</small>
+                </div>
+
+                <!-- Input de archivo oculto -->
+                <input
+                    ref="photoInput"
+                    type="file"
+                    accept="image/*"
+                    @change="handlePhotoChange"
+                    :disabled="loading"
+                    class="hidden-input"
+                />
+              </div>
+
+              <div v-if="errors.avatar" class="photo-error">
+                {{ errors.avatar }}
+              </div>
+            </div>
+
+            <!-- Lado derecho: Datos de contacto -->
+            <div class="contact-fields">
+              <div class="contact-grid">
+                <AppInput
+                    v-model="localPersonnel.phone"
+                    :label="$t('personnel.phone')"
+                    :placeholder="$t('personnel.phonePlaceholder')"
+                    :error="errors.phone"
+                    :disabled="loading"
+                    icon="pi pi-phone"
+                />
+
+                <AppInput
+                    v-model="localPersonnel.email"
+                    :label="$t('personnel.email')"
+                    type="email"
+                    :placeholder="$t('personnel.emailPlaceholder')"
+                    :error="errors.email"
+                    :disabled="loading"
+                    icon="pi pi-envelope"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Basic Information -->
         <div class="form-section">
           <h2 class="form-section-title">{{ $t('personnel.basicInfo') }}</h2>
@@ -423,36 +469,14 @@ export default {
                 required
             />
 
-            <!-- Department field corregido -->
-            <div v-if="!showCustomDepartmentInput">
-              <AppInput
-                  v-model="localPersonnel.department"
-                  :label="$t('personnel.department')"
-                  type="select"
-                  :placeholder="$t('personnel.selectDepartment')"
-                  :options="departmentOptions"
-                  :error="errors.department"
-                  :disabled="loading"
-                  @update:modelValue="onDepartmentChange"
-                  required
-              />
-            </div>
-
-            <div v-else>
-              <AppInput
-                  v-model="customDepartmentValue"
-                  :label="$t('personnel.department')"
-                  type="text"
-                  placeholder="Escriba el nombre del nuevo departamento"
-                  :error="errors.department"
-                  :disabled="loading"
-                  @input="onCustomDepartmentInput"
-                  @blur="onCustomDepartmentBlur"
-                  @keyup.enter="onCustomDepartmentBlur"
-                  required
-                  autofocus
-              />
-            </div>
+            <AppInput
+                v-model="localPersonnel.department"
+                :label="$t('personnel.department')"
+                :placeholder="$t('personnel.departmentPlaceholder')"
+                :error="errors.department"
+                :disabled="loading"
+                required
+            />
 
             <AppInput
                 v-model="localPersonnel.personnelType"
@@ -545,37 +569,6 @@ export default {
             />
           </div>
         </div>
-
-        <!-- Contact Information -->
-        <div class="form-section">
-          <h2 class="form-section-title">{{ $t('personnel.contactInfo') }}</h2>
-          <div class="form-grid">
-            <AppInput
-                v-model="localPersonnel.phone"
-                :label="$t('personnel.phone')"
-                :placeholder="$t('personnel.phonePlaceholder')"
-                :error="errors.phone"
-                :disabled="loading"
-            />
-
-            <AppInput
-                v-model="localPersonnel.email"
-                :label="$t('personnel.email')"
-                type="email"
-                :placeholder="$t('personnel.emailPlaceholder')"
-                :error="errors.email"
-                :disabled="loading"
-            />
-
-            <AppInput
-                v-model="localPersonnel.avatar"
-                :label="$t('personnel.avatar')"
-                type="photo"
-                :error="errors.avatar"
-                :disabled="loading"
-            />
-          </div>
-        </div>
       </div>
     </div>
 
@@ -591,6 +584,7 @@ export default {
 </template>
 
 <style scoped>
+/* Estilos existentes */
 .personnel-form-page {
   height: 100%;
   display: flex;
@@ -608,12 +602,17 @@ export default {
   gap: 1rem;
   flex-wrap: wrap;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
 .header-content {
   display: flex;
   align-items: center;
   gap: 1rem;
+  padding-top: 1rem;
 }
 
 .header-title h1 {
@@ -652,10 +651,12 @@ export default {
   padding: 2rem;
   margin-bottom: 1.5rem;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.form-section:last-child {
-  margin-bottom: 0;
+.form-section:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .form-section-title {
@@ -673,10 +674,188 @@ export default {
   gap: 1.5rem;
 }
 
-.input-group {
-  position: relative;
+/* NUEVOS ESTILOS PARA CV */
+.cv-section {
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+  border-left: 4px solid #FF5F01;
 }
 
+.cv-layout {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+.photo-section {
+  outline: none;
+  border: 1px solid transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.photo-container {
+  position: relative;
+  width: 280px;        /* Era 220px */
+  height: 350px;       /* Era 280px */
+  border: 2px solid var(--photo-border, #e5e7eb);  /* Cambié de dashed a solid */
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--photo-bg, #f9fafb);
+  transition: all 0.3s ease;
+  cursor: pointer;
+
+  /* Dark mode variables */
+  --photo-border: #e5e7eb;
+  --photo-bg: #f9fafb;
+  --photo-text: #6b7280;
+  --photo-hover-border: #FF5F01;
+  --photo-hover-bg: #fff5f0;
+  --photo-overlay-bg: rgba(0, 0, 0, 0.7);
+}
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+  .photo-container {
+    --photo-border: #4b5563;
+    --photo-bg: #1f2937;
+    --photo-text: #9ca3af;
+    --photo-hover-bg: #374151;
+    --photo-overlay-bg: rgba(0, 0, 0, 0.8);
+  }
+}
+.photo-container:hover {
+  border-color: var(--photo-hover-border);
+  background: var(--photo-hover-bg);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(255, 95, 1, 0.15);
+}
+
+.photo-container.has-image:hover .photo-overlay {
+  opacity: 1;
+}
+
+.photo-preview {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.cv-photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+.photo-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--photo-overlay-bg);
+  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  backdrop-filter: blur(4px);
+}
+
+.photo-overlay i {
+  font-size: 2rem;
+}
+
+.photo-overlay span {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.photo-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--photo-text);
+  gap: 1rem;
+  text-align: center;
+  padding: 1rem;
+}
+
+.photo-placeholder i {
+  font-size: 3.5rem;
+  color: var(--photo-border);
+  margin-bottom: 0.5rem;
+}
+
+.photo-placeholder span {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.photo-placeholder small {
+  font-size: 0.75rem;
+  opacity: 0.7;
+  font-weight: 400;
+}
+
+.hidden-input {
+  display: none;
+}
+
+.photo-error {
+  color: #ef4444;
+  font-size: 0.75rem;
+  text-align: center;
+  background: #fef2f2;
+  padding: 0.5rem;
+  border-radius: 6px;
+  border: 1px solid #fecaca;
+  width: 280px;        /* Era 220px */
+}
+
+.contact-fields {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.contact-grid {
+  display: grid;
+  gap: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .photo-container {
+    width: 220px;      /* Era 180px */
+    height: 280px;     /* Era 240px */
+  }
+
+  .photo-error {
+    width: 220px;      /* Era 180px */
+  }
+}
+
+@media (max-width: 480px) {
+  .photo-container {
+    width: 200px;      /* Era 160px */
+    height: 260px;     /* Era 220px */
+  }
+
+  .photo-error {
+    width: 200px;      /* Era 160px */
+  }
+}
+
+/* Responsive general */
 @media (max-width: 768px) {
   .form-header {
     padding: 1rem;
@@ -724,15 +903,7 @@ export default {
   }
 }
 
-.form-section {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.form-section:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
+/* Animaciones */
 .form-section {
   animation: slideIn 0.3s ease-out;
 }

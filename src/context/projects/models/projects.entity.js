@@ -20,12 +20,7 @@ export class Projects {
         this.name = name
         this.description = description
 
-        // ✅ Ahora thumbnailUrl está definido como parámetro
         this.image = imageUrl || thumbnailUrl || image || '/images/proyecto-default.jpg'
-        console.log('=== PROJECTS ENTITY IMAGE MAPPING ===')
-        console.log('imageUrl recibido:', imageUrl)
-        console.log('thumbnailUrl recibido:', thumbnailUrl)
-        console.log('image final asignado:', this.image)
 
         this.managerId = managerId
         this.location = location

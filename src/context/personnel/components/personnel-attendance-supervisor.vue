@@ -29,9 +29,9 @@ export default {
       loading: false,
       saving: false,
 
-      // Current date - Peru timezone
-      currentYear: this.getCurrentPeruDate().getFullYear(),
-      currentMonth: this.getCurrentPeruDate().getMonth() + 1,
+      // Current date
+      currentYear: new Date().getFullYear(),
+      currentMonth: new Date().getMonth() + 1,
       monthDays: [],
 
       // Filters
@@ -86,10 +86,7 @@ export default {
       if (this.selectedPersonnelType === 'ALL') {
         return this.allPersonnel;
       }
-
-      return this.allPersonnel.filter(person =>
-          person.personnelType === this.selectedPersonnelType
-      );
+      return this.allPersonnel.filter(person => person.personnelType === this.selectedPersonnelType);
     }
   },
   async mounted() {
@@ -109,17 +106,10 @@ export default {
     },
 
     selectedPersonnelType() {
-      this.applyPersonnelFilter();
+      this.attendancePersonnel = this.filteredPersonnel.map(p => p.clone());
     }
   },
   methods: {
-    getCurrentPeruDate() {
-      const now = new Date();
-      const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
-      const peruTime = new Date(utc + (-5 * 3600000));
-      return peruTime;
-    },
-
     generateMonthDays() {
       this.monthDays = Personnel.generateMonthDays(this.currentYear, this.currentMonth);
     },
@@ -127,21 +117,23 @@ export default {
     async loadAttendanceData() {
       this.loading = true;
       try {
-        let projectPersonnel = this.personnel;
-        if (!projectPersonnel.length) {
-          projectPersonnel = await this.personnelService.getByProject(this.projectId);
-        }
+        // SIEMPRE cargar con parámetros de asistencia
+        const projectPersonnel = await this.personnelService.getByProject(
+            this.projectId,
+            true, // includeAttendance
+            this.currentYear,
+            this.currentMonth
+        );
 
         this.allPersonnel = projectPersonnel
             .filter(p => p.isActive())
             .map(p => {
               const clonedPerson = p.clone();
 
-              // Initialize if needed and calculate totals
+              // Initialize attendance for current month if not exists
               if (clonedPerson.initializeMonthAttendance) {
                 clonedPerson.initializeMonthAttendance(this.currentYear, this.currentMonth);
               }
-
               if (clonedPerson.calculateMonthlyTotals) {
                 clonedPerson.calculateMonthlyTotals(this.currentYear, this.currentMonth);
               }
@@ -149,37 +141,92 @@ export default {
               return clonedPerson;
             });
 
-        this.applyPersonnelFilter();
+        this.attendancePersonnel = this.filteredPersonnel.map(p => p.clone());
 
       } catch (error) {
+        console.error('❌ Error loading attendance:', error);
         this.showNotificationMessage(this.$t('personnel.errorLoadingAttendance'), 'error');
       } finally {
         this.loading = false;
       }
     },
 
-    applyPersonnelFilter() {
-      this.attendancePersonnel = this.filteredPersonnel.map(p => p.clone());
+    mapToBackendStatus(frontendStatus) {
+      // Mapear estados del frontend a los enum del backend
+      const statusMap = {
+        'X': 'X',      // Worked day
+        'F': 'F',      // Absence
+        'P': 'P',      // Compensatory leave
+        'DD': 'DD',    // Sunday
+        'PD': 'PD',    // Unpaid leave
+        '': null       // Empty
+      };
+
+      return statusMap[frontendStatus] || null;
     },
 
     async saveAttendance() {
       this.saving = true;
       try {
-        const updatePromises = this.attendancePersonnel.map(person =>
-            this.personnelService.update(person.id, person)
-        );
+        const attendanceUpdates = this.attendancePersonnel.map((person) => {
+          const monthKey = `${this.currentYear}-${this.currentMonth.toString().padStart(2, '0')}`;
+          const attendanceString = person.monthlyAttendance?.[monthKey] || '';
 
-        await Promise.all(updatePromises);
+          const dailyAttendance = {};
 
-        this.showNotificationMessage(this.$t('personnel.attendanceSaved'), 'success');
-        this.$emit('attendance-updated', this.attendancePersonnel);
+          if (attendanceString) {
+            const attendanceArray = attendanceString.split('|');
+
+            attendanceArray.forEach((status, index) => {
+              if (status && status.trim()) {
+                const dayNumber = index + 1;
+                const backendStatus = this.mapToBackendStatus(status.trim());
+
+                if (backendStatus) {
+                  dailyAttendance[dayNumber] = backendStatus;
+                }
+              }
+            });
+          }
+
+          // Skip si no hay datos
+          if (Object.keys(dailyAttendance).length === 0) {
+            return null;
+          }
+
+          return this.personnelService.updateMonthlyAttendance(
+              person.id,
+              this.currentYear,
+              this.currentMonth,
+              dailyAttendance
+          );
+        });
+
+        // Filter out nulls y ejecutar
+        const validUpdates = attendanceUpdates.filter(update => update !== null);
+        const results = await Promise.allSettled(validUpdates);
+
+        const successCount = results.filter(r => r.status === 'fulfilled').length;
+        const failCount = results.filter(r => r.status === 'rejected').length;
+
+        if (successCount > 0) {
+          this.showNotificationMessage(
+              `${this.$t('personnel.attendanceSaved')} (${successCount}/${results.length})`,
+              failCount > 0 ? 'warning' : 'success'
+          );
+          this.$emit('attendance-updated', this.attendancePersonnel);
+        } else {
+          this.showNotificationMessage(this.$t('personnel.errorSavingAttendance'), 'error');
+        }
 
       } catch (error) {
+        console.error('❌ Error saving attendance:', error);
         this.showNotificationMessage(this.$t('personnel.errorSavingAttendance'), 'error');
       } finally {
         this.saving = false;
       }
     },
+
 
     handleCellClick(person, day, event) {
       event.preventDefault();
@@ -199,18 +246,16 @@ export default {
       const { person, day } = this.selectedCell;
 
       try {
-        // Try different methods to set attendance based on what's available
         if (person.setDayAttendance) {
           person.setDayAttendance(this.currentYear, this.currentMonth, day.day, status);
         } else {
-          // Fallback: direct manipulation of monthlyAttendance
+          // Fallback: direct manipulation
           const monthKey = `${this.currentYear}-${this.currentMonth.toString().padStart(2, '0')}`;
           if (!person.monthlyAttendance) person.monthlyAttendance = {};
 
           let attendanceString = person.monthlyAttendance[monthKey] || '';
           const daysInMonth = new Date(this.currentYear, this.currentMonth, 0).getDate();
 
-          // Ensure string has correct length
           const attendanceArray = attendanceString.split('|');
           while (attendanceArray.length < daysInMonth) {
             attendanceArray.push('');
@@ -225,7 +270,6 @@ export default {
         if (originalPerson && originalPerson.setDayAttendance) {
           originalPerson.setDayAttendance(this.currentYear, this.currentMonth, day.day, status);
         } else if (originalPerson) {
-          // Copy the updated monthlyAttendance
           originalPerson.monthlyAttendance = { ...person.monthlyAttendance };
         }
 
@@ -243,31 +287,26 @@ export default {
     },
 
     getAttendanceStatus(person, day) {
-      // Try using entity method first
       if (person.getDayAttendance) {
         return person.getDayAttendance(this.currentYear, this.currentMonth, day.day);
       }
 
-      // Fallback: direct access to monthlyAttendance
+      // Fallback
       const monthKey = `${this.currentYear}-${this.currentMonth.toString().padStart(2, '0')}`;
       const attendanceString = person.monthlyAttendance?.[monthKey] || '';
 
       if (!attendanceString) {
-        // If empty and it's Sunday, show DD
         return day.isSunday ? 'DD' : '';
       }
 
       const attendanceArray = attendanceString.split('|');
       const status = attendanceArray[day.day - 1] || '';
-
-      // If empty and it's Sunday, show DD
       return status || (day.isSunday ? 'DD' : '');
     },
 
     getAttendanceColor(status, day = null) {
-      // Always check if it's Sunday first for consistent coloring
       if (day?.isSunday && (!status || status === 'DD')) {
-        return '#6b7280'; // Gray for Sunday
+        return '#6b7280';
       }
 
       const statusInfo = this.attendanceStatuses.find(s => s.value === status);

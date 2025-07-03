@@ -1282,83 +1282,212 @@
 }
 
 /* ================================================================
-   19. PERSONNEL MANAGER DARK MODE
+   PERSONNEL MANAGER - DARK MODE STYLES
    ================================================================ */
+
 [data-theme="dark"] .personnel-manager {
     background-color: var(--bg-primary) !important;
 }
 
-[data-theme="dark"] .summary-view {
+[data-theme="dark"] .list-view,
+[data-theme="dark"] .attendance-view {
     background-color: var(--bg-primary) !important;
 }
 
-[data-theme="dark"] .stat-card {
+[data-theme="dark"] .manager-header {
     background: var(--bg-card) !important;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3) !important;
+    border: 1px solid var(--border-color) !important;
 }
 
-[data-theme="dark"] .stat-label {
-    color: var(--text-secondary) !important;
-}
-
-[data-theme="dark"] .type-stat-card {
-    background: var(--bg-card) !important;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
-}
-
-[data-theme="dark"] .type-name {
+[data-theme="dark"] .header-left .page-title {
     color: var(--text-primary) !important;
 }
 
-[data-theme="dark"] .total-count {
-    color: var(--text-primary) !important;
-}
-
-[data-theme="dark"] .active-count {
+[data-theme="dark"] .header-left .page-subtitle {
     color: var(--text-secondary) !important;
 }
 
 [data-theme="dark"] .month-selector {
-    background: var(--bg-card) !important;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+    background: var(--bg-secondary) !important;
+    border-color: var(--border-color) !important;
 }
 
-[data-theme="dark"] .month-label {
+[data-theme="dark"] .month-selector label {
     color: var(--text-secondary) !important;
 }
 
-[data-theme="dark"] .month-select,
-[data-theme="dark"] .year-select {
-    background-color: var(--input-bg) !important;
+[data-theme="dark"] .month-selector select {
+    background: var(--input-bg) !important;
     border-color: var(--border-color) !important;
     color: var(--text-primary) !important;
 }
 
-[data-theme="dark"] .personnel-type-section {
+[data-theme="dark"] .month-selector select:focus {
+    border-color: #FF5F01 !important;
+    box-shadow: 0 0 0 2px rgba(255, 95, 1, 0.3) !important;
+}
+
+[data-theme="dark"] .filters-section {
+    background: var(--bg-card) !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+    border-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .filter-select label {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .filter-select select {
+    background: var(--input-bg) !important;
+    border-color: var(--border-color) !important;
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .filter-select select:focus {
+    border-color: #FF5F01 !important;
+    box-shadow: 0 0 0 2px rgba(255, 95, 1, 0.3) !important;
+}
+
+[data-theme="dark"] .personnel-table-section {
     background: var(--bg-card) !important;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3) !important;
+    border-color: var(--border-color) !important;
 }
 
-[data-theme="dark"] .section-title h3 {
-    color: var(--text-primary) !important;
+[data-theme="dark"] .detail-header {
+    background: var(--bg-card) !important;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3) !important;
+    border-color: var(--border-color) !important;
 }
 
-[data-theme="dark"] .detail-view {
-    background-color: var(--bg-primary) !important;
+[data-theme="dark"] .person-avatar {
+    background: var(--bg-secondary) !important;
+    border-color: var(--border-color) !important;
 }
 
-[data-theme="dark"] .no-selection-content h3 {
-    color: var(--text-primary) !important;
-}
-
-[data-theme="dark"] .no-selection-content p {
+[data-theme="dark"] .avatar-placeholder {
     color: var(--text-secondary) !important;
 }
 
-[data-theme="dark"] .loading-state {
+[data-theme="dark"] .person-details h2 {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .meta-item {
+    background: var(--bg-secondary) !important;
+    border-left-color: #FF5F01 !important;
+}
+
+[data-theme="dark"] .meta-label {
     color: var(--text-secondary) !important;
 }
 
+[data-theme="dark"] .meta-value {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .attendance-summary {
+    background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-primary) 100%) !important;
+    border-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .summary-item .label {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .attendance-calendar {
+    background: var(--bg-card) !important;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3) !important;
+    border-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .calendar-header h3 {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .attendance-legend {
+    background: var(--bg-secondary) !important;
+}
+
+[data-theme="dark"] .legend-item {
+    background: var(--bg-card) !important;
+    border-color: var(--border-color) !important;
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .day-header {
+    background: var(--bg-secondary) !important;
+    border-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .day-number {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .day-name {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .empty-state {
+    background: var(--bg-card) !important;
+    border-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .empty-state h3 {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .empty-state p {
+    color: var(--text-secondary) !important;
+}
+
+/* ========== HOVER EFFECTS DARK MODE ========== */
+[data-theme="dark"] :deep(.personnel-table .p-datatable-tbody > tr:hover) {
+    background-color: rgba(255, 95, 1, 0.1) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+}
+[data-theme="dark"] .calendar-days-header {
+    background: var(--bg-secondary) !important;
+    border-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .calendar-attendance {
+    background: var(--bg-primary) !important;
+    border-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .day-header {
+    background: var(--bg-card) !important;
+    border-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .day-header.sunday {
+    background: var(--bg-secondary) !important;
+    border-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .day-number {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .day-name {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .attendance-day {
+    /* Los colores de fondo se mantienen según el estado (verde, rojo, etc.) */
+    border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+[data-theme="dark"] .attendance-day.sunday {
+    border-color: rgba(107, 114, 128, 0.3) !important;
+}
+
+[data-theme="dark"] .attendance-status {
+    color: white !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5) !important;
+}
 /* ================================================================
    20. PERSONNEL SUPERVISOR DARK MODE
    ================================================================ */

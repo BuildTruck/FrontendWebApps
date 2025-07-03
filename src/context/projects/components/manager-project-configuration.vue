@@ -49,20 +49,13 @@ export default {
             this.projectData.thumbnailUrl ||
             this.projectData.image
 
-        // ✅ CORRECCIÓN CLOUDINARY: Optimizar URL para alta calidad
         if (imageUrl && imageUrl.includes('cloudinary.com')) {
-          // Remover transformaciones automáticas de baja calidad
-          imageUrl = imageUrl.replace(/\/c_thumb[^/]*/, '') // Quitar c_thumb
-          imageUrl = imageUrl.replace(/\/w_\d+/, '') // Quitar limitaciones de width
-          imageUrl = imageUrl.replace(/\/h_\d+/, '') // Quitar limitaciones de height
-          imageUrl = imageUrl.replace(/\/q_auto[^/]*/, '') // Quitar calidad automática
-
-          // ✅ Agregar parámetros de alta calidad
           const baseUrl = imageUrl.split('/upload/')[0] + '/upload/'
           const imagePath = imageUrl.split('/upload/')[1]
 
-          // Configurar para alta calidad: sin compresión, escala optimizada
-          imageUrl = `${baseUrl}f_auto,q_100,c_limit,w_800/${imagePath}`
+          const cleanImagePath = imagePath.replace(/^[^/]*\//, '')
+
+          imageUrl = `${baseUrl}${cleanImagePath}`
         }
 
         if (imageUrl) {
@@ -309,14 +302,13 @@ export default {
 
       this.loading.deleting = true
       try {
-        await projectService.deleteProject(this.projectId, true, 'Eliminado por el manager')
+        const response = await projectService.deleteProject(this.projectId, true, 'Eliminado por el manager')
         this.showNotification('Proyecto eliminado correctamente', 'success')
-
-        setTimeout(() => {
-          this.$router.push('/proyectos')
-        }, 2000)
+        this.$router.push('/proyectos')
 
       } catch (error) {
+        console.error('❌ Delete error:', error)
+
         this.showNotification('Error al eliminar el proyecto', 'error')
       } finally {
         this.loading.deleting = false

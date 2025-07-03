@@ -1,5 +1,6 @@
 {
   "general": {
+    "deleting": "Deleting",
     "back": "Back",
     "save": "Save",
     "cancel": "Cancel",
@@ -455,7 +456,33 @@
       "cancelled": "Cancelled"
     }
   },
+  "common": {
+    "back": "Back"
+  },
   "personnel": {
+    "personnelManagement": "Personal Management",
+    "viewPersonnelAndAttendance": "View personnel and attendance tracking",
+    "attendanceMonth": "Attendance month",
+    "searchPersonnel": "Search personnel...",
+    "filterByStatus": "Filter by status",
+    "allStatuses": "All statuses",
+    "tryAdjustingFilters": "Try adjusting the search filters",
+    "attendanceFor": "Attendance for",
+    "worked": "Worked",
+    "absence": "Absence",
+    "leave": "Leave",
+    "sunday": "Sunday",
+    "document": "Document",
+    "type": "Type",
+    "inactive": "Inactive",
+    "pending": "Pending",
+    "suspended": "Suspended",
+    "finished": "Finished",
+    "personnelReport": "Personnel Report",
+    "addPhoto": "Add photo",
+    "clickToSelect" : "Click to select",
+    "changePhoto" : "Change Photo",
+    "departmentPlaceholder" : "Department",
     "name": "Name",
     "documentNumber": "Document Number",
     "position": "Position",

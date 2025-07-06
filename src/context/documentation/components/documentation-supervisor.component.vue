@@ -4,13 +4,15 @@ import AppInput from '../../../core/components/AppInput.vue'
 import AppCard from '../../../core/components/AppCard.vue'
 import { documentationService } from '../services/documentation-api.service'
 import { Documentation } from '../models/documentation.entity'
+import ExportButton from '../../../core/exports/components/ExportButton.vue'
 
 export default {
   name: 'DocumentationSupervisorComponent',
   components: {
     AppButton,
     AppInput,
-    AppCard
+    AppCard,
+    ExportButton
   },
   props: {
     projectId: {
@@ -19,12 +21,26 @@ export default {
       validator: (value) => value && value.toString().length > 0
     }
   },
+  computed: {
+    exportData() {
+      return this.documents.map(doc => ({
+        id: doc.id,
+        title: doc.title,
+        description: doc.description,
+        date: doc.date,
+        imagePath: doc.imagePath,
+        hasImage: !!doc.imagePath,
+        status: 'active',
+        department: 'documentation'
+      }))
+    }
+  },
   data() {
     return {
       documents: [],
       loading: false,
       showForm: false,
-      isEditing: false, // Nueva bandera para distinguir crear vs editar
+      isEditing: false,
       currentDocument: {
         id: null,
         projectId: this.projectId,
@@ -36,7 +52,8 @@ export default {
       formError: '',
       selectedImage: null,
       imagePreview: '',
-      uploadingImage: false
+      processingImage: false,
+      saving: false
     }
   },
   async mounted() {
@@ -64,9 +81,7 @@ export default {
         this.loading = true
         console.log(`🔄 Cargando documentos para proyecto: ${this.projectId}`)
 
-        // Usar el servicio mejorado
         this.documents = await documentationService.getByProjectId(this.projectId)
-
         console.log(`✅ Cargados ${this.documents.length} documentos`)
 
       } catch (error) {
@@ -91,7 +106,8 @@ export default {
       this.selectedImage = null
       this.imagePreview = ''
       this.formError = ''
-      this.uploadingImage = false
+      this.processingImage = false
+      this.saving = false
     },
 
     closeForm() {
@@ -100,7 +116,13 @@ export default {
       this.formError = ''
       this.selectedImage = null
       this.imagePreview = ''
-      this.uploadingImage = false
+      this.processingImage = false
+      this.saving = false
+
+      // Limpiar URL de vista previa si existe
+      if (this.imagePreview && this.imagePreview.startsWith('blob:')) {
+        URL.revokeObjectURL(this.imagePreview)
+      }
     },
 
     async handleImageChange(event) {
@@ -110,7 +132,7 @@ export default {
       try {
         // Limpiar errores previos
         this.formError = ''
-        this.uploadingImage = true
+        this.processingImage = true
 
         // Validar que sea una imagen
         if (!file.type.startsWith('image/')) {
@@ -118,33 +140,40 @@ export default {
           return
         }
 
-        // Validar tamaño original (máximo 10MB)
-        const maxSize = 10 * 1024 * 1024 // 10MB
+        // Validar tamaño (máximo 5MB como espera el backend)
+        const maxSize = 5 * 1024 * 1024 // 5MB
         if (file.size > maxSize) {
           this.formError = this.$t('documentation.imageTooLarge')
           return
         }
 
-        console.log(`📤 Procesando imagen: ${file.name} (${Math.round(file.size / 1024)}KB)`)
+        // Validar formatos permitidos (según el backend)
+        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif']
+        if (!allowedTypes.includes(file.type.toLowerCase())) {
+          this.formError = 'Formato de imagen no válido. Solo se permiten JPG, PNG, WebP y GIF.'
+          return
+        }
 
-        // Usar el servicio de compresión
-        const imageResult = await documentationService.uploadImage(file, this.projectId)
+        console.log(`📤 Imagen seleccionada: ${file.name} (${Math.round(file.size / 1024)}KB)`)
 
-        // Actualizar la vista previa y datos
+        // Limpiar vista previa anterior
+        if (this.imagePreview && this.imagePreview.startsWith('blob:')) {
+          URL.revokeObjectURL(this.imagePreview)
+        }
+
+        // Crear vista previa local
         this.selectedImage = file
-        this.imagePreview = imageResult.imagePath
-        this.currentDocument.imagePath = imageResult.imagePath
+        this.imagePreview = URL.createObjectURL(file)
 
-        console.log(`✅ Imagen procesada: ${imageResult.compressedSizeKB}KB`)
+        console.log('✅ Vista previa creada')
 
       } catch (error) {
         console.error('❌ Error procesando imagen:', error)
-        this.formError = error.message || this.$t('documentation.errorSavingDocumentation')
+        this.formError = error.message || 'Error al procesar la imagen'
         this.selectedImage = null
         this.imagePreview = ''
-        this.currentDocument.imagePath = ''
       } finally {
-        this.uploadingImage = false
+        this.processingImage = false
       }
     },
 
@@ -157,8 +186,8 @@ export default {
         return false
       }
 
-      if (this.currentDocument.title.trim().length > 100) {
-        this.formError = this.$t('errors.maxLength', { max: 100 })
+      if (this.currentDocument.title.trim().length > 200) {
+        this.formError = 'El título no puede exceder 200 caracteres'
         return false
       }
 
@@ -167,18 +196,37 @@ export default {
         return false
       }
 
-      if (this.currentDocument.description.trim().length > 500) {
-        this.formError = this.$t('errors.maxLength', { max: 500 })
-        return false
-      }
-
-      if (!this.currentDocument.imagePath && !this.currentDocument.id) {
-        this.formError = this.$t('documentation.imageRequired')
+      if (this.currentDocument.description.trim().length > 1000) {
+        this.formError = 'La descripción no puede exceder 1000 caracteres'
         return false
       }
 
       if (!this.currentDocument.date) {
         this.formError = this.$t('documentation.dateRequired')
+        return false
+      }
+
+      // Validar imagen: requerida para nuevos documentos, opcional para edición
+      if (!this.isEditing && !this.selectedImage) {
+        this.formError = this.$t('documentation.imageRequired')
+        return false
+      }
+
+      // Validar fecha no muy antigua ni futura
+      const docDate = new Date(this.currentDocument.date)
+      const today = new Date()
+      const fiveYearsAgo = new Date()
+      fiveYearsAgo.setFullYear(today.getFullYear() - 5)
+      const tomorrow = new Date()
+      tomorrow.setDate(today.getDate() + 1)
+
+      if (docDate < fiveYearsAgo) {
+        this.formError = 'La fecha no puede ser mayor a 5 años en el pasado'
+        return false
+      }
+
+      if (docDate > tomorrow) {
+        this.formError = 'La fecha no puede ser en el futuro'
         return false
       }
 
@@ -189,7 +237,7 @@ export default {
       if (!this.validateForm()) return
 
       try {
-        this.loading = true
+        this.saving = true
         console.log(`💾 Guardando documento: ${this.currentDocument.title}`)
 
         // Crear una instancia de Documentation
@@ -198,15 +246,31 @@ export default {
           projectId: this.projectId
         })
 
-        // Guardar usando el servicio mejorado
-        if (!document.id) {
-          // Crear nuevo documento
-          await documentationService.create(document)
-          console.log('✅ Documento creado exitosamente')
-        } else {
-          // Actualizar documento existente
-          await documentationService.update(document.id, document, this.projectId)
+        let savedDocument
+
+        if (this.isEditing) {
+          // ACTUALIZAR documento existente
+          console.log(`📝 Actualizando documento ${document.id}`)
+
+          // Pasar la imagen solo si se seleccionó una nueva
+          savedDocument = await documentationService.update(
+              document.id,
+              document,
+              this.selectedImage // null si no hay nueva imagen
+          )
+
           console.log('✅ Documento actualizado exitosamente')
+        } else {
+          // CREAR nuevo documento
+          console.log('📝 Creando nuevo documento')
+
+          // Para crear, la imagen es obligatoria
+          if (!this.selectedImage) {
+            throw new Error('Imagen es requerida para crear documentación')
+          }
+
+          savedDocument = await documentationService.create(document, this.selectedImage)
+          console.log('✅ Documento creado exitosamente')
         }
 
         // Recargar documentos y cerrar formulario
@@ -218,16 +282,51 @@ export default {
 
         // Manejar diferentes tipos de errores
         if (error.message.includes('413') || error.message.includes('Payload Too Large')) {
-          this.formError = this.$t('documentation.imageTooLarge')
+          this.formError = 'La imagen es demasiado grande. Máximo 5MB permitido.'
         } else if (error.message.includes('timeout')) {
-          this.formError = this.$t('documentation.connectionTimeout')
-        } else if (error.message.includes('Network')) {
-          this.formError = this.$t('documentation.connectionError')
+          this.formError = 'Tiempo de conexión agotado. Intenta de nuevo.'
+        } else if (error.message.includes('Network') || error.message.includes('fetch')) {
+          this.formError = 'Error de conexión. Verifica tu internet.'
+        } else if (error.message.includes('400')) {
+          this.formError = error.message || 'Datos inválidos. Revisa el formulario.'
+        } else if (error.message.includes('401') || error.message.includes('403')) {
+          this.formError = 'No tienes permisos para realizar esta acción.'
         } else {
-          this.formError = error.message || this.$t('documentation.errorSavingDocumentation')
+          this.formError = error.message || 'Error al guardar documentación. Intenta de nuevo.'
         }
       } finally {
-        this.loading = false
+        this.saving = false
+      }
+    },
+
+    async deleteDocument(document) {
+      if (!confirm(`¿Estás seguro de eliminar el documento "${document.title}"?`)) {
+        return
+      }
+
+      try {
+        console.log(`🗑️ Eliminando documento: ${document.id}`)
+
+        const success = await documentationService.delete(document.id)
+
+        if (success) {
+          console.log('✅ Documento eliminado exitosamente')
+          await this.loadDocuments() // Recargar lista
+        } else {
+          throw new Error('No se pudo eliminar el documento')
+        }
+
+      } catch (error) {
+        console.error('❌ Error al eliminar documento:', error)
+
+        let errorMessage = 'Error al eliminar el documento'
+        if (error.message.includes('404')) {
+          errorMessage = 'El documento ya no existe'
+        } else if (error.message.includes('403')) {
+          errorMessage = 'No tienes permisos para eliminar este documento'
+        }
+
+        alert(errorMessage)
       }
     },
 
@@ -238,6 +337,7 @@ export default {
 
     handleDocumentClick(document) {
       // Abrir formulario de edición con los datos del documento
+      this.isEditing = true
       this.currentDocument = {
         id: document.id,
         projectId: document.projectId,
@@ -247,10 +347,28 @@ export default {
         date: document.date
       }
 
+      // Mostrar imagen actual como vista previa
       this.imagePreview = document.imagePath
+      this.selectedImage = null // No hay nueva imagen seleccionada
+
       this.showForm = true
       this.formError = ''
-      this.uploadingImage = false
+      this.processingImage = false
+      this.saving = false
+    },
+
+    // Método para manejar el clic derecho o botón de eliminar en las tarjetas
+    async handleDocumentAction(document, action) {
+      switch (action) {
+        case 'edit':
+          this.handleDocumentClick(document)
+          break
+        case 'delete':
+          await this.deleteDocument(document)
+          break
+        default:
+          this.handleDocumentClick(document) // Por defecto, editar
+      }
     }
   }
 }
@@ -263,18 +381,34 @@ export default {
 
       <div class="gallery-header">
         <div class="header-info">
-          <span v-if="documents.length > 0" class="document-count">
-            {{ documents.length }} {{ documents.length === 1 ? $t('documentation.document') : $t('documentation.documents') }}
-          </span>
+    <span v-if="documents.length > 0" class="document-count">
+      {{ documents.length }} {{ documents.length === 1 ? $t('documentation.document') : $t('documentation.documents') }}
+    </span>
         </div>
 
-        <app-button
-            :label="$t('documentation.new')"
-            variant="primary"
-            size="small"
-            @click="openAddForm"
-            icon="pi pi-plus"
-        />
+        <div class="header-actions">
+          <!-- Botón exportar -->
+          <ExportButton
+              v-if="documents.length > 0"
+              :data="exportData"
+              type="documentation"
+              :formats="['pdf', 'json', 'csv']"
+              :button-label="$t('exports.export')"
+              variant="secondary"
+              size="small"
+              icon="pi pi-download"
+              :modal="false"
+          />
+
+          <!-- Botón nuevo -->
+          <app-button
+              :label="$t('documentation.new')"
+              variant="primary"
+              size="small"
+              @click="openAddForm"
+              icon="pi pi-plus"
+          />
+        </div>
       </div>
 
       <!-- Pantalla de carga -->
@@ -385,11 +519,11 @@ export default {
                   class="image-preview"
                   :class="{
                     'has-image': imagePreview,
-                    'uploading': uploadingImage
+                    'uploading': processingImage
                   }"
                   @click="$refs.imageInput.click()"
               >
-                <div v-if="uploadingImage" class="upload-progress">
+                <div v-if="processingImage" class="upload-progress">
                   <i class="pi pi-spin pi-spinner"></i>
                   <span>{{ $t('documentation.processingImage') }}</span>
                 </div>
@@ -406,7 +540,7 @@ export default {
                   accept="image/*"
                   class="hidden-input"
                   @change="handleImageChange"
-                  :disabled="uploadingImage"
+                  :disabled="processingImage"
               />
             </div>
             <div v-if="formError && formError.includes('imagen')" class="image-error">
@@ -437,7 +571,7 @@ export default {
               :label="$t('general.cancel')"
               variant="secondary"
               @click="closeForm"
-              :disabled="loading || uploadingImage"
+              :disabled="saving || processingImage"
           />
 
           <app-button
@@ -445,7 +579,7 @@ export default {
               variant="primary"
               @click="saveDocument"
               :loading="loading"
-              :disabled="uploadingImage || !currentDocument.imagePath"
+              :disabled="processingImage || saving || (!selectedImage && !isEditing)"
           />
         </div>
       </div>

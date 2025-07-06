@@ -4,13 +4,15 @@ import AppTable from "../../../core/components/AppTable.vue";
 import AppNotification from "../../../core/components/AppNotification.vue";
 import { Personnel } from "../models/personnel.entity.js";
 import { PersonnelApiService } from "../services/personnel-api.service.js";
+import ExportModal from '../../../core/exports/components/ExportModal.vue'
 
 export default {
   name: 'PersonnelInformationSupervisor',
   components: {
     AppButton,
     AppTable,
-    AppNotification
+    AppNotification,
+    ExportModal
   },
   props: {
     projectId: {
@@ -24,7 +26,7 @@ export default {
       // Datos principales
       personnel: [],
       loading: false,
-
+      showExportModal: false,
       // Selección múltiple
       selectedPersonnel: [],
 
@@ -62,6 +64,25 @@ export default {
 
     hasSelectedPersonnel() {
       return this.selectedPersonnel.length > 0;
+    },
+    exportData() {
+      return this.personnel.map(p => ({
+        id: p.id,
+        name: p.name,
+        lastname: p.lastname,
+        documentNumber: p.documentNumber,
+        position: p.position,
+        department: p.department,
+        personnelType: p.personnelType,
+        status: p.status,
+        monthlyAmount: p.monthlyAmount,
+        startDate: p.startDate,
+        endDate: p.endDate,
+        phone: p.phone,
+        email: p.email,
+        workedDays: p.workedDays,
+        totalAmount: p.totalAmount
+      }))
     }
   },
   methods: {
@@ -77,7 +98,9 @@ export default {
         this.loading = false;
       }
     },
-
+    openExportModal() {
+      this.showExportModal = true
+    },
     handleAddPersonnel() {
       this.$emit('add-personnel');
     },
@@ -247,11 +270,26 @@ export default {
             size="small"
             @click="handleDeleteMultiple"
         />
+        <!-- AGREGAR BOTÓN EXPORT -->
+        <AppButton
+            :label="$t('exports.export')"
+            icon="pi pi-download"
+            variant="secondary"
+            size="small"
+            @click="openExportModal"
+            :disabled="personnel.length === 0"
+        />
         <AppButton
             :label="$t('personnel.addNew')"
             icon="pi pi-plus"
             variant="primary"
             @click="handleAddPersonnel"
+        />
+        <ExportModal
+            v-model:visible="showExportModal"
+            :data="exportData"
+            type="personnel"
+            :title="$t('exports.exportPersonnel')"
         />
       </div>
     </div>
@@ -263,7 +301,7 @@ export default {
         :loading="loading"
         :selectable="true"
         v-model:selection="selectedPersonnel"
-        :show-export-button="true"
+        :show-export-button="false"
         :show-filter-button="true"
         :paginator="true"
         :rows="15"

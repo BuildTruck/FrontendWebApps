@@ -4,13 +4,15 @@ import AppTable from "../../../core/components/AppTable.vue";
 import AppNotification from "../../../core/components/AppNotification.vue";
 import { Personnel } from "../models/personnel.entity.js";
 import { PersonnelApiService } from "../services/personnel-api.service.js";
+import ExportModal from '../../../core/exports/components/ExportModal.vue'
 
 export default {
   name: 'PersonnelManager',
   components: {
     AppButton,
     AppTable,
-    AppNotification
+    AppNotification,
+    ExportModal
   },
   props: {
     projectId: {
@@ -22,7 +24,7 @@ export default {
     return {
       // Vistas: 'list' | 'attendance'
       currentView: 'list',
-
+      showExportModal: false,
       // Datos
       allPersonnel: [],
       selectedPerson: null,
@@ -48,6 +50,29 @@ export default {
   },
 
   computed: {
+    exportData() {
+      return this.allPersonnel.map(p => ({
+        id: p.id,
+        name: p.name,
+        lastname: p.lastname,
+        documentNumber: p.documentNumber,
+        position: p.position,
+        department: p.department,
+        personnelType: p.personnelType,
+        status: p.status,
+        monthlyAmount: p.monthlyAmount,
+        startDate: p.startDate,
+        endDate: p.endDate,
+        phone: p.phone,
+        email: p.email,
+        workedDays: p.workedDays,
+        absences: p.absences,
+        totalAmount: p.totalAmount,
+        // Campos adicionales para filtros
+        bank: p.bank,
+        accountNumber: p.accountNumber
+      }))
+    },
     personnelTypes() {
       return [
         { key: 'TECHNICAL', label: this.safeTranslate('personnel.typeTechnical', 'Technical') },
@@ -95,11 +120,19 @@ export default {
 
         // Filtro por estado
         if (this.selectedStatusFilter) {
+          // Para ACTIVE/INACTIVE usar la lógica existente
           if (this.selectedStatusFilter === 'ACTIVE' && (!person.isActive || !person.isActive())) {
             return false;
           }
           if (this.selectedStatusFilter === 'INACTIVE' && person.isActive && person.isActive()) {
             return false;
+          }
+
+          // Para los demás estados, comparar directamente
+          if (['PENDING', 'SUSPENDED', 'FINISHED'].includes(this.selectedStatusFilter)) {
+            if (person.status !== this.selectedStatusFilter) {
+              return false;
+            }
           }
         }
 
@@ -130,6 +163,9 @@ export default {
   },
 
   methods: {
+    openExportModal() {
+      this.showExportModal = true
+    },
     safeTranslate(key, fallback = '') {
       try {
         return this.$t ? this.$t(key) : fallback;
@@ -270,25 +306,6 @@ export default {
       return [currentYear - 1, currentYear, currentYear + 1];
     },
 
-    async handleExportAll() {
-      try {
-        const fileName = this.safeTranslate('personnel.personnelReport', 'Personnel Report');
-        if (this.personnelService.exportToExcel) {
-          await this.personnelService.exportToExcel(this.projectId, fileName);
-          this.showNotificationMessage(
-              this.safeTranslate('personnel.exportSuccess', 'Export successful'),
-              'success'
-          );
-        }
-      } catch (error) {
-        console.error('Error exporting:', error);
-        this.showNotificationMessage(
-            this.safeTranslate('personnel.exportError', 'Export failed'),
-            'error'
-        );
-      }
-    },
-
     showNotificationMessage(message, type = 'success') {
       this.notificationMessage = message;
       this.notificationType = type;
@@ -335,11 +352,11 @@ export default {
           </div>
 
           <AppButton
-              :label="$t('personnel.exportAll')"
+              :label="$t('exports.export')"
               icon="pi pi-download"
               variant="primary"
-              @click="handleExportAll"
-              :loading="loading"
+              @click="openExportModal"
+              :disabled="allPersonnel.length === 0"
           />
         </div>
       </div>
@@ -363,13 +380,17 @@ export default {
               <option value="">{{ $t('personnel.allStatuses') }}</option>
               <option value="ACTIVE">{{ $t('personnel.active') }}</option>
               <option value="INACTIVE">{{ $t('personnel.inactive') }}</option>
+              <!-- AGREGAR ESTAS 3 LÍNEAS: -->
+              <option value="PENDING">{{ $t('personnel.pending') }}</option>
+              <option value="SUSPENDED">{{ $t('personnel.suspended') }}</option>
+              <option value="FINISHED">{{ $t('personnel.finished') }}</option>
             </select>
           </div>
         </div>
       </div>
 
       <!-- Tabla de personal -->
-      <div class="personnel-table-section">
+      <div v-if="!loading && filteredPersonnel.length > 0" class="personnel-table-section">
         <AppTable
             :columns="personnelTableColumns"
             :data="formattedPersonnelData"
@@ -385,8 +406,8 @@ export default {
         />
       </div>
 
-      <!-- Estado sin datos -->
-      <div v-if="!loading && filteredPersonnel.length === 0" class="empty-state">
+      <!-- Estado sin datos - SOLO si no hay datos y no está cargando -->
+      <div v-else-if="!loading && filteredPersonnel.length === 0" class="empty-state">
         <i class="pi pi-users"></i>
         <h3>{{ $t('personnel.noPersonnelFound') }}</h3>
         <p>{{ $t('personnel.tryAdjustingFilters') }}</p>
@@ -1213,5 +1234,658 @@ export default {
 
 :deep(.personnel-table .p-datatable-tbody > tr) {
   transition: all 0.2s ease;
+}
+
+/* ========== RESPONSIVE DESIGN MEJORADO ========== */
+
+/* Extra Large Screens */
+@media (max-width: 1400px) {
+  .manager-header {
+    padding: 1.5rem;
+  }
+
+  .person-avatar {
+    width: 300px;
+    height: 400px;
+  }
+
+  .person-meta {
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  }
+
+  .calendar-days-header,
+  .calendar-attendance {
+    grid-template-columns: repeat(auto-fit, minmax(32px, 1fr));
+  }
+}
+
+/* Large Screens */
+@media (max-width: 1200px) {
+  .personnel-manager {
+    padding: 0;
+  }
+
+  .list-view, .attendance-view {
+    padding: 1.5rem;
+  }
+
+  .manager-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1.5rem;
+    padding: 1.5rem;
+  }
+
+  .header-controls {
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .month-selector {
+    order: 1;
+    flex: 1;
+    min-width: 280px;
+  }
+
+  .person-avatar {
+    width: 250px;
+    height: 300px;
+  }
+
+  .person-details h2 {
+    font-size: 2rem;
+  }
+
+  .person-meta {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  }
+
+  .attendance-summary {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .calendar-days-header,
+  .calendar-attendance {
+    grid-template-columns: repeat(auto-fit, minmax(28px, 1fr));
+    padding: 0.75rem;
+  }
+
+  .day-header,
+  .attendance-day {
+    min-height: 45px;
+  }
+}
+
+/* Medium Screens */
+@media (max-width: 992px) {
+  .list-view, .attendance-view {
+    padding: 1rem;
+  }
+
+  .manager-header {
+    padding: 1rem;
+  }
+
+  .header-left .page-title {
+    font-size: 1.75rem;
+  }
+
+  .header-left .page-subtitle {
+    font-size: 1rem;
+  }
+
+  .header-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .month-selector {
+    justify-content: center;
+    flex-wrap: wrap;
+    padding: 1rem;
+  }
+
+  .month-selector select {
+    min-width: 80px;
+  }
+
+  .filters-section {
+    padding: 1rem;
+  }
+
+  .filter-group {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .filter-select {
+    width: 100%;
+  }
+
+  .filter-select select {
+    width: 100%;
+    min-width: auto;
+  }
+
+  .personnel-table-section {
+    padding: 1rem;
+    overflow-x: auto;
+  }
+
+  .person-info {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 1.5rem;
+  }
+
+  .person-avatar {
+    width: 200px;
+    height: 250px;
+  }
+
+  .person-details {
+    width: 100%;
+  }
+
+  .person-details h2 {
+    font-size: 1.75rem;
+    text-align: center;
+  }
+
+  .person-meta {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0.75rem;
+  }
+
+  .meta-item {
+    padding: 1rem;
+  }
+
+  .meta-value {
+    font-size: 1rem;
+  }
+
+  .attendance-summary {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    padding: 1.5rem;
+  }
+
+  .summary-item .value {
+    font-size: 1.75rem;
+  }
+
+  .attendance-calendar {
+    padding: 1.5rem;
+  }
+
+  .calendar-header h3 {
+    font-size: 1.25rem;
+  }
+
+  .attendance-legend {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .legend-item {
+    justify-content: center;
+    padding: 0.75rem;
+  }
+
+  .calendar-days-header,
+  .calendar-attendance {
+    grid-template-columns: repeat(auto-fit, minmax(24px, 1fr));
+    gap: 3px;
+    padding: 0.5rem;
+  }
+
+  .day-header,
+  .attendance-day {
+    min-height: 40px;
+  }
+
+  .day-number {
+    font-size: 0.75rem;
+  }
+
+  .day-name {
+    font-size: 0.5rem;
+  }
+
+  .attendance-status {
+    font-size: 0.75rem;
+  }
+}
+
+/* Small Screens */
+@media (max-width: 768px) {
+  .personnel-manager {
+    background-color: #f8f9fa;
+  }
+
+  .list-view, .attendance-view {
+    padding: 0.75rem;
+  }
+
+  .manager-header {
+    margin-bottom: 1rem;
+    padding: 1rem;
+    border-radius: 8px;
+  }
+
+  .header-left .page-title {
+    font-size: 1.5rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .header-left .page-subtitle {
+    font-size: 0.875rem;
+  }
+
+  .month-selector {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+    padding: 0.75rem;
+  }
+
+  .month-selector label {
+    text-align: center;
+    margin-bottom: 0.5rem;
+  }
+
+  .month-selector select {
+    width: 100%;
+    padding: 0.75rem;
+    font-size: 1rem;
+  }
+
+  .filters-section {
+    margin-bottom: 1rem;
+    padding: 1rem;
+    border-radius: 8px;
+  }
+
+  .personnel-table-section {
+    border-radius: 8px;
+    padding: 0.75rem;
+  }
+
+  /* Tabla responsive */
+  :deep(.personnel-table .p-datatable-wrapper) {
+    overflow-x: auto;
+  }
+
+  :deep(.personnel-table .p-datatable-table) {
+    min-width: 800px;
+  }
+
+  .detail-header {
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 8px;
+  }
+
+  .person-avatar {
+    width: 150px;
+    height: 200px;
+    border-radius: 12px;
+  }
+
+  .avatar-placeholder {
+    font-size: 2.5rem;
+  }
+
+  .person-details h2 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .person-meta {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .meta-item {
+    padding: 0.75rem 1rem;
+  }
+
+  .meta-label {
+    font-size: 0.625rem;
+  }
+
+  .meta-value {
+    font-size: 0.875rem;
+  }
+
+  .attendance-summary {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+    padding: 1rem;
+  }
+
+  .summary-item {
+    flex-direction: row;
+    justify-content: space-between;
+    background: white;
+    padding: 1rem;
+    border-radius: 8px;
+    border-left: 4px solid #FF5F01;
+  }
+
+  .summary-item .label {
+    font-size: 0.75rem;
+    text-align: left;
+  }
+
+  .summary-item .value {
+    font-size: 1.5rem;
+  }
+
+  .attendance-calendar {
+    padding: 1rem;
+    border-radius: 8px;
+  }
+
+  .calendar-header h3 {
+    font-size: 1.125rem;
+    margin-bottom: 1rem;
+  }
+
+  .attendance-legend {
+    padding: 0.75rem;
+    border-radius: 6px;
+  }
+
+  .legend-item {
+    font-size: 0.75rem;
+    padding: 0.5rem 0.75rem;
+  }
+
+  .legend-color {
+    width: 16px;
+    height: 16px;
+  }
+
+  .calendar-days-header,
+  .calendar-attendance {
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+    padding: 0.5rem;
+    border-radius: 6px;
+  }
+
+  .day-header,
+  .attendance-day {
+    min-height: 35px;
+    border-radius: 4px;
+  }
+
+  .day-header {
+    padding: 0.25rem;
+  }
+
+  .day-number {
+    font-size: 0.625rem;
+    margin-bottom: 0.125rem;
+  }
+
+  .day-name {
+    font-size: 0.375rem;
+  }
+
+  .attendance-status {
+    font-size: 0.625rem;
+  }
+
+  .empty-state {
+    padding: 2rem 1rem;
+    border-radius: 8px;
+  }
+
+  .empty-state i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+  }
+
+  .empty-state h3 {
+    font-size: 1.25rem;
+  }
+
+  .empty-state p {
+    font-size: 0.875rem;
+  }
+}
+
+/* Extra Small Screens */
+@media (max-width: 480px) {
+  .list-view, .attendance-view {
+    padding: 0.5rem;
+  }
+
+  .manager-header,
+  .filters-section,
+  .personnel-table-section,
+  .detail-header,
+  .attendance-calendar {
+    margin-bottom: 0.75rem;
+    padding: 0.75rem;
+    border-radius: 6px;
+  }
+
+  .header-left .page-title {
+    font-size: 1.25rem;
+  }
+
+  .header-left .page-subtitle {
+    font-size: 0.75rem;
+  }
+
+  .month-selector {
+    padding: 0.5rem;
+  }
+
+  .month-selector select {
+    padding: 0.5rem;
+    font-size: 0.875rem;
+  }
+
+  .person-avatar {
+    width: 120px;
+    height: 160px;
+    border-radius: 8px;
+  }
+
+  .avatar-placeholder {
+    font-size: 2rem;
+  }
+
+  .person-details h2 {
+    font-size: 1.25rem;
+  }
+
+  .meta-item {
+    padding: 0.5rem 0.75rem;
+  }
+
+  .attendance-summary {
+    padding: 0.75rem;
+  }
+
+  .summary-item {
+    padding: 0.75rem;
+  }
+
+  .summary-item .value {
+    font-size: 1.25rem;
+  }
+
+  .calendar-header h3 {
+    font-size: 1rem;
+  }
+
+  .attendance-legend {
+    padding: 0.5rem;
+  }
+
+  .legend-item {
+    font-size: 0.625rem;
+    padding: 0.375rem 0.5rem;
+  }
+
+  .legend-color {
+    width: 14px;
+    height: 14px;
+  }
+
+  .calendar-days-header,
+  .calendar-attendance {
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1px;
+    padding: 0.375rem;
+  }
+
+  .day-header,
+  .attendance-day {
+    min-height: 30px;
+    border-radius: 3px;
+  }
+
+  .day-header {
+    padding: 0.125rem;
+  }
+
+  .day-number {
+    font-size: 0.5rem;
+    margin-bottom: 0;
+  }
+
+  .day-name {
+    font-size: 0.375rem;
+    display: none; /* Ocultar nombres de días en pantallas muy pequeñas */
+  }
+
+  .attendance-status {
+    font-size: 0.5rem;
+  }
+}
+
+/* Ultra Small Screens */
+@media (max-width: 360px) {
+  .list-view, .attendance-view {
+    padding: 0.25rem;
+  }
+
+  .manager-header,
+  .filters-section,
+  .personnel-table-section,
+  .detail-header,
+  .attendance-calendar {
+    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .header-left .page-title {
+    font-size: 1.125rem;
+  }
+
+  .person-avatar {
+    width: 100px;
+    height: 130px;
+  }
+
+  .avatar-placeholder {
+    font-size: 1.5rem;
+  }
+
+  .person-details h2 {
+    font-size: 1.125rem;
+  }
+
+  .calendar-days-header,
+  .calendar-attendance {
+    grid-template-columns: repeat(7, 1fr);
+    gap: 1px;
+    padding: 0.25rem;
+  }
+
+  .day-header,
+  .attendance-day {
+    min-height: 25px;
+  }
+
+  .day-number {
+    font-size: 0.375rem;
+  }
+
+  .attendance-status {
+    font-size: 0.375rem;
+  }
+
+  .summary-item .value {
+    font-size: 1rem;
+  }
+
+  .meta-value {
+    font-size: 0.75rem;
+  }
+}
+
+/* Landscape orientation adjustments */
+@media (max-height: 600px) and (orientation: landscape) {
+  .person-avatar {
+    width: 120px;
+    height: 150px;
+  }
+
+  .person-info {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+
+  .attendance-summary {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .calendar-days-header,
+  .calendar-attendance {
+    grid-template-columns: repeat(auto-fit, minmax(20px, 1fr));
+  }
+}
+
+/* Print styles */
+@media print {
+  .personnel-manager {
+    background: white !important;
+  }
+
+  .manager-header,
+  .filters-section,
+  .personnel-table-section,
+  .attendance-calendar {
+    box-shadow: none !important;
+    border: 1px solid #ddd !important;
+    background: white !important;
+  }
+
+  .header-controls,
+  .filter-group {
+    display: none !important;
+  }
+
+  .calendar-days-header,
+  .calendar-attendance {
+    grid-template-columns: repeat(31, 1fr) !important;
+    gap: 1px !important;
+  }
+
+  .day-header,
+  .attendance-day {
+    min-height: 20px !important;
+    font-size: 0.5rem !important;
+  }
 }
 </style>

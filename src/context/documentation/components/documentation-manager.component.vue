@@ -2,6 +2,7 @@
 import AppButton from '../../../core/components/AppButton.vue'
 import AppCard from '../../../core/components/AppCard.vue'
 import AppInput from '../../../core/components/AppInput.vue'
+import ExportModal from "../../../core/exports/components/ExportModal.vue";
 import { documentationService } from '../services/documentation-api.service'
 import { Documentation } from '../models/documentation.entity'
 
@@ -10,7 +11,8 @@ export default {
   components: {
     AppButton,
     AppCard,
-    AppInput
+    AppInput,
+    ExportModal
   },
   props: {
     projectId: {
@@ -23,19 +25,15 @@ export default {
     return {
       documents: [],
       loading: false,
-      showExportOptions: false,
-      exportFormat: 'pdf',
-      exportStartDate: '',
-      exportEndDate: '',
-      exporting: false,
-      stats: null,
-      error: null
+      showExportModal: false,
+      error: null,
+      refreshing: false,
+      stats: null
     }
   },
   async mounted() {
     await this.loadDocuments()
     await this.loadStats()
-    this.initializeDateRange()
   },
   watch: {
     // Recargar documentos si cambia el projectId
@@ -50,20 +48,49 @@ export default {
     }
   },
   computed: {
-    filteredDocumentsCount() {
-      if (!this.exportStartDate && !this.exportEndDate) {
-        return this.documents.length
-      }
-      const filtered = documentationService.filterDocumentsByDateRange(
-          this.documents,
-          this.exportStartDate,
-          this.exportEndDate
-      )
-      return filtered.length
+    hasDocuments() {
+      return this.documents.length > 0
     },
 
-    hasDocumentsInRange() {
-      return this.filteredDocumentsCount > 0
+    // Datos formateados para el componente de exportación
+    exportData() {
+      return this.documents.map(doc => ({
+        id: doc.id,
+        title: doc.title,
+        description: doc.description,
+        date: doc.date,
+        imagePath: doc.imagePath,
+        hasImage: !!doc.imagePath,
+        createdAt: doc.createdAt,
+        updatedAt: doc.updatedAt,
+        projectId: this.projectId,
+        // Campos adicionales para filtros
+        status: 'active', // Si tienes estado en tus documentos
+        department: doc.department || 'general',
+        category: doc.category || 'documentation'
+      }))
+    },
+
+    // Filtros personalizados para documentación
+    customFilters() {
+      return [
+        {
+          key: 'category',
+          type: 'select',
+          label: 'Categoría',
+          options: this.getCategoryOptions()
+        },
+        {
+          key: 'hasImage',
+          type: 'select',
+          label: 'Con imágenes',
+          options: [
+            { value: '', label: 'Todos' },
+            { value: true, label: 'Con imágenes' },
+            { value: false, label: 'Sin imágenes' }
+          ]
+        }
+      ]
     }
   },
   methods: {
@@ -79,7 +106,7 @@ export default {
 
         console.log(`🔄 Cargando documentos para proyecto: ${this.projectId}`)
 
-        // Usar el servicio mejorado que devuelve entidades Documentation
+        // Usar el servicio actualizado
         this.documents = await documentationService.getByProjectId(this.projectId)
 
         console.log(`✅ Cargados ${this.documents.length} documentos`)
@@ -92,7 +119,18 @@ export default {
 
       } catch (error) {
         console.error('❌ Error al cargar documentos:', error)
-        this.error = 'Error al cargar la documentación. Por favor, intenta de nuevo.'
+
+        // Manejar diferentes tipos de errores
+        if (error.message.includes('Network') || error.message.includes('fetch')) {
+          this.error = 'Error de conexión. Verifica tu internet y vuelve a intentar.'
+        } else if (error.message.includes('403') || error.message.includes('401')) {
+          this.error = 'No tienes permisos para ver esta documentación.'
+        } else if (error.message.includes('404')) {
+          this.error = 'Proyecto no encontrado.'
+        } else {
+          this.error = 'Error al cargar la documentación. Por favor, intenta de nuevo.'
+        }
+
         this.documents = []
       } finally {
         this.loading = false
@@ -110,92 +148,6 @@ export default {
       }
     },
 
-    initializeDateRange() {
-      // Inicializar rango de fechas con el mes actual
-      const today = new Date()
-      const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
-
-      this.exportEndDate = today.toISOString().split('T')[0]
-      this.exportStartDate = firstDayOfMonth.toISOString().split('T')[0]
-    },
-
-    toggleExportOptions() {
-      this.showExportOptions = !this.showExportOptions
-      if (this.showExportOptions && !this.exportStartDate) {
-        this.initializeDateRange()
-      }
-    },
-
-    async exportDocumentation() {
-      if (!this.projectId || this.documents.length === 0) {
-        alert('No hay documentos para exportar')
-        return
-      }
-
-      if (!this.hasDocumentsInRange) {
-        alert('No hay documentos en el rango de fechas seleccionado')
-        return
-      }
-
-      try {
-        this.exporting = true
-        console.log(`📤 Exportando documentación del proyecto ${this.projectId}`)
-        console.log(`📅 Rango: ${this.exportStartDate} - ${this.exportEndDate}`)
-
-        if (this.exportFormat === 'pdf') {
-          await documentationService.exportToPDF(
-              this.projectId,
-              this.exportStartDate,
-              this.exportEndDate,
-              {
-                includeImages: true,
-                pageSize: 'A4'
-              }
-          )
-        } else {
-          // Exportación ZIP (funcionalidad básica)
-          const filteredDocs = documentationService.filterDocumentsByDateRange(
-              this.documents,
-              this.exportStartDate,
-              this.exportEndDate
-          )
-
-          const exportData = {
-            projectId: this.projectId,
-            exportDate: new Date().toISOString(),
-            dateRange: {
-              start: this.exportStartDate,
-              end: this.exportEndDate
-            },
-            documents: filteredDocs.map(doc => doc.getSummary()),
-            stats: this.stats
-          }
-
-          // Crear y descargar archivo JSON (simulando ZIP)
-          const dataStr = JSON.stringify(exportData, null, 2)
-          const dataBlob = new Blob([dataStr], { type: 'application/json' })
-          const url = URL.createObjectURL(dataBlob)
-
-          const link = document.createElement('a')
-          link.href = url
-          link.download = `documentacion_${this.projectId}_${this.exportStartDate}_${this.exportEndDate}.json`
-          document.body.appendChild(link)
-          link.click()
-          document.body.removeChild(link)
-          URL.revokeObjectURL(url)
-        }
-
-        // Ocultar opciones de exportación
-        this.showExportOptions = false
-
-      } catch (error) {
-        console.error('❌ Error al exportar documentación:', error)
-        alert(`Error al exportar documentación: ${error.message}`)
-      } finally {
-        this.exporting = false
-      }
-    },
-
     formatDate(dateString) {
       return documentationService.formatDate(dateString)
     },
@@ -207,13 +159,119 @@ export default {
         return
       }
 
-      // Aquí podrías implementar navegación a vista detallada del documento
+      // Emitir evento para que el componente padre maneje la navegación
+      this.$emit('document-selected', document)
       console.log('📄 Click en documento:', document.getSummary())
     },
 
     async refreshDocuments() {
-      await this.loadDocuments()
-      await this.loadStats()
+      if (this.refreshing) return
+
+      try {
+        this.refreshing = true
+        await this.loadDocuments()
+        await this.loadStats()
+
+        // Mostrar mensaje de éxito brevemente
+        if (!this.error) {
+          console.log('✅ Documentos actualizados')
+        }
+
+      } catch (error) {
+        console.error('❌ Error al actualizar:', error)
+      } finally {
+        this.refreshing = false
+      }
+    },
+
+    // Método para abrir el modal de exportación
+    openExportModal() {
+      if (!this.hasDocuments) {
+        alert('No hay documentos para exportar')
+        return
+      }
+      this.showExportModal = true
+    },
+
+    // Manejar exportación completada
+    handleExportComplete(result) {
+      console.log('✅ Exportación completada:', result)
+
+      // Mostrar notificación de éxito
+      this.$toast?.add({
+        severity: 'success',
+        summary: 'Exportación completada',
+        detail: `${result.records} documentos exportados en formato ${result.format.toUpperCase()}`,
+        life: 5000
+      })
+
+      // Registrar estadística de exportación
+      this.logExportEvent(result)
+    },
+
+    // Manejar errores de exportación
+    handleExportError(error) {
+      console.error('❌ Error en exportación:', error)
+
+      this.$toast?.add({
+        severity: 'error',
+        summary: 'Error en exportación',
+        detail: error.message || 'No se pudo completar la exportación',
+        life: 8000
+      })
+    },
+
+    // Registrar evento de exportación para analytics
+    logExportEvent(result) {
+      try {
+        // Si tienes analytics configurado
+        if (window.gtag) {
+          window.gtag('event', 'documentation_export', {
+            event_category: 'Documentation',
+            event_label: result.format,
+            value: result.records,
+            custom_parameters: {
+              project_id: this.projectId,
+              export_format: result.format,
+              document_count: result.records
+            }
+          })
+        }
+      } catch (error) {
+        console.warn('No se pudo registrar evento de analytics:', error)
+      }
+    },
+
+    // Obtener opciones de categorías dinámicamente
+    getCategoryOptions() {
+      const categories = [...new Set(this.documents
+          .map(doc => doc.category)
+          .filter(Boolean))]
+
+      return [
+        { value: '', label: 'Todas las categorías' },
+        ...categories.map(cat => ({ value: cat, label: cat }))
+      ]
+    },
+
+    // Método para manejar errores de imágenes
+    handleImageError(event, document) {
+      console.warn(`⚠️ Error cargando imagen del documento ${document.id}`)
+      event.target.src = '/path/to/placeholder-image.png'
+    },
+
+    // Método para obtener URL optimizada de Cloudinary si es necesario
+    getOptimizedImageUrl(imageUrl, width = 400, height = 300) {
+      if (imageUrl && imageUrl.includes('cloudinary.com')) {
+        return imageUrl.replace('/upload/', `/upload/w_${width},h_${height},c_fill,q_auto,f_auto/`)
+      }
+      return imageUrl
+    },
+
+    // Método para vista detallada del documento
+    openDocumentDetail(document) {
+      console.log('Abriendo vista detallada para:', document.title)
+      this.$emit('open-document-detail', document)
     }
   }
 }
@@ -242,92 +300,30 @@ export default {
             size="small"
             @click="refreshDocuments"
             icon="pi pi-refresh"
-            :loading="loading"
+            :loading="refreshing"
         />
 
-        <!-- Botón de exportar -->
+        <!-- Nuevo botón de exportar que abre el modal -->
         <app-button
             :label="$t('documentation.export')"
             variant="primary"
-            @click="toggleExportOptions"
+            @click="openExportModal"
             icon="pi pi-download"
-            :disabled="documents.length === 0"
+            :disabled="!hasDocuments"
         />
-
-        <!-- Opciones de exportación mejoradas -->
-        <div v-if="showExportOptions" class="export-options">
-          <div class="export-header">
-            <h4>{{ $t('documentation.exportDocumentation') }}</h4>
-          </div>
-
-          <!-- Selector de rango de fechas -->
-          <div class="date-range-section">
-            <label class="section-label">{{ $t('documentation.dateRange') }}</label>
-            <div class="date-inputs">
-              <app-input
-                  v-model="exportStartDate"
-                  type="date"
-                  :label="$t('documentation.from')"
-                  size="small"
-                  fullWidth
-              />
-              <app-input
-                  v-model="exportEndDate"
-                  type="date"
-                  :label="$t('documentation.to')"
-                  size="small"
-                  fullWidth
-              />
-            </div>
-            <div class="date-info">
-              <span class="documents-count">
-                {{ filteredDocumentsCount }} {{ $t('documentation.documentsInRange') }}
-              </span>
-            </div>
-          </div>
-
-          <!-- Formato de exportación -->
-          <div class="export-format">
-            <label class="section-label">{{ $t('documentation.format') }}:</label>
-            <div class="format-options">
-              <label class="format-option">
-                <input type="radio" v-model="exportFormat" value="pdf" />
-                <span>
-                  <i class="pi pi-file-pdf"></i>
-                  {{ $t('documentation.pdfWithImages') }}
-                </span>
-              </label>
-              <label class="format-option">
-                <input type="radio" v-model="exportFormat" value="zip" />
-                <span>
-                  <i class="pi pi-file-export"></i>
-                  {{ $t('documentation.zipImages') }}
-                </span>
-              </label>
-            </div>
-          </div>
-
-          <!-- Botones de acción -->
-          <div class="export-actions">
-            <app-button
-                :label="$t('general.cancel')"
-                variant="secondary"
-                size="small"
-                @click="toggleExportOptions"
-                :disabled="exporting"
-            />
-            <app-button
-                :label="exporting ? $t('documentation.exporting') : $t('documentation.export')"
-                variant="primary"
-                size="small"
-                @click="exportDocumentation"
-                :disabled="!hasDocumentsInRange || exporting"
-                :loading="exporting"
-            />
-          </div>
-        </div>
       </div>
     </div>
+
+    <!-- Modal de exportación avanzado -->
+    <ExportModal
+        v-model:visible="showExportModal"
+        :data="exportData"
+        type="documentation"
+        :title="$t('documentation.exportDocumentation')"
+        :custom-filters="customFilters"
+        @export-complete="handleExportComplete"
+        @export-error="handleExportError"
+    />
 
     <!-- Mensaje de error -->
     <div v-if="error" class="error-container">
@@ -356,13 +352,14 @@ export default {
           v-for="doc in documents"
           :key="doc.id"
           :title="doc.title"
-          :image="doc.imagePath"
+          :image="getOptimizedImageUrl(doc.imagePath)"
           :description="doc.description"
           variant="post"
           :footer="{
             extra: formatDate(doc.date)
           }"
           @click="handleDocumentClick(doc)"
+          @image-error="handleImageError($event, doc)"
       />
     </div>
 
@@ -389,6 +386,7 @@ export default {
   align-items: center;
   margin-bottom: 1rem;
   padding-bottom: 1rem;
+  border-bottom: 1px solid #e0e0e0;
 }
 
 .project-stats {
@@ -405,137 +403,42 @@ export default {
   color: #666;
   background-color: #f5f5f5;
   padding: 0.5rem 0.75rem;
-  border-radius: 4px;
+  border-radius: 8px;
+  border-left: 3px solid #FF5F01;
+  transition: all 0.2s ease;
+}
+
+.stat-item:hover {
+  background-color: #f0f0f0;
+  transform: translateY(-1px);
 }
 
 .stat-item.recent {
   background-color: #e8f5e8;
   color: #2d5a2d;
+  border-left-color: #4caf50;
+}
+
+.stat-item i {
+  color: #FF5F01;
+  font-size: 1rem;
+}
+
+.stat-item.recent i {
+  color: #4caf50;
 }
 
 .header-actions {
   display: flex;
-  gap: 0.5rem;
-  align-items: center;
-  position: relative;
-}
-
-.export-container {
-  position: relative;
-}
-
-.export-options {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
-  background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-  padding: 1.5rem;
-  z-index: 10;
-  min-width: 350px;
-  border: 1px solid #e0e0e0;
-}
-
-.export-header {
-  margin-bottom: 1rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid #eee;
-}
-
-.export-header h4 {
-  margin: 0;
-  font-size: 1rem;
-  font-weight: 600;
-  color: #333;
-}
-
-.date-range-section {
-  margin-bottom: 1.5rem;
-}
-
-.section-label {
-  display: block;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: #333;
-  margin-bottom: 0.5rem;
-}
-
-.date-inputs {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
   gap: 0.75rem;
-  margin-bottom: 0.5rem;
-}
-
-.date-info {
-  text-align: center;
-  margin-top: 0.5rem;
-}
-
-.documents-count {
-  font-size: 0.75rem;
-  color: #666;
-  background-color: #f0f0f0;
-  padding: 0.25rem 0.5rem;
-  border-radius: 12px;
-  display: inline-block;
-}
-
-.export-format {
-  margin-bottom: 1.5rem;
-}
-
-.format-options {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-  margin-top: 0.5rem;
-}
-
-.format-option {
-  display: flex;
   align-items: center;
-  gap: 0.5rem;
-  cursor: pointer;
-  padding: 0.5rem;
-  border-radius: 4px;
-  transition: background-color 0.2s;
-}
-
-.format-option:hover {
-  background-color: #f8f8f8;
-}
-
-.format-option input {
-  cursor: pointer;
-}
-
-.format-option span {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
-}
-
-.format-option i {
-  color: #FF5F01;
-}
-
-.export-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.5rem;
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid #eee;
 }
 
 .documentation-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 1.5rem;
+  margin-top: 1rem;
 }
 
 .loading-container {
@@ -543,21 +446,28 @@ export default {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 3rem;
+  padding: 4rem 2rem;
   text-align: center;
 }
 
 .loading-icon {
-  font-size: 2rem;
+  font-size: 2.5rem;
   color: #FF5F01;
   margin-bottom: 1rem;
+}
+
+.loading-container p {
+  color: #666;
+  font-size: 1rem;
+  margin: 0;
 }
 
 .error-container {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 200px;
+  min-height: 300px;
+  padding: 2rem;
 }
 
 .error-content {
@@ -565,19 +475,21 @@ export default {
   max-width: 400px;
   padding: 2rem;
   background-color: #fff5f5;
-  border-radius: 8px;
+  border-radius: 12px;
   border: 1px solid #fed7d7;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .error-icon {
-  font-size: 2rem;
+  font-size: 2.5rem;
   color: #e53e3e;
   margin-bottom: 1rem;
 }
 
 .error-content p {
-  margin: 0 0 1rem;
+  margin: 0 0 1.5rem;
   color: #c53030;
+  line-height: 1.5;
 }
 
 .empty-container {
@@ -585,81 +497,129 @@ export default {
   justify-content: center;
   align-items: center;
   min-height: 400px;
+  padding: 2rem;
 }
 
 .empty-content {
   text-align: center;
   max-width: 500px;
-  padding: 3rem;
-  background-color: #f8f8f8;
-  border-radius: 8px;
+  padding: 3rem 2rem;
+  background-color: #f8f9fa;
+  border-radius: 12px;
+  border: 1px solid #e9ecef;
 }
 
 .empty-icon {
-  font-size: 3rem;
+  font-size: 4rem;
   color: #ccc;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
 }
 
 .empty-content h3 {
   margin: 0 0 1rem;
   color: #555;
   font-weight: 500;
+  font-size: 1.25rem;
 }
 
 .empty-content p {
   margin: 0;
   color: #666;
+  line-height: 1.5;
 }
 
 .empty-note {
-  margin-top: 0.5rem !important;
+  margin-top: 1rem !important;
   font-size: 0.875rem;
   color: #888;
   font-style: italic;
 }
 
-/* Media Queries */
-@media (max-width: 1024px) {
-  .documentation-grid {
-    grid-template-columns: repeat(2, 1fr);
+/* Animaciones */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
   }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
-  .export-options {
-    min-width: 300px;
+.documentation-grid {
+  animation: fadeInUp 0.5s ease-out;
+}
+
+/* Media Queries */
+@media (max-width: 1200px) {
+  .documentation-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   }
 }
 
 @media (max-width: 768px) {
+  .documentation-manager {
+    padding: 1rem;
+  }
+
   .documentation-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 1rem;
   }
 
-  .export-options {
-    position: static;
-    margin-top: 1rem;
-    min-width: auto;
+  .project-stats {
+    flex-wrap: wrap;
     width: 100%;
   }
 
-  .project-stats {
-    flex-wrap: wrap;
+  .header-actions {
+    width: 100%;
+    justify-content: flex-end;
   }
 
-  .date-inputs {
-    grid-template-columns: 1fr;
+  .documentation-grid {
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1rem;
+  }
+
+  .empty-content,
+  .error-content {
+    padding: 2rem 1.5rem;
   }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 480px) {
   .documentation-grid {
     grid-template-columns: 1fr;
   }
 
-  .documentation-manager {
+  .stat-item {
+    font-size: 0.8rem;
+    padding: 0.4rem 0.6rem;
+  }
+
+  .header-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .loading-container,
+  .error-container,
+  .empty-container {
+    min-height: 250px;
     padding: 1rem;
   }
+}
+
+/* Estados hover para las cards */
+.documentation-grid :deep(.app-card) {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.documentation-grid :deep(.app-card:hover) {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
 }
 </style>

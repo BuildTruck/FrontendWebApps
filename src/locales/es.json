@@ -653,7 +653,7 @@
     "personnelManagerReport": "Reporte Gestor Personal",
     "exportAll": "Exportar Todo",
     "export": "Exportar",
-    "active": "activos",
+    "active": "Activos",
     "saveChanges": "Guardar Cambios",
     "searchPlaceholder": "Buscar personal por nombre, documento, cargo...",
     "selectPersonnelToView": "Selecciona Personal para Ver Detalles",
@@ -1109,6 +1109,97 @@
     },
     "info": {
       "corporateEmailFixed": "Este email no puede ser modificado y se usa para acceder al sistema"
+    }
+  },
+  "exports": {
+    "export": "Exportar",
+    "exportData": "Exportar Datos",
+    "exportDocumentation": "Exportar Documentación",
+    "exportPersonnel": "Exportar Personal",
+    "exporting": "Exportando...",
+    "exportComplete": "Exportación Completada",
+    "exportError": "Error de Exportación",
+    "exportFailed": "Exportación Fallida",
+
+    "formats": {
+      "excel": "Excel",
+      "pdf": "PDF",
+      "csv": "CSV",
+      "json": "JSON",
+      "selectFormat": "Seleccionar Formato",
+      "format": "Formato"
+    },
+
+    "filters": {
+      "dateRange": "Rango de Fechas",
+      "from": "Desde",
+      "to": "Hasta",
+      "startDate": "Fecha de Inicio",
+      "endDate": "Fecha de Fin",
+      "status": "Estado",
+      "department": "Departamento",
+      "category": "Categoría",
+      "allStatuses": "Todos los Estados",
+      "allDepartments": "Todos los Departamentos",
+      "allCategories": "Todas las Categorías",
+      "filterData": "Filtrar Datos",
+      "applyFilters": "Aplicar Filtros",
+      "clearFilters": "Limpiar Filtros"
+    },
+
+    "options": {
+      "includeImages": "Incluir Imágenes",
+      "includeCharts": "Incluir Gráficos",
+      "multipleSheets": "Múltiples Hojas",
+      "orientation": "Orientación",
+      "portrait": "Vertical",
+      "landscape": "Horizontal",
+      "pageSize": "Tamaño de Página",
+      "advanced": "Opciones Avanzadas"
+    },
+
+    "preview": {
+      "dataPreview": "Vista Previa",
+      "recordsSelected": "registros seleccionados",
+      "recordsFound": "registros encontrados",
+      "totalRecords": "Total de Registros",
+      "filteredRecords": "Registros Filtrados",
+      "previewFirst": "Mostrando primeros",
+      "of": "de",
+      "records": "registros",
+      "andMore": "y {count} registros más",
+      "noDataToPreview": "No hay datos para previsualizar"
+    },
+
+    "messages": {
+      "noData": "No hay datos para exportar",
+      "noFilteredData": "No hay datos que coincidan con los filtros seleccionados",
+      "selectFormat": "Por favor selecciona un formato de exportación",
+      "preparingExport": "Preparando exportación...",
+      "generatingFile": "Generando archivo...",
+      "downloadStarting": "Iniciando descarga...",
+      "exportSuccess": "Exportación completada exitosamente",
+      "downloadReady": "Archivo listo para descargar",
+      "exportCancelled": "Exportación cancelada",
+      "unexpectedError": "Ocurrió un error inesperado"
+    },
+
+    "actions": {
+      "cancel": "Cancelar",
+      "close": "Cerrar",
+      "export": "Exportar",
+      "download": "Descargar",
+      "retry": "Reintentar",
+      "continue": "Continuar"
+    },
+
+    "summary": {
+      "totalRecords": "Total de Registros",
+      "filteredRecords": "Registros Filtrados",
+      "lastUpdate": "Última Actualización",
+      "dataUpdated": "Datos Actualizados",
+      "recordsWillBeExported": "Se exportarán {count} registros",
+      "inFormat": "en formato {format}"
     }
   }
 }

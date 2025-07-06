@@ -650,7 +650,7 @@
     "personnelManagerReport": "Personnel Manager Report",
     "exportAll": "Export All",
     "export": "Export",
-    "active": "active",
+    "active": "Active",
     "saveChanges": "Save Changes",
     "searchPlaceholder": "Search personnel by name, document, position...",
     "selectPersonnelToView": "Select Personnel to View Details",
@@ -1135,6 +1135,97 @@
     },
     "info": {
       "corporateEmailFixed": "This email cannot be modified and is used to access the system"
+    }
+  },
+  "exports": {
+    "export": "Export",
+    "exportData": "Export Data",
+    "exportDocumentation": "Export Documentation",
+    "exportPersonnel": "Export Personnel",
+    "exporting": "Exporting...",
+    "exportComplete": "Export Complete",
+    "exportError": "Export Error",
+    "exportFailed": "Export Failed",
+
+    "formats": {
+      "excel": "Excel",
+      "pdf": "PDF",
+      "csv": "CSV",
+      "json": "JSON",
+      "selectFormat": "Select Format",
+      "format": "Format"
+    },
+
+    "filters": {
+      "dateRange": "Date Range",
+      "from": "From",
+      "to": "To",
+      "startDate": "Start Date",
+      "endDate": "End Date",
+      "status": "Status",
+      "department": "Department",
+      "category": "Category",
+      "allStatuses": "All Statuses",
+      "allDepartments": "All Departments",
+      "allCategories": "All Categories",
+      "filterData": "Filter Data",
+      "applyFilters": "Apply Filters",
+      "clearFilters": "Clear Filters"
+    },
+
+    "options": {
+      "includeImages": "Include Images",
+      "includeCharts": "Include Charts",
+      "multipleSheets": "Multiple Sheets",
+      "orientation": "Orientation",
+      "portrait": "Portrait",
+      "landscape": "Landscape",
+      "pageSize": "Page Size",
+      "advanced": "Advanced Options"
+    },
+
+    "preview": {
+      "dataPreview": "Data Preview",
+      "recordsSelected": "records selected",
+      "recordsFound": "records found",
+      "totalRecords": "Total Records",
+      "filteredRecords": "Filtered Records",
+      "previewFirst": "Showing first",
+      "of": "of",
+      "records": "records",
+      "andMore": "and {count} more records",
+      "noDataToPreview": "No data to preview"
+    },
+
+    "messages": {
+      "noData": "No data to export",
+      "noFilteredData": "No data matches the selected filters",
+      "selectFormat": "Please select an export format",
+      "preparingExport": "Preparing export...",
+      "generatingFile": "Generating file...",
+      "downloadStarting": "Download starting...",
+      "exportSuccess": "Export completed successfully",
+      "downloadReady": "File ready for download",
+      "exportCancelled": "Export cancelled",
+      "unexpectedError": "An unexpected error occurred"
+    },
+
+    "actions": {
+      "cancel": "Cancel",
+      "close": "Close",
+      "export": "Export",
+      "download": "Download",
+      "retry": "Retry",
+      "continue": "Continue"
+    },
+
+    "summary": {
+      "totalRecords": "Total Records",
+      "filteredRecords": "Filtered Records",
+      "lastUpdate": "Last Update",
+      "dataUpdated": "Data Updated",
+      "recordsWillBeExported": "{count} records will be exported",
+      "inFormat": "in {format} format"
     }
   }
 }

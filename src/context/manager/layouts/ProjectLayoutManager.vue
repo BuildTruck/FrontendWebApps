@@ -4,12 +4,14 @@ import LanguageSwitcher from "../../../core/components/language-switcher.compone
 import {useThemeStore} from "../../../core/stores/theme.js";
 import {useLogo} from "../../../core/composables/useLogo.js";
 import {projectService} from "../../projects/services/projects-api.service.js";
+import NotificationBell from "../../../core/notifications/components/NotificationBell.vue";
 
 export default {
   name: 'ProjectLayoutManager',
   components: {
     AppButton,
-    LanguageSwitcher
+    LanguageSwitcher,
+    NotificationBell
   },
   props: {
     projectName: {
@@ -121,7 +123,10 @@ export default {
       <!-- Header -->
       <header class="project-header">
         <h1 class="project-title">{{ $t('project.title') }} {{ currentProjectName }}</h1>
-        <language-switcher/>
+        <div class="header-actions">
+          <NotificationBell />
+          <language-switcher/>
+        </div>
       </header>
 
       <!-- Tabs Navigation con contadores dinámicos -->
@@ -149,6 +154,15 @@ export default {
 </template>
 
 <style scoped>
+.header-bar {
+  justify-content: space-between; /* ← Agregar */
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
 /* El CSS permanece igual al anterior */
 /* Layout principal con barra lateral */
 .project-layout {

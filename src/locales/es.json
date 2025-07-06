@@ -1177,5 +1177,251 @@
       "recordsWillBeExported": "Se exportarán {count} registros",
       "inFormat": "en formato {format}"
     }
+  },
+  "notifications": {
+    "title": "Notificaciones",
+    "loading": "Cargando notificaciones...",
+    "loadingMore": "Cargando más...",
+    "noMoreItems": "No hay más notificaciones",
+    "empty": "No tienes notificaciones",
+    "emptySubtitle": "Te notificaremos cuando haya algo nuevo",
+    "markAsRead": "Marcar como leída",
+    "markAllRead": "Marcar todas",
+    "viewDetails": "Ver detalles",
+    "openLink": "Abrir enlace",
+    "archive": "Archivar",
+    "delete": "Eliminar",
+    "moreOptions": "Más opciones",
+    "refresh": "Actualizar",
+    "close": "Cerrar",
+    "total": "Total",
+    "lastUpdated": "Última actualización",
+    "viewAll": "Ver todas",
+    "clearOld": "Limpiar antiguas",
+    "loadMore": "Cargar más",
+
+    "contexts": {
+      "system": "Sistema",
+      "projects": "Proyectos",
+      "personnel": "Personal",
+      "materials": "Materiales",
+      "machinery": "Maquinaria",
+      "incidents": "Incidentes"
+    },
+
+    "priorities": {
+      "low": "Baja",
+      "normal": "Normal",
+      "high": "Alta",
+      "critical": "Crítica"
+    },
+
+    "filters": {
+      "title": "Filtros",
+      "clearAll": "Limpiar todo",
+      "search": "Buscar",
+      "searchPlaceholder": "Buscar en notificaciones...",
+      "context": "Contexto",
+      "priority": "Prioridad",
+      "dateRange": "Rango de fechas",
+      "project": "Proyecto",
+      "readStatus": "Estado de lectura",
+      "hasAction": "Tiene acción",
+      "sortBy": "Ordenar por",
+
+      "unreadOnly": "No leídas",
+      "critical": "Críticas",
+      "today": "Hoy",
+      "withActions": "Con acciones",
+      "withoutActions": "Sin acciones",
+
+      "allContexts": "Todos los contextos",
+      "allPriorities": "Todas las prioridades",
+      "allProjects": "Todos los proyectos",
+      "all": "Todas",
+      "readOnly": "Solo leídas",
+
+      "sortByDate": "Fecha",
+      "sortByPriority": "Prioridad",
+      "sortByContext": "Contexto",
+      "sortByStatus": "Estado",
+      "ascending": "Ascendente",
+      "descending": "Descendente",
+
+      "activeFilters": "Filtros activos",
+      "status": "Estado",
+
+      "savedFilters": "Filtros guardados",
+      "saveFilter": "Guardar filtro",
+
+      "noResults": "No se encontraron notificaciones",
+      "resultsCount": "{count} notificación encontrada | {count} notificaciones encontradas"
+    },
+
+    "preferences": {
+      "title": "Configuración de Notificaciones",
+      "loading": "Cargando preferencias...",
+      "saving": "Guardando...",
+      "save": "Guardar",
+      "savedSuccessfully": "Preferencias guardadas correctamente",
+
+      "quickActions": "Acciones Rápidas",
+      "enableAll": "Habilitar todo",
+      "disableAll": "Deshabilitar todo",
+      "onlyCritical": "Solo críticas",
+      "roleDefaults": "Por rol",
+
+      "byContext": "Por Contexto",
+
+      "inApp": "En la app",
+      "email": "Email",
+
+      "minimumPriority": "Prioridad mínima",
+
+      "advanced": "Configuración Avanzada",
+      "soundEnabled": "Sonidos de notificación",
+      "desktopNotifications": "Notificaciones del navegador",
+      "digestEmail": "Resumen por email",
+      "digestFrequency": "Frecuencia del resumen",
+      "daily": "Diario",
+      "weekly": "Semanal",
+      "monthly": "Mensual",
+
+      "exportImport": "Exportar/Importar",
+      "export": "Exportar",
+      "import": "Importar",
+
+      "resetDefaults": "Restaurar por defecto",
+
+      "preview": "Vista previa"
+    },
+
+    "types": {
+      "systemNotification": "Notificación del sistema",
+      "userRegistered": "Usuario registrado",
+      "userInactive": "Usuario inactivo",
+      "projectCreated": "Proyecto creado",
+      "systemError": "Error del sistema",
+
+      "projectAssigned": "Proyecto asignado",
+      "projectStatusChanged": "Estado del proyecto cambió",
+      "projectStartingSoon": "Proyecto iniciando pronto",
+      "projectOverdue": "Proyecto retrasado",
+
+      "personnelAdded": "Personal agregado",
+      "personnelRemoved": "Personal removido",
+      "attendanceAlert": "Alerta de asistencia",
+      "paymentProcessed": "Pago procesado",
+      "personnelInactive": "Personal inactivo",
+
+      "lowStock": "Stock bajo",
+      "criticalStock": "Stock crítico",
+      "materialAdded": "Material agregado",
+      "materialUsed": "Material usado",
+      "highCostAlert": "Alerta de costo alto",
+
+      "machineryAssigned": "Maquinaria asignada",
+      "machineryUnassigned": "Maquinaria desasignada",
+      "machineryMaintenance": "Mantenimiento de maquinaria",
+      "machineryAvailable": "Maquinaria disponible",
+      "machineryStatusChanged": "Estado de maquinaria cambió",
+
+      "incidentReported": "Incidente reportado",
+      "incidentAssigned": "Incidente asignado",
+      "criticalIncident": "Incidente crítico",
+      "incidentResolved": "Incidente resuelto",
+      "incidentSeverityChanged": "Severidad del incidente cambió"
+    },
+
+    "status": {
+      "connected": "Conectado a notificaciones",
+      "connecting": "Conectando...",
+      "disconnected": "Desconectado",
+      "reconnecting": "Reconectando...",
+      "error": "Error de conexión"
+    },
+
+    "time": {
+      "now": "Ahora",
+      "minutesAgo": "hace {minutes}m",
+      "hoursAgo": "hace {hours}h",
+      "daysAgo": "hace {days}d",
+      "weeksAgo": "hace {weeks}sem",
+      "monthsAgo": "hace {months}mes"
+    },
+
+    "errors": {
+      "loadFailed": "Error al cargar notificaciones",
+      "markReadFailed": "Error al marcar como leída",
+      "markAllReadFailed": "Error al marcar todas como leídas",
+      "deleteFailed": "Error al eliminar notificación",
+      "archiveFailed": "Error al archivar notificación",
+      "preferencesLoadFailed": "Error al cargar preferencias",
+      "preferencesSaveFailed": "Error al guardar preferencias",
+      "connectionFailed": "Error de conexión en tiempo real",
+      "searchFailed": "Error en la búsqueda",
+      "filterFailed": "Error al aplicar filtros",
+      "exportFailed": "Error al exportar preferencias",
+      "importFailed": "Error al importar preferencias",
+      "invalidImportFormat": "Formato de importación inválido",
+      "networkError": "Error de red. Revisa tu conexión.",
+      "unauthorized": "No tienes permisos para esta acción",
+      "serverError": "Error del servidor. Intenta más tarde."
+    },
+
+    "success": {
+      "markedAsRead": "Notificación marcada como leída",
+      "allMarkedAsRead": "Todas las notificaciones marcadas como leídas",
+      "deleted": "Notificación eliminada",
+      "archived": "Notificación archivada",
+      "preferencesUpdated": "Preferencias actualizadas",
+      "filterSaved": "Filtro guardado",
+      "exported": "Preferencias exportadas",
+      "imported": "Preferencias importadas",
+      "oldNotificationsCleared": "Notificaciones antiguas eliminadas"
+    },
+
+    "confirmations": {
+      "deleteNotification": "¿Estás seguro de que quieres eliminar esta notificación?",
+      "deleteImportantNotification": "¿Estás seguro de que quieres eliminar esta notificación importante?",
+      "archiveNotification": "¿Estás seguro de que quieres archivar esta notificación?",
+      "markAllAsRead": "¿Estás seguro de que quieres marcar todas las notificaciones como leídas?",
+      "clearOldNotifications": "¿Estás seguro de que quieres eliminar las notificaciones antiguas?",
+      "resetPreferences": "¿Estás seguro de que quieres resetear todas las preferencias?",
+      "disableAllNotifications": "¿Estás seguro de que quieres deshabilitar todas las notificaciones?",
+      "deleteFilter": "¿Estás seguro de que quieres eliminar este filtro guardado?"
+    },
+
+    "tooltips": {
+      "bellIcon": "Ver notificaciones",
+      "markAsRead": "Marcar esta notificación como leída",
+      "markAllAsRead": "Marcar todas las notificaciones como leídas",
+      "filters": "Filtrar notificaciones",
+      "preferences": "Configurar notificaciones",
+      "refresh": "Actualizar notificaciones",
+      "close": "Cerrar panel de notificaciones",
+      "viewAction": "Ver detalles de esta notificación",
+      "archive": "Archivar esta notificación",
+      "delete": "Eliminar esta notificación",
+      "moreOptions": "Más opciones para esta notificación",
+      "sortAscending": "Ordenar de forma ascendente",
+      "sortDescending": "Ordenar de forma descendente",
+      "clearFilter": "Limpiar este filtro",
+      "saveFilter": "Guardar combinación actual de filtros"
+    },
+
+    "accessibility": {
+      "notificationsList": "Lista de notificaciones",
+      "notificationItem": "Notificación",
+      "unreadNotification": "Notificación no leída",
+      "readNotification": "Notificación leída",
+      "criticalNotification": "Notificación crítica",
+      "highPriorityNotification": "Notificación de alta prioridad",
+      "notificationFilters": "Filtros de notificaciones",
+      "notificationPreferences": "Preferencias de notificaciones",
+      "closeDialog": "Cerrar diálogo",
+      "toggleFilters": "Mostrar/ocultar filtros",
+      "togglePreferences": "Mostrar/ocultar preferencias"
+    }
   }
 }

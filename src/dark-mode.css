@@ -4409,3 +4409,729 @@
 [data-theme="dark"] .filters-container {
     background: transparent !important;
 }
+
+/* ================================================================
+   NOTIFICATION BELL - ULTRA MODERN DARK MODE COMPLETO Y CORREGIDO
+   ================================================================ */
+
+/* ================================================================
+   BELL BUTTON DARK MODE
+   ================================================================ */
+[data-theme="dark"] .notification-bell {
+    background:var( --shadow) !important;
+    backdrop-filter: blur(15px) saturate(180%) !important;
+    border: transparent !important;
+    color: var(--text-secondary) !important;
+
+}
+
+[data-theme="dark"] .notification-bell::before {
+    background: linear-gradient(135deg, rgba(255, 95, 1, 0.1), rgba(245, 158, 11, 0.1)) !important;
+}
+
+[data-theme="dark"] .notification-bell:hover {
+    background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-secondary) 100%) !important;
+    color: var(--text-primary) !important;
+    border-color: transparent!important;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+}
+
+[data-theme="dark"] .notification-bell.has-unread {
+    color: #FF5F01 !important;
+    background: linear-gradient(135deg, rgba(255, 95, 1, 0.2) 0%, rgba(245, 158, 11, 0.15) 100%) !important;
+    border-color: rgba(255, 95, 1, 0.4) !important;
+    box-shadow: 0 4px 12px rgba(255, 95, 1, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+[data-theme="dark"] .notification-bell.critical {
+    color: #ef4444 !important;
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(220, 38, 38, 0.15) 100%) !important;
+    border-color: rgba(239, 68, 68, 0.4) !important;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+[data-theme="dark"] .notification-badge {
+    background: linear-gradient(135deg, #FF5F01 0%, #f59e0b 100%) !important;
+    border: transparent!important;
+    box-shadow: 0 4px 12px rgba(255, 95, 1, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+}
+.notification-bell.animate {
+    animation: bellShake 0.6s ease-in-out;
+}
+/* ================================================================
+   DROPDOWN DARK MODE
+   ================================================================ */
+[data-theme="dark"] .notification-dropdown {
+    background: linear-gradient(135deg, rgba(45, 45, 45, 0.95) 0%, rgba(26, 26, 26, 0.9) 100%) !important;
+    backdrop-filter: blur(25px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(25px) saturate(180%) !important;
+    border: 1px solid rgba(64, 64, 64, 0.3) !important;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4), 0 10px 20px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+[data-theme="dark"] .notification-dropdown::before {
+    background: linear-gradient(90deg, #FF5F01, #f59e0b, #10b981, #3b82f6, #8b5cf6) !important;
+    background-size: 300% 100% !important;
+}
+
+/* ================================================================
+   HEADER DARK MODE
+   ================================================================ */
+[data-theme="dark"] .notification-header {
+    background: linear-gradient(135deg, rgba(36, 36, 36, 0.9) 0%, rgba(45, 45, 45, 0.8) 100%) !important;
+    backdrop-filter: blur(10px) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+}
+
+[data-theme="dark"] .notification-header h3 {
+    background: linear-gradient(135deg, var(--text-primary) 0%, var(--text-secondary) 100%) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    background-clip: text !important;
+}
+
+[data-theme="dark"] .notification-header h3::before {
+    background: linear-gradient(135deg, #FF5F01, #f59e0b) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    background-clip: text !important;
+}
+
+[data-theme="dark"] .btn-mark-all,
+[data-theme="dark"] .btn-filters,
+[data-theme="dark"] .btn-settings {
+    background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-secondary) 100%) !important;
+    color: var(--text-secondary) !important;
+    border: none !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+[data-theme="dark"] .btn-mark-all::before,
+[data-theme="dark"] .btn-filters::before,
+[data-theme="dark"] .btn-settings::before {
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent) !important;
+}
+
+[data-theme="dark"] .btn-mark-all {
+    color: #FF5F01 !important;
+    background: linear-gradient(135deg, rgba(255, 95, 1, 0.15) 0%, rgba(245, 158, 11, 0.1) 100%) !important;
+}
+
+[data-theme="dark"] .btn-mark-all:hover {
+    background: linear-gradient(135deg, #FF5F01 0%, #f59e0b 100%) !important;
+    color: white !important;
+    box-shadow: 0 8px 25px rgba(255, 95, 1, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+}
+
+[data-theme="dark"] .btn-filters,
+[data-theme="dark"] .btn-settings {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .btn-filters:hover,
+[data-theme="dark"] .btn-settings:hover,
+[data-theme="dark"] .btn-filters.active {
+    background: linear-gradient(135deg, var(--border-hover) 0%, var(--text-muted) 100%) !important;
+    color: var(--text-primary) !important;
+    box-shadow: 0 8px 25px rgba(102, 102, 102, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+}
+
+/* ================================================================
+   SUMMARY DARK MODE
+   ================================================================ */
+[data-theme="dark"] .notification-summary {
+    background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-card) 100%) !important;
+    backdrop-filter: blur(10px) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+}
+
+[data-theme="dark"] .summary-item {
+    background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-secondary) 100%) !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--text-secondary) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+[data-theme="dark"] .summary-item:hover {
+    border-color: rgba(255, 95, 1, 0.4) !important;
+    box-shadow: 0 8px 25px rgba(255, 95, 1, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+[data-theme="dark"] .summary-item i {
+    color: #FF5F01 !important;
+    text-shadow: 0 0 10px rgba(255, 95, 1, 0.4) !important;
+}
+
+/* ================================================================
+   FILTROS DARK MODE
+   ================================================================ */
+[data-theme="dark"] .notification-filters {
+    background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-card) 100%) !important;
+    backdrop-filter: blur(10px) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+}
+
+[data-theme="dark"] .notification-filters select,
+[data-theme="dark"] .notification-filters button {
+    background: linear-gradient(135deg, var(--input-bg) 0%, var(--bg-card) 100%) !important;
+    color: var(--text-primary) !important;
+    border: 2px solid transparent !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+[data-theme="dark"] .notification-filters select::before,
+[data-theme="dark"] .notification-filters button::before {
+    background: linear-gradient(135deg, rgba(255, 95, 1, 0.15), rgba(245, 158, 11, 0.15)) !important;
+}
+
+[data-theme="dark"] .notification-filters select:focus,
+[data-theme="dark"] .notification-filters button:focus {
+    border-color: #FF5F01 !important;
+    box-shadow: 0 0 0 4px rgba(255, 95, 1, 0.2), 0 8px 25px rgba(255, 95, 1, 0.3) !important;
+}
+
+[data-theme="dark"] .notification-filters select:hover,
+[data-theme="dark"] .notification-filters button:hover {
+    border-color: rgba(255, 95, 1, 0.4) !important;
+    color: #FF5F01 !important;
+    box-shadow: 0 8px 25px rgba(255, 95, 1, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+[data-theme="dark"] .notification-filters button.active {
+    background: linear-gradient(135deg, #FF5F01 0%, #f59e0b 100%) !important;
+    color: white !important;
+    border-color: #FF5F01 !important;
+    box-shadow: 0 8px 25px rgba(255, 95, 1, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+}
+
+[data-theme="dark"] .notification-filters select option {
+    background: var(--input-bg) !important;
+    color: var(--text-primary) !important;
+}
+
+/* ================================================================
+   LISTA DE NOTIFICACIONES DARK MODE
+   ================================================================ */
+[data-theme="dark"] .notifications-list::-webkit-scrollbar-track {
+    background: linear-gradient(135deg, var(--bg-secondary), var(--bg-card)) !important;
+}
+
+[data-theme="dark"] .notifications-list::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #FF5F01, #f59e0b) !important;
+    box-shadow: 0 2px 4px rgba(255, 95, 1, 0.4) !important;
+}
+
+[data-theme="dark"] .notifications-list::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, #f59e0b, #d97706) !important;
+    box-shadow: 0 4px 8px rgba(245, 158, 11, 0.5) !important;
+}
+
+[data-theme="dark"] .loading-state,
+[data-theme="dark"] .empty-state {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .loading-state i {
+    color: #FF5F01 !important;
+}
+
+[data-theme="dark"] .empty-state i {
+    color: var(--border-hover) !important;
+}
+
+[data-theme="dark"] .empty-state p {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .empty-state p:last-child {
+    color: var(--text-secondary) !important;
+}
+
+/* ================================================================
+   ITEMS DE NOTIFICACIÓN DARK MODE
+   ================================================================ */
+[data-theme="dark"] .notification-item {
+    background: linear-gradient(135deg, var(--notification-bg) 0%, var(--bg-secondary) 100%) !important;
+    backdrop-filter: blur(10px) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+}
+
+[data-theme="dark"] .notification-item::before {
+    background: linear-gradient(135deg, rgba(255, 95, 1, 0.05), rgba(245, 158, 11, 0.05)) !important;
+}
+
+[data-theme="dark"] .notification-item:hover {
+    background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-secondary) 100%) !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+[data-theme="dark"] .notification-item.unread {
+    background: linear-gradient(135deg, rgba(255, 95, 1, 0.15) 0%, rgba(255, 95, 1, 0.1) 100%) !important;
+    border-left: 5px solid #FF5F01 !important;
+    box-shadow: inset 0 1px 0 rgba(255, 95, 1, 0.2) !important;
+}
+
+[data-theme="dark"] .notification-item.unread::after {
+    background: linear-gradient(180deg, #FF5F01, #f59e0b) !important;
+    box-shadow: 0 0 10px rgba(255, 95, 1, 0.5) !important;
+}
+
+[data-theme="dark"] .notification-item.unread:hover {
+    background: linear-gradient(135deg, rgba(255, 95, 1, 0.2) 0%, rgba(255, 95, 1, 0.15) 100%) !important;
+}
+
+[data-theme="dark"] .notification-item.critical {
+    border-left-color: #ef4444 !important;
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(239, 68, 68, 0.1) 100%) !important;
+}
+
+[data-theme="dark"] .notification-item.critical::after {
+    background: linear-gradient(180deg, #ef4444, #dc2626) !important;
+    box-shadow: 0 0 10px rgba(239, 68, 68, 0.5) !important;
+}
+
+[data-theme="dark"] .notification-item.critical:hover {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(239, 68, 68, 0.15) 100%) !important;
+}
+
+[data-theme="dark"] .notification-item.high {
+    border-left-color: #f59e0b !important;
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(245, 158, 11, 0.1) 100%) !important;
+}
+
+[data-theme="dark"] .notification-item.high::after {
+    background: linear-gradient(180deg, #f59e0b, #d97706) !important;
+    box-shadow: 0 0 10px rgba(245, 158, 11, 0.5) !important;
+}
+
+[data-theme="dark"] .notification-item.high:hover {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(245, 158, 11, 0.15) 100%) !important;
+}
+
+[data-theme="dark"] .notification-icon {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .notification-title {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .notification-message {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .notification-meta {
+    color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] .notification-time {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .notification-context {
+    background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-card) 100%) !important;
+    color: var(--text-secondary) !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+[data-theme="dark"] .btn-mark-read,
+[data-theme="dark"] .btn-action {
+    background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-secondary) 100%) !important;
+    color: var(--text-secondary) !important;
+    border: 1px solid var(--border-color) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+[data-theme="dark"] .btn-mark-read:hover {
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.2) 0%, rgba(22, 163, 74, 0.15) 100%) !important;
+    color: #22c55e !important;
+    border-color: rgba(34, 197, 94, 0.4) !important;
+    box-shadow: 0 8px 25px rgba(34, 197, 94, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+[data-theme="dark"] .btn-action:hover {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(37, 99, 235, 0.15) 100%) !important;
+    color: #3b82f6 !important;
+    border-color: rgba(59, 130, 246, 0.4) !important;
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+
+[data-theme="dark"] .unread-indicator {
+    background: linear-gradient(135deg, #FF5F01 0%, #f59e0b 100%) !important;
+    box-shadow: 0 0 0 3px var(--bg-primary), 0 2px 8px rgba(255, 95, 1, 0.5), 0 0 0 0 rgba(255, 95, 1, 0.5) !important;
+}
+
+[data-theme="dark"] .notification-item.critical .unread-indicator {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+    box-shadow: 0 0 0 3px var(--bg-primary), 0 2px 8px rgba(239, 68, 68, 0.5), 0 0 0 0 rgba(239, 68, 68, 0.5) !important;
+}
+
+[data-theme="dark"] .notification-item.high .unread-indicator {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
+    box-shadow: 0 0 0 3px var(--bg-primary), 0 2px 8px rgba(245, 158, 11, 0.5), 0 0 0 0 rgba(245, 158, 11, 0.5) !important;
+}
+
+[data-theme="dark"] .loading-more,
+[data-theme="dark"] .no-more-items {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .loading-more i {
+    color: #FF5F01 !important;
+}
+
+[data-theme="dark"] .no-more-items {
+    color: #10b981 !important;
+}
+
+[data-theme="dark"] .no-more-items i {
+    color: #34d399 !important;
+}
+
+[data-theme="dark"] .notification-preferences {
+    background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-card) 100%) !important;
+    backdrop-filter: blur(10px) !important;
+    border-top: 1px solid var(--border-color) !important;
+}
+
+/* ================================================================
+   ANIMACIONES DARK MODE CORREGIDAS
+   ================================================================ */
+[data-theme="dark"] .notification-badge {
+    animation: pulseDark 2s infinite !important;
+}
+
+@keyframes pulseDark {
+    0%, 100% {
+        box-shadow: 0 4px 12px rgba(255, 95, 1, 0.5), 0 0 0 0 rgba(255, 95, 1, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+    50% {
+        box-shadow: 0 4px 12px rgba(255, 95, 1, 0.5), 0 0 0 8px rgba(255, 95, 1, 0), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+}
+
+[data-theme="dark"] .unread-indicator {
+    animation: pulseIndicatorDark 2s infinite !important;
+}
+
+@keyframes pulseIndicatorDark {
+    0%, 100% {
+        box-shadow: 0 0 0 3px var(--bg-primary), 0 2px 8px rgba(255, 95, 1, 0.5), 0 0 0 0 rgba(255, 95, 1, 0.5);
+    }
+    50% {
+        box-shadow: 0 0 0 3px var(--bg-primary), 0 2px 8px rgba(255, 95, 1, 0.5), 0 0 0 6px rgba(255, 95, 1, 0);
+    }
+}
+
+/* ================================================================
+   FOCUS STATES DARK MODE
+   ================================================================ */
+[data-theme="dark"] .notification-bell:focus,
+[data-theme="dark"] .btn-mark-all:focus,
+[data-theme="dark"] .btn-filters:focus,
+[data-theme="dark"] .btn-settings:focus,
+[data-theme="dark"] .btn-mark-read:focus,
+[data-theme="dark"] .btn-action:focus {
+    outline: 3px solid rgba(255, 95, 1, 0.5) !important;
+    outline-offset: 3px !important;
+}
+
+[data-theme="dark"] .notification-item:focus {
+    outline: 2px solid rgba(255, 95, 1, 0.4) !important;
+    outline-offset: 2px !important;
+}
+
+/* ================================================================
+   RESPONSIVO DARK MODE
+   ================================================================ */
+@media (max-width: 768px) {
+    [data-theme="dark"] .notification-dropdown {
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5), 0 5px 15px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+    }
+}
+
+@media (max-width: 480px) {
+    [data-theme="dark"] .notification-item {
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+    }
+}
+/* ================================================================
+   NOTIFICATION DROPDOWN - DARK MODE CON !IMPORTANT
+   ================================================================ */
+
+[data-theme="dark"] .notification-dropdown {
+    background: var(--dropdown-bg) !important;
+    border: 1px solid var(--border-color) !important;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.2) !important;
+    backdrop-filter: blur(20px) !important;
+}
+
+[data-theme="dark"] .notification-dropdown.dropdown-compact {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.1) !important;
+}
+
+[data-theme="dark"] .dropdown-header {
+    border-bottom: 1px solid var(--border-color) !important;
+    background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-card) 100%) !important;
+}
+
+[data-theme="dark"] .header-title h3 {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .unread-count {
+    background: linear-gradient(135deg, #FF5F01 0%, #e55a00 100%) !important;
+    border: 1px solid var(--bg-primary) !important;
+    box-shadow: 0 2px 8px rgba(255, 95, 1, 0.4) !important;
+}
+
+[data-theme="dark"] .btn-mark-all,
+[data-theme="dark"] .btn-filters,
+[data-theme="dark"] .btn-preferences,
+[data-theme="dark"] .btn-refresh,
+[data-theme="dark"] .btn-close {
+    border: 1px solid var(--border-color) !important;
+    background: var(--bg-card) !important;
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .btn-mark-all {
+    color: #FF5F01 !important;
+    border-color: rgba(255, 95, 1, 0.3) !important;
+    background: rgba(255, 95, 1, 0.1) !important;
+}
+
+[data-theme="dark"] .btn-mark-all:hover:not(:disabled) {
+    background: #FF5F01 !important;
+    color: white !important;
+    box-shadow: 0 4px 12px rgba(255, 95, 1, 0.4) !important;
+}
+
+[data-theme="dark"] .btn-filters,
+[data-theme="dark"] .btn-preferences {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .btn-filters.active,
+[data-theme="dark"] .btn-preferences.active,
+[data-theme="dark"] .btn-filters:hover,
+[data-theme="dark"] .btn-preferences:hover {
+    background: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--border-hover) !important;
+}
+
+[data-theme="dark"] .btn-refresh {
+    color: #10b981 !important;
+    border-color: rgba(16, 185, 129, 0.3) !important;
+    background: rgba(16, 185, 129, 0.1) !important;
+}
+
+[data-theme="dark"] .btn-refresh:hover {
+    background: #10b981 !important;
+    color: white !important;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4) !important;
+}
+
+[data-theme="dark"] .btn-close {
+    color: #ef4444 !important;
+    border-color: rgba(239, 68, 68, 0.3) !important;
+    background: rgba(239, 68, 68, 0.1) !important;
+}
+
+[data-theme="dark"] .btn-close:hover {
+    background: #ef4444 !important;
+    color: white !important;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4) !important;
+}
+
+[data-theme="dark"] .filter-badge {
+    background: linear-gradient(135deg, #FF5F01 0%, #e55a00 100%) !important;
+    border: 2px solid var(--bg-primary) !important;
+    box-shadow: 0 2px 8px rgba(255, 95, 1, 0.4) !important;
+}
+
+[data-theme="dark"] .dropdown-summary {
+    background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-card) 100%) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+}
+
+[data-theme="dark"] .summary-stat {
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--text-secondary) !important;
+    box-shadow: var(--shadow) !important;
+}
+
+[data-theme="dark"] .summary-stat:hover {
+    border-color: #FF5F01 !important;
+    background: rgba(255, 95, 1, 0.1) !important;
+    box-shadow: 0 4px 12px rgba(255, 95, 1, 0.2) !important;
+}
+
+[data-theme="dark"] .stat-label {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .stat-count {
+    background: linear-gradient(135deg, #FF5F01 0%, #e55a00 100%) !important;
+    box-shadow: 0 1px 3px rgba(255, 95, 1, 0.4) !important;
+}
+
+[data-theme="dark"] .summary-more {
+    color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] .priority-item.critical {
+    background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(239, 68, 68, 0.1) 100%) !important;
+    color: #ef4444 !important;
+    border: 1px solid rgba(239, 68, 68, 0.3) !important;
+}
+
+[data-theme="dark"] .priority-item.high {
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(245, 158, 11, 0.1) 100%) !important;
+    color: #f59e0b !important;
+    border: 1px solid rgba(245, 158, 11, 0.3) !important;
+}
+
+[data-theme="dark"] .dropdown-filters,
+[data-theme="dark"] .dropdown-preferences {
+    border-bottom: 1px solid var(--border-color) !important;
+    background: var(--bg-secondary) !important;
+}
+
+[data-theme="dark"] .dropdown-filters::-webkit-scrollbar-track,
+[data-theme="dark"] .dropdown-preferences::-webkit-scrollbar-track,
+[data-theme="dark"] .dropdown-content::-webkit-scrollbar-track {
+    background: var(--bg-secondary) !important;
+}
+
+[data-theme="dark"] .dropdown-filters::-webkit-scrollbar-thumb,
+[data-theme="dark"] .dropdown-preferences::-webkit-scrollbar-thumb,
+[data-theme="dark"] .dropdown-content::-webkit-scrollbar-thumb {
+    background: var(--border-hover) !important;
+}
+
+[data-theme="dark"] .dropdown-filters::-webkit-scrollbar-thumb:hover,
+[data-theme="dark"] .dropdown-preferences::-webkit-scrollbar-thumb:hover,
+[data-theme="dark"] .dropdown-content::-webkit-scrollbar-thumb:hover {
+    background: var(--text-muted) !important;
+}
+
+[data-theme="dark"] .loading-state,
+[data-theme="dark"] .empty-state {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .loading-spinner {
+    color: #FF5F01 !important;
+}
+
+[data-theme="dark"] .empty-icon {
+    color: var(--border-hover) !important;
+}
+
+[data-theme="dark"] .empty-title {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .empty-subtitle {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .btn-empty-action {
+    border: 1px solid #FF5F01 !important;
+    background: var(--bg-card) !important;
+    color: #FF5F01 !important;
+}
+
+[data-theme="dark"] .btn-empty-action:hover {
+    background: #FF5F01 !important;
+    color: white !important;
+    box-shadow: 0 4px 12px rgba(255, 95, 1, 0.4) !important;
+}
+
+[data-theme="dark"] .btn-load-more {
+    border: 1px solid #FF5F01 !important;
+    background: var(--bg-card) !important;
+    color: #FF5F01 !important;
+}
+
+[data-theme="dark"] .btn-load-more:hover {
+    background: #FF5F01 !important;
+    color: white !important;
+    box-shadow: 0 4px 12px rgba(255, 95, 1, 0.4) !important;
+}
+
+[data-theme="dark"] .loading-more,
+[data-theme="dark"] .no-more-items {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .no-more-items {
+    color: #10b981 !important;
+}
+
+[data-theme="dark"] .no-more-items i {
+    color: #34d399 !important;
+}
+
+[data-theme="dark"] .dropdown-footer {
+    background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-card) 100%) !important;
+    border-top: 1px solid var(--border-color) !important;
+}
+
+[data-theme="dark"] .footer-stats {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .footer-total {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .btn-view-all,
+[data-theme="dark"] .btn-clear-old {
+    border: 1px solid var(--border-color) !important;
+    background: var(--bg-card) !important;
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .btn-view-all:hover,
+[data-theme="dark"] .btn-clear-old:hover {
+    background: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--border-hover) !important;
+    box-shadow: 0 2px 8px rgba(107, 114, 128, 0.4) !important;
+}
+
+[data-theme="dark"] .resize-handle {
+    background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-card) 100%) !important;
+    border-top: 1px solid var(--border-color) !important;
+    color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] .resize-handle:hover {
+    background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-secondary) 100%) !important;
+    color: var(--text-secondary) !important;
+}
+
+/* ================================================================
+   FOCUS STATES FOR DARK MODE CON !IMPORTANT
+   ================================================================ */
+
+[data-theme="dark"] .btn-mark-all:focus,
+[data-theme="dark"] .btn-filters:focus,
+[data-theme="dark"] .btn-preferences:focus,
+[data-theme="dark"] .btn-refresh:focus,
+[data-theme="dark"] .btn-close:focus,
+[data-theme="dark"] .btn-load-more:focus,
+[data-theme="dark"] .btn-empty-action:focus {
+    outline: 2px solid #FF5F01 !important;
+    outline-offset: 2px !important;
+}
+
+[data-theme="dark"] .summary-stat:focus {
+    outline: 2px solid #FF5F01 !important;
+    outline-offset: 2px !important;
+}
+

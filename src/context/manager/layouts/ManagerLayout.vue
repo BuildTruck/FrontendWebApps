@@ -3,10 +3,10 @@ import { AuthService } from '../../../auth/services/auth-api.service.js';
 import LanguageSwitcher from "../../../core/components/language-switcher.component.vue";
 import { useThemeStore} from "../../../core/stores/theme.js";
 import { useLogo} from "../../../core/composables/useLogo.js";
-
+import NotificationBell from "../../../core/notifications/components/NotificationBell.vue";
 export default {
   name: 'ManagerLayout',
-  components: {LanguageSwitcher},
+  components: {LanguageSwitcher,NotificationBell},
   props: {
     userName: {
       type: String,
@@ -24,7 +24,6 @@ export default {
       menuItems: [
         { id: 'proyectos', label: 'navigation.proyectos', icon: 'pi pi-home', route: '/proyectos', active: true },
         { id: 'estadisticas', label: 'navigation.estadisticas', icon: 'pi pi-chart-bar', route: '/estadisticas', active: false },
-        { id: 'reportes', label: 'navigation.reportes', icon: 'pi pi-file', route: '/reportes', active: false },
         { id: 'configuracion', label: 'navigation.configuracion', icon: 'pi pi-cog', route: '/configuracion', active: false }
       ],
       profileItems: [
@@ -123,7 +122,11 @@ export default {
       <header class="header-bar">
         <h1 class="page-title">{{ $t(pageTitle) }}</h1>
 
-        <language-switcher/>
+        <div class="header-actions">
+          <NotificationBell />
+          <language-switcher/>
+
+        </div>
 
       </header>
 
@@ -137,6 +140,15 @@ export default {
 </template>
 
 <style scoped>
+.header-bar {
+  justify-content: space-between; /* ← Agregar */
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
 .app-container {
   display: flex;
   height: 100vh;

@@ -1,448 +1,389 @@
-export class Stats {
+/**
+ * ManagerStats Entity
+ * Representa las estadísticas completas de un manager según el backend
+ */
+export class ManagerStats {
     constructor(data = {}) {
+        // IDs principales
         this.id = data.id || null;
         this.managerId = data.managerId || null;
-        this.projectId = data.projectId || null;
-        this.statsType = data.statsType || 'GENERAL'; // GENERAL, PROJECT, CUSTOM
-        this.period = data.period || 'CURRENT_MONTH'; // CURRENT_MONTH, CURRENT_QUARTER, CURRENT_YEAR, CUSTOM
-        this.startDate = data.startDate || null;
-        this.endDate = data.endDate || null;
 
-        // Calculated stats (read-only from API)
+        // Período
+        this.period = new StatsPeriod(data.period || {});
+
+        // Métricas principales
+        this.projectMetrics = new ProjectMetrics(data.projectMetrics || {});
+        this.personnelMetrics = new PersonnelMetrics(data.personnelMetrics || {});
+        this.incidentMetrics = new IncidentMetrics(data.incidentMetrics || {});
+        this.materialMetrics = new MaterialMetrics(data.materialMetrics || {});
+        this.machineryMetrics = new MachineryMetrics(data.machineryMetrics || {});
+
+        // Performance y alertas
+        this.overallPerformanceScore = data.overallPerformanceScore || 0;
+        this.performanceGrade = data.performanceGrade || 'F';
+        this.alerts = data.alerts || [];
+        this.recommendations = data.recommendations || [];
+
+        // Metadata
+        this.calculatedAt = data.calculatedAt ? new Date(data.calculatedAt) : new Date();
+        this.isCurrentPeriod = data.isCurrentPeriod || false;
+        this.calculationSource = data.calculationSource || '';
+        this.hasCriticalAlerts = data.hasCriticalAlerts || false;
+        this.overallStatus = data.overallStatus || 'Sin datos';
+        this.scoreBreakdown = data.scoreBreakdown || {};
+    }
+
+    /**
+     * Crea una instancia desde la respuesta de la API
+     */
+    static fromAPI(apiData) {
+        return new ManagerStats(apiData);
+    }
+
+    /**
+     * Convierte array de API a array de entidades
+     */
+    static fromAPIArray(apiArray) {
+        if (!Array.isArray(apiArray)) return [];
+        return apiArray.map(item => ManagerStats.fromAPI(item));
+    }
+
+    /**
+     * Obtiene el estado de rendimiento con color
+     */
+    getPerformanceStatus() {
+        return {
+            status: this.overallStatus,
+            grade: this.performanceGrade,
+            score: this.overallPerformanceScore,
+            color: this.getPerformanceColor(),
+            icon: this.getPerformanceIcon()
+        };
+    }
+
+    /**
+     * Color según el performance
+     */
+    getPerformanceColor() {
+        if (this.overallPerformanceScore >= 90) return '#22c55e'; // Verde
+        if (this.overallPerformanceScore >= 80) return '#3b82f6'; // Azul
+        if (this.overallPerformanceScore >= 70) return '#f59e0b'; // Amarillo
+        if (this.overallPerformanceScore >= 60) return '#f97316'; // Naranja
+        return '#ef4444'; // Rojo
+    }
+
+    /**
+     * Icono según el performance
+     */
+    getPerformanceIcon() {
+        if (this.overallPerformanceScore >= 90) return 'pi-check-circle';
+        if (this.overallPerformanceScore >= 70) return 'pi-exclamation-circle';
+        return 'pi-times-circle';
+    }
+
+    /**
+     * Verifica si tiene alertas críticas
+     */
+    hasCriticalAlertsCheck() {
+        return this.alerts.some(alert =>
+            alert.includes('🚨') ||
+            alert.includes('crítico') ||
+            alert.includes('Crítico')
+        );
+    }
+
+    /**
+     * Obtiene resumen para dashboard
+     */
+    getDashboardSummary() {
+        return {
+            performance: {
+                score: this.overallPerformanceScore,
+                grade: this.performanceGrade,
+                status: this.overallStatus
+            },
+            projects: {
+                total: this.projectMetrics.totalProjects,
+                active: this.projectMetrics.activeProjects,
+                completed: this.projectMetrics.completedProjects,
+                completionRate: this.projectMetrics.completionRate
+            },
+            personnel: {
+                total: this.personnelMetrics.totalPersonnel,
+                active: this.personnelMetrics.activePersonnel,
+                activeRate: this.personnelMetrics.activeRate,
+                attendance: this.personnelMetrics.averageAttendanceRate
+            },
+            safety: {
+                totalIncidents: this.incidentMetrics.totalIncidents,
+                criticalIncidents: this.incidentMetrics.criticalIncidents,
+                safetyScore: this.incidentMetrics.safetyScore,
+                status: this.incidentMetrics.safetyStatus
+            },
+            materials: {
+                totalCost: this.materialMetrics.totalMaterialCost,
+                outOfStock: this.materialMetrics.materialsOutOfStock,
+                healthScore: this.materialMetrics.inventoryHealthScore,
+                needsRestocking: this.materialMetrics.needsRestocking
+            },
+            machinery: {
+                total: this.machineryMetrics.totalMachinery,
+                active: this.machineryMetrics.activeMachinery,
+                availability: this.machineryMetrics.activeRate,
+                efficiency: this.machineryMetrics.efficiencyScore
+            }
+        };
+    }
+
+    /**
+     * Formatea fecha para mostrar
+     */
+    getFormattedCalculatedAt() {
+        return this.calculatedAt.toLocaleDateString('es-PE', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    }
+
+    /**
+     * Valida la entidad
+     */
+    isValid() {
+        return this.managerId > 0 && this.period && this.projectMetrics;
+    }
+}
+
+/**
+ * StatsPeriod Value Object
+ */
+export class StatsPeriod {
+    constructor(data = {}) {
+        this.startDate = data.startDate ? new Date(data.startDate) : null;
+        this.endDate = data.endDate ? new Date(data.endDate) : null;
+        this.periodType = data.periodType || 'CURRENT_MONTH';
+        this.displayName = data.displayName || '';
+        this.totalDays = data.totalDays || 0;
+        this.isCurrentPeriod = data.isCurrentPeriod || false;
+    }
+
+    getFormattedPeriod() {
+        if (this.displayName) return this.displayName;
+        if (this.startDate && this.endDate) {
+            return `${this.startDate.toLocaleDateString('es-PE')} - ${this.endDate.toLocaleDateString('es-PE')}`;
+        }
+        return this.periodType;
+    }
+}
+
+/**
+ * ProjectMetrics Value Object
+ */
+export class ProjectMetrics {
+    constructor(data = {}) {
         this.totalProjects = data.totalProjects || 0;
         this.activeProjects = data.activeProjects || 0;
         this.completedProjects = data.completedProjects || 0;
+        this.plannedProjects = data.plannedProjects || 0;
+        this.overdueProjects = data.overdueProjects || 0;
+        this.projectsByStatus = data.projectsByStatus || {};
+        this.completionRate = data.completionRate || 0;
+        this.activeRate = data.activeRate || 0;
+        this.hasOverdueProjects = data.hasOverdueProjects || false;
+        this.statusSummary = data.statusSummary || '';
+        this.dominantStatus = data.dominantStatus || '';
+    }
+
+    getChartData() {
+        return {
+            labels: Object.keys(this.projectsByStatus),
+            datasets: [{
+                data: Object.values(this.projectsByStatus),
+                backgroundColor: ['#FF5F01', '#22c55e', '#3b82f6', '#f59e0b', '#ef4444']
+            }]
+        };
+    }
+}
+
+/**
+ * PersonnelMetrics Value Object
+ */
+export class PersonnelMetrics {
+    constructor(data = {}) {
         this.totalPersonnel = data.totalPersonnel || 0;
         this.activePersonnel = data.activePersonnel || 0;
-        this.totalIncidents = data.totalIncidents || 0;
-        this.criticalIncidents = data.criticalIncidents || 0;
-        this.openIncidents = data.openIncidents || 0;
-        this.totalMaterialCost = data.totalMaterialCost || 0;
-        this.activeMachinery = data.activeMachinery || 0;
-        this.totalMachinery = data.totalMachinery || 0;
-        this.recentDocuments = data.recentDocuments || 0;
-
-        // Editable KPIs/Goals
-        this.targetProjects = data.targetProjects || null;
-        this.targetPersonnel = data.targetPersonnel || null;
-        this.maxIncidents = data.maxIncidents || null;
-        this.budgetLimit = data.budgetLimit || null;
-        this.targetEfficiency = data.targetEfficiency || null;
-
-        // Breakdown data for charts
-        this.projectsByStatus = data.projectsByStatus || {};
-        this.incidentsBySeverity = data.incidentsBySeverity || {};
-        this.incidentsByType = data.incidentsByType || {};
+        this.inactivePersonnel = data.inactivePersonnel || 0;
         this.personnelByType = data.personnelByType || {};
-        this.materialsByCategory = data.materialsByCategory || {};
-        this.machineryByStatus = data.machineryByStatus || {};
-        this.costsOverTime = data.costsOverTime || [];
-        this.incidentsOverTime = data.incidentsOverTime || [];
-
-        // Audit fields
-        this.createdAt = data.createdAt ? new Date(data.createdAt) : this.getCurrentPeruDate();
-        this.updatedAt = data.updatedAt ? new Date(data.updatedAt) : this.getCurrentPeruDate();
+        this.totalSalaryAmount = data.totalSalaryAmount || 0;
+        this.averageAttendanceRate = data.averageAttendanceRate || 0;
+        this.activeRate = data.activeRate || 0;
+        this.inactiveRate = data.inactiveRate || 0;
+        this.averageSalary = data.averageSalary || 0;
+        this.dominantPersonnelType = data.dominantPersonnelType || '';
+        this.hasGoodAttendance = data.hasGoodAttendance || false;
+        this.attendanceStatus = data.attendanceStatus || '';
+        this.personnelSummary = data.personnelSummary || '';
+        this.efficiencyScore = data.efficiencyScore || 0;
     }
 
-    validate() {
-        const errors = [];
-
-        if (!this.managerId) {
-            errors.push('Manager ID is required');
-        }
-
-        if (this.statsType === 'PROJECT' && !this.projectId) {
-            errors.push('Project ID is required for project stats');
-        }
-
-        if (this.period === 'CUSTOM') {
-            if (!this.startDate) {
-                errors.push('Start date is required for custom period');
-            }
-            if (!this.endDate) {
-                errors.push('End date is required for custom period');
-            }
-            if (this.startDate && this.endDate && new Date(this.startDate) > new Date(this.endDate)) {
-                errors.push('Start date must be before end date');
-            }
-        }
-
-        // Validate editable goals
-        if (this.targetProjects && this.targetProjects < 0) {
-            errors.push('Target projects must be positive');
-        }
-
-        if (this.budgetLimit && this.budgetLimit < 0) {
-            errors.push('Budget limit must be positive');
-        }
-
-        if (this.targetEfficiency && (this.targetEfficiency < 0 || this.targetEfficiency > 100)) {
-            errors.push('Target efficiency must be between 0 and 100');
-        }
-
+    getChartData() {
         return {
-            isValid: errors.length === 0,
-            errors
+            labels: Object.keys(this.personnelByType),
+            datasets: [{
+                data: Object.values(this.personnelByType),
+                backgroundColor: ['#3b82f6', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6']
+            }]
         };
     }
 
-    toJSON() {
-        return {
-            id: this.id,
-            managerId: this.managerId,
-            projectId: this.projectId,
-            statsType: this.statsType,
-            period: this.period,
-            startDate: this.formatDateForAPI(this.startDate),
-            endDate: this.formatDateForAPI(this.endDate),
-
-            // Calculated stats
-            totalProjects: this.totalProjects,
-            activeProjects: this.activeProjects,
-            completedProjects: this.completedProjects,
-            totalPersonnel: this.totalPersonnel,
-            activePersonnel: this.activePersonnel,
-            totalIncidents: this.totalIncidents,
-            criticalIncidents: this.criticalIncidents,
-            openIncidents: this.openIncidents,
-            totalMaterialCost: this.totalMaterialCost,
-            activeMachinery: this.activeMachinery,
-            totalMachinery: this.totalMachinery,
-            recentDocuments: this.recentDocuments,
-
-            // Editable goals
-            targetProjects: this.targetProjects,
-            targetPersonnel: this.targetPersonnel,
-            maxIncidents: this.maxIncidents,
-            budgetLimit: this.budgetLimit,
-            targetEfficiency: this.targetEfficiency,
-
-            // Breakdown data
-            projectsByStatus: this.projectsByStatus,
-            incidentsBySeverity: this.incidentsBySeverity,
-            incidentsByType: this.incidentsByType,
-            personnelByType: this.personnelByType,
-            materialsByCategory: this.materialsByCategory,
-            machineryByStatus: this.machineryByStatus,
-            costsOverTime: this.costsOverTime,
-            incidentsOverTime: this.incidentsOverTime,
-
-            createdAt: this.createdAt,
-            updatedAt: this.getCurrentPeruDate()
-        };
-    }
-
-    toCreateJson() {
-        const data = this.toJSON();
-        const now = this.getCurrentPeruDate();
-        data.createdAt = now;
-        data.updatedAt = now;
-        return data;
-    }
-
-    toUpdateJson() {
-        const data = this.toJSON();
-        data.updatedAt = this.getCurrentPeruDate();
-        // Only send editable fields for updates
-        return {
-            id: data.id,
-            targetProjects: data.targetProjects,
-            targetPersonnel: data.targetPersonnel,
-            maxIncidents: data.maxIncidents,
-            budgetLimit: data.budgetLimit,
-            targetEfficiency: data.targetEfficiency,
-            updatedAt: data.updatedAt
-        };
-    }
-
-    static fromAPI(apiData) {
-        return new Stats({
-            id: apiData.id,
-            managerId: apiData.managerId || apiData.manager_id,
-            projectId: apiData.projectId || apiData.project_id,
-            statsType: apiData.statsType || apiData.stats_type || 'GENERAL',
-            period: apiData.period || 'CURRENT_MONTH',
-            startDate: Stats.parseAPIDate(apiData.startDate || apiData.start_date),
-            endDate: Stats.parseAPIDate(apiData.endDate || apiData.end_date),
-
-            // Calculated stats
-            totalProjects: apiData.totalProjects || apiData.total_projects || 0,
-            activeProjects: apiData.activeProjects || apiData.active_projects || 0,
-            completedProjects: apiData.completedProjects || apiData.completed_projects || 0,
-            totalPersonnel: apiData.totalPersonnel || apiData.total_personnel || 0,
-            activePersonnel: apiData.activePersonnel || apiData.active_personnel || 0,
-            totalIncidents: apiData.totalIncidents || apiData.total_incidents || 0,
-            criticalIncidents: apiData.criticalIncidents || apiData.critical_incidents || 0,
-            openIncidents: apiData.openIncidents || apiData.open_incidents || 0,
-            totalMaterialCost: apiData.totalMaterialCost || apiData.total_material_cost || 0,
-            activeMachinery: apiData.activeMachinery || apiData.active_machinery || 0,
-            totalMachinery: apiData.totalMachinery || apiData.total_machinery || 0,
-            recentDocuments: apiData.recentDocuments || apiData.recent_documents || 0,
-
-            // Editable goals
-            targetProjects: apiData.targetProjects || apiData.target_projects || null,
-            targetPersonnel: apiData.targetPersonnel || apiData.target_personnel || null,
-            maxIncidents: apiData.maxIncidents || apiData.max_incidents || null,
-            budgetLimit: apiData.budgetLimit || apiData.budget_limit || null,
-            targetEfficiency: apiData.targetEfficiency || apiData.target_efficiency || null,
-
-            // Breakdown data
-            projectsByStatus: apiData.projectsByStatus || apiData.projects_by_status || {},
-            incidentsBySeverity: apiData.incidentsBySeverity || apiData.incidents_by_severity || {},
-            incidentsByType: apiData.incidentsByType || apiData.incidents_by_type || {},
-            personnelByType: apiData.personnelByType || apiData.personnel_by_type || {},
-            materialsByCategory: apiData.materialsByCategory || apiData.materials_by_category || {},
-            machineryByStatus: apiData.machineryByStatus || apiData.machinery_by_status || {},
-            costsOverTime: apiData.costsOverTime || apiData.costs_over_time || [],
-            incidentsOverTime: apiData.incidentsOverTime || apiData.incidents_over_time || [],
-
-            createdAt: Stats.parseAPIDate(apiData.createdAt || apiData.created_at),
-            updatedAt: Stats.parseAPIDate(apiData.updatedAt || apiData.updated_at)
-        });
-    }
-
-    static fromJsonArray(jsonArray) {
-        if (!Array.isArray(jsonArray)) {
-            return [];
-        }
-        return jsonArray.map(item => Stats.fromAPI(item));
-    }
-
-    clone() {
-        return new Stats({
-            id: this.id,
-            managerId: this.managerId,
-            projectId: this.projectId,
-            statsType: this.statsType,
-            period: this.period,
-            startDate: this.startDate,
-            endDate: this.endDate,
-            totalProjects: this.totalProjects,
-            activeProjects: this.activeProjects,
-            completedProjects: this.completedProjects,
-            totalPersonnel: this.totalPersonnel,
-            activePersonnel: this.activePersonnel,
-            totalIncidents: this.totalIncidents,
-            criticalIncidents: this.criticalIncidents,
-            openIncidents: this.openIncidents,
-            totalMaterialCost: this.totalMaterialCost,
-            activeMachinery: this.activeMachinery,
-            totalMachinery: this.totalMachinery,
-            recentDocuments: this.recentDocuments,
-            targetProjects: this.targetProjects,
-            targetPersonnel: this.targetPersonnel,
-            maxIncidents: this.maxIncidents,
-            budgetLimit: this.budgetLimit,
-            targetEfficiency: this.targetEfficiency,
-            projectsByStatus: { ...this.projectsByStatus },
-            incidentsBySeverity: { ...this.incidentsBySeverity },
-            incidentsByType: { ...this.incidentsByType },
-            personnelByType: { ...this.personnelByType },
-            materialsByCategory: { ...this.materialsByCategory },
-            machineryByStatus: { ...this.machineryByStatus },
-            costsOverTime: [...this.costsOverTime],
-            incidentsOverTime: [...this.incidentsOverTime],
-            createdAt: this.createdAt,
-            updatedAt: this.updatedAt
-        });
-    }
-
-    // Date methods (same pattern as other entities)
-    getCurrentPeruDate() {
-        return new Date(new Date().toLocaleString("en-US", {timeZone: "America/Lima"}));
-    }
-
-    static getCurrentPeruDate() {
-        return new Date(new Date().toLocaleString("en-US", {timeZone: "America/Lima"}));
-    }
-
-    static parseAPIDate(dateValue) {
-        if (!dateValue) return null;
-
-        try {
-            const date = new Date(dateValue);
-            return !isNaN(date.getTime()) ? date : null;
-        } catch (error) {
-            return null;
-        }
-    }
-
-    formatDateForAPI(date) {
-        if (!date) return null;
-
-        try {
-            if (typeof date === 'string' && date.match(/^\d{4}-\d{2}-\d{2}$/)) {
-                return date;
-            }
-
-            if (date instanceof Date) {
-                return date.toISOString().split('T')[0];
-            }
-
-            const parsedDate = new Date(date);
-            if (!isNaN(parsedDate.getTime())) {
-                return parsedDate.toISOString().split('T')[0];
-            }
-
-            return null;
-        } catch (error) {
-            return null;
-        }
-    }
-
-    static formatPeruDate(date) {
-        if (!date) return '';
-        return new Date(date).toLocaleDateString('es-PE', {
-            timeZone: 'America/Lima',
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric'
-        });
-    }
-
-    static formatCurrency(amount) {
-        if (!amount && amount !== 0) return '';
+    formatSalary() {
         return new Intl.NumberFormat('es-PE', {
             style: 'currency',
             currency: 'PEN'
-        }).format(amount);
+        }).format(this.totalSalaryAmount);
+    }
+}
+
+/**
+ * IncidentMetrics Value Object
+ */
+export class IncidentMetrics {
+    constructor(data = {}) {
+        this.totalIncidents = data.totalIncidents || 0;
+        this.criticalIncidents = data.criticalIncidents || 0;
+        this.openIncidents = data.openIncidents || 0;
+        this.resolvedIncidents = data.resolvedIncidents || 0;
+        this.incidentsBySeverity = data.incidentsBySeverity || {};
+        this.incidentsByType = data.incidentsByType || {};
+        this.incidentsByStatus = data.incidentsByStatus || {};
+        this.averageResolutionTimeHours = data.averageResolutionTimeHours || 0;
+        this.criticalRate = data.criticalRate || 0;
+        this.resolutionRate = data.resolutionRate || 0;
+        this.openRate = data.openRate || 0;
+        this.safetyStatus = data.safetyStatus || 'Sin datos';
+        this.hasCriticalIncidents = data.hasCriticalIncidents || false;
+        this.needsAttention = data.needsAttention || false;
+        this.mostCommonSeverity = data.mostCommonSeverity || '';
+        this.mostCommonType = data.mostCommonType || '';
+        this.safetyScore = data.safetyScore || 0;
+        this.incidentSummary = data.incidentSummary || '';
     }
 
-    // Static constants
-    static get STATS_TYPES() {
-        return [
-            { value: 'GENERAL', label: 'General Manager Stats' },
-            { value: 'PROJECT', label: 'Single Project Stats' },
-            { value: 'CUSTOM', label: 'Custom Stats' }
-        ];
-    }
-
-    static get PERIODS() {
-        return [
-            { value: 'CURRENT_MONTH', label: 'Mes Actual' },
-            { value: 'CURRENT_QUARTER', label: 'Trimestre Actual' },
-            { value: 'CURRENT_YEAR', label: 'Año Actual' },
-            { value: 'LAST_30_DAYS', label: 'Últimos 30 días' },
-            { value: 'LAST_90_DAYS', label: 'Últimos 90 días' },
-            { value: 'CUSTOM', label: 'Período Personalizado' }
-        ];
-    }
-
-    // Utility methods
-    getStatsTypeLabel() {
-        const type = this.STATS_TYPES.find(t => t.value === this.statsType);
-        return type ? type.label : this.statsType;
-    }
-
-    getPeriodLabel() {
-        const period = this.PERIODS.find(p => p.value === this.period);
-        return period ? period.label : this.period;
-    }
-
-    isGeneralStats() {
-        return this.statsType === 'GENERAL';
-    }
-
-    isProjectStats() {
-        return this.statsType === 'PROJECT';
-    }
-
-    isCustomPeriod() {
-        return this.period === 'CUSTOM';
-    }
-
-    // Calculated getters
-    getProjectsCompletionRate() {
-        if (this.totalProjects === 0) return 0;
-        return Math.round((this.completedProjects / this.totalProjects) * 100);
-    }
-
-    getPersonnelActiveRate() {
-        if (this.totalPersonnel === 0) return 0;
-        return Math.round((this.activePersonnel / this.totalPersonnel) * 100);
-    }
-
-    getMachineryAvailabilityRate() {
-        if (this.totalMachinery === 0) return 0;
-        return Math.round((this.activeMachinery / this.totalMachinery) * 100);
-    }
-
-    getIncidentRate() {
-        if (this.totalPersonnel === 0) return 0;
-        return Math.round((this.totalIncidents / this.totalPersonnel) * 100) / 100;
-    }
-
-    // Goal achievement methods
-    isProjectTargetMet() {
-        if (!this.targetProjects) return null;
-        return this.activeProjects >= this.targetProjects;
-    }
-
-    isPersonnelTargetMet() {
-        if (!this.targetPersonnel) return null;
-        return this.activePersonnel >= this.targetPersonnel;
-    }
-
-    isBudgetWithinLimit() {
-        if (!this.budgetLimit) return null;
-        return this.totalMaterialCost <= this.budgetLimit;
-    }
-
-    isIncidentsBelowMax() {
-        if (!this.maxIncidents) return null;
-        return this.criticalIncidents <= this.maxIncidents;
-    }
-
-    getOverallPerformance() {
-        const metrics = [
-            this.isProjectTargetMet(),
-            this.isPersonnelTargetMet(),
-            this.isBudgetWithinLimit(),
-            this.isIncidentsBelowMax()
-        ].filter(metric => metric !== null);
-
-        if (metrics.length === 0) return null;
-
-        const successCount = metrics.filter(metric => metric === true).length;
-        return Math.round((successCount / metrics.length) * 100);
-    }
-
-    // Export data helpers
-    getExportData() {
+    getChartData() {
         return {
-            'Período': this.getPeriodLabel(),
-            'Tipo de Estadística': this.getStatsTypeLabel(),
-            'Total Proyectos': this.totalProjects,
-            'Proyectos Activos': this.activeProjects,
-            'Proyectos Completados': this.completedProjects,
-            'Total Personal': this.totalPersonnel,
-            'Personal Activo': this.activePersonnel,
-            'Total Incidentes': this.totalIncidents,
-            'Incidentes Críticos': this.criticalIncidents,
-            'Incidentes Abiertos': this.openIncidents,
-            'Costo Total Materiales': this.totalMaterialCost,
-            'Maquinaria Activa': this.activeMachinery,
-            'Total Maquinaria': this.totalMachinery,
-            'Documentos Recientes': this.recentDocuments,
-            'Meta Proyectos': this.targetProjects || 'No definido',
-            'Meta Personal': this.targetPersonnel || 'No definido',
-            'Límite Presupuesto': this.budgetLimit || 'No definido',
-            'Máx. Incidentes': this.maxIncidents || 'No definido',
-            'Meta Eficiencia (%)': this.targetEfficiency || 'No definido',
-            'Tasa Completación (%)': this.getProjectsCompletionRate(),
-            'Tasa Personal Activo (%)': this.getPersonnelActiveRate(),
-            'Tasa Disponibilidad Maquinaria (%)': this.getMachineryAvailabilityRate(),
-            'Rendimiento General (%)': this.getOverallPerformance() || 'No calculado',
-            'Fecha Actualización': Stats.formatPeruDate(this.updatedAt)
+            labels: Object.keys(this.incidentsBySeverity),
+            datasets: [{
+                data: Object.values(this.incidentsBySeverity),
+                backgroundColor: ['#ef4444', '#f59e0b', '#22c55e']
+            }]
         };
     }
 
-    // Instance property getters
-    get STATS_TYPES() {
-        return Stats.STATS_TYPES;
+    getSafetyIndicator() {
+        return {
+            score: this.safetyScore,
+            status: this.safetyStatus,
+            color: this.safetyScore >= 80 ? '#22c55e' : this.safetyScore >= 60 ? '#f59e0b' : '#ef4444',
+            icon: this.safetyScore >= 80 ? 'pi-shield' : 'pi-exclamation-triangle'
+        };
+    }
+}
+
+/**
+ * MaterialMetrics Value Object
+ */
+export class MaterialMetrics {
+    constructor(data = {}) {
+        this.totalMaterials = data.totalMaterials || 0;
+        this.materialsInStock = data.materialsInStock || 0;
+        this.materialsLowStock = data.materialsLowStock || 0;
+        this.materialsOutOfStock = data.materialsOutOfStock || 0;
+        this.totalMaterialCost = data.totalMaterialCost || 0;
+        this.totalUsageCost = data.totalUsageCost || 0;
+        this.materialsByCategory = data.materialsByCategory || {};
+        this.costsByCategory = data.costsByCategory || {};
+        this.averageUsageRate = data.averageUsageRate || 0;
+        this.stockRate = data.stockRate || 0;
+        this.lowStockRate = data.lowStockRate || 0;
+        this.outOfStockRate = data.outOfStockRate || 0;
+        this.costEfficiencyRate = data.costEfficiencyRate || 0;
+        this.averageMaterialCost = data.averageMaterialCost || 0;
+        this.stockStatus = data.stockStatus || 'Sin datos';
+        this.needsRestocking = data.needsRestocking || false;
+        this.mostUsedCategory = data.mostUsedCategory || '';
+        this.largestCategory = data.largestCategory || '';
+        this.inventoryHealthScore = data.inventoryHealthScore || 0;
+        this.materialSummary = data.materialSummary || '';
+        this.costSummary = data.costSummary || '';
+        this.stockAlerts = data.stockAlerts || [];
     }
 
-    get PERIODS() {
-        return Stats.PERIODS;
+    getChartData() {
+        return {
+            labels: Object.keys(this.materialsByCategory),
+            datasets: [{
+                data: Object.values(this.materialsByCategory),
+                backgroundColor: ['#FF5F01', '#3b82f6', '#22c55e', '#f59e0b', '#ef4444']
+            }]
+        };
+    }
+
+    formatCost() {
+        return new Intl.NumberFormat('es-PE', {
+            style: 'currency',
+            currency: 'PEN'
+        }).format(this.totalMaterialCost);
+    }
+}
+
+/**
+ * MachineryMetrics Value Object
+ */
+export class MachineryMetrics {
+    constructor(data = {}) {
+        this.totalMachinery = data.totalMachinery || 0;
+        this.activeMachinery = data.activeMachinery || 0;
+        this.inMaintenanceMachinery = data.inMaintenanceMachinery || 0;
+        this.inactiveMachinery = data.inactiveMachinery || 0;
+        this.machineryByStatus = data.machineryByStatus || {};
+        this.machineryByType = data.machineryByType || {};
+        this.machineryByProject = data.machineryByProject || {};
+        this.overallAvailabilityRate = data.overallAvailabilityRate || 0;
+        this.averageMaintenanceTimeHours = data.averageMaintenanceTimeHours || 0;
+        this.activeRate = data.activeRate || 0;
+        this.maintenanceRate = data.maintenanceRate || 0;
+        this.inactiveRate = data.inactiveRate || 0;
+        this.operationalRate = data.operationalRate || 0;
+        this.availabilityStatus = data.availabilityStatus || 'Sin datos';
+        this.hasHighAvailability = data.hasHighAvailability || false;
+        this.needsMaintenance = data.needsMaintenance || false;
+        this.mostCommonStatus = data.mostCommonStatus || '';
+        this.mostCommonType = data.mostCommonType || '';
+        this.projectWithMostMachinery = data.projectWithMostMachinery || '';
+        this.efficiencyScore = data.efficiencyScore || 0;
+        this.machinerySummary = data.machinerySummary || '';
+        this.maintenanceSummary = data.maintenanceSummary || '';
+        this.maintenanceAlerts = data.maintenanceAlerts || [];
+    }
+
+    getChartData() {
+        return {
+            labels: Object.keys(this.machineryByStatus),
+            datasets: [{
+                data: Object.values(this.machineryByStatus),
+                backgroundColor: ['#22c55e', '#f59e0b', '#ef4444']
+            }]
+        };
+    }
+
+    getAvailabilityIndicator() {
+        return {
+            rate: this.activeRate,
+            status: this.availabilityStatus,
+            color: this.activeRate >= 80 ? '#22c55e' : this.activeRate >= 60 ? '#f59e0b' : '#ef4444',
+            icon: this.activeRate >= 80 ? 'pi-check-circle' : 'pi-exclamation-circle'
+        };
     }
 }

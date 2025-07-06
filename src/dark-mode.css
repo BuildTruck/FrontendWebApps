@@ -3137,18 +3137,24 @@
     border-left: 4px solid #3b82f6 !important;
 }
 /* ================================================================
-   MANAGER STATS DARK MODE
+   MANAGER STATS DARK MODE - NUEVO COMPONENTE
    ================================================================ */
 
+/* Container principal */
 [data-theme="dark"] .manager-stats {
     background-color: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
 }
 
-/* Header */
+/* ================================================================
+   HEADER Y CONTROLES
+   ================================================================ */
+
+/* Header principal */
 [data-theme="dark"] .stats-header {
     background: var(--bg-card) !important;
     border: 1px solid var(--border-color) !important;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3) !important;
+    box-shadow: var(--shadow) !important;
 }
 
 [data-theme="dark"] .header-title h1 {
@@ -3159,63 +3165,329 @@
     color: var(--text-secondary) !important;
 }
 
-/* Alerts */
-[data-theme="dark"] .alert-card {
-    background: var(--bg-card) !important;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3) !important;
-}
-
-[data-theme="dark"] .alert-title {
+/* Filtros y controles */
+[data-theme="dark"] .filter-group label,
+[data-theme="dark"] .date-group label {
     color: var(--text-primary) !important;
 }
 
+[data-theme="dark"] .period-select,
+[data-theme="dark"] .date-group input {
+    background: var(--input-bg) !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .period-select:focus,
+[data-theme="dark"] .date-group input:focus {
+    border-color: #FF5F01 !important;
+    box-shadow: 0 0 0 3px rgba(255, 95, 1, 0.2) !important;
+    background: var(--input-bg) !important;
+}
+
+[data-theme="dark"] .period-select option {
+    background: var(--dropdown-bg) !important;
+    color: var(--text-primary) !important;
+}
+
+/* ================================================================
+   BOTONES
+   ================================================================ */
+
+/* Botón primario */
+[data-theme="dark"] .btn-primary {
+    background-color: #FF5F01 !important;
+    color: white !important;
+    border: none !important;
+}
+
+[data-theme="dark"] .btn-primary:hover:not(:disabled) {
+    background-color: #e54801 !important;
+    box-shadow: 0 4px 12px rgba(255, 95, 1, 0.4) !important;
+}
+
+/* Botón secundario */
+[data-theme="dark"] .btn-secondary {
+    background-color: var(--button-secondary-bg) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+[data-theme="dark"] .btn-secondary:hover:not(:disabled) {
+    background-color: var(--table-hover) !important;
+    border-color: #FF5F01 !important;
+    color: #FF5F01 !important;
+}
+
+[data-theme="dark"] .btn:disabled {
+    opacity: 0.5 !important;
+    background-color: var(--bg-secondary) !important;
+    color: var(--text-muted) !important;
+}
+
+/* ================================================================
+   ALERTAS
+   ================================================================ */
+
+[data-theme="dark"] .alert-card {
+    background: var(--bg-card) !important;
+    box-shadow: var(--shadow) !important;
+    border-left: 4px solid transparent !important;
+}
+
+[data-theme="dark"] .alert-critical {
+    border-left-color: #ef4444 !important;
+    background-color: rgba(239, 68, 68, 0.1) !important;
+}
+
+[data-theme="dark"] .alert-warning {
+    border-left-color: #f59e0b !important;
+    background-color: rgba(245, 158, 11, 0.1) !important;
+}
+
+[data-theme="dark"] .alert-success {
+    border-left-color: #22c55e !important;
+    background-color: rgba(34, 197, 94, 0.1) !important;
+}
+
+[data-theme="dark"] .alert-info {
+    border-left-color: #FF5F01 !important;
+    background-color: rgba(59, 130, 246, 0.1) !important;
+}
+
 [data-theme="dark"] .alert-message {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .alert-icon {
+    color: inherit !important;
+}
+
+/* ================================================================
+   CARDS DE RESUMEN
+   ================================================================ */
+
+[data-theme="dark"] .summary-card {
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important;
+    box-shadow: var(--shadow) !important;
+}
+
+[data-theme="dark"] .summary-card:hover {
+    box-shadow: var(--shadow-hover) !important;
+    border-color: var(--border-hover) !important;
+}
+
+[data-theme="dark"] .card-header h3 {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .score-value,
+[data-theme="dark"] .metric-value,
+[data-theme="dark"] .total-value {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .score-label,
+[data-theme="dark"] .metric-label,
+[data-theme="dark"] .total-label {
     color: var(--text-secondary) !important;
 }
 
-[data-theme="dark"] .alert-badge {
-    background: #FF5F01 !important;
-    color: white !important;
+[data-theme="dark"] .performance-status,
+[data-theme="dark"] .safety-status {
+    color: var(--text-primary) !important;
 }
 
-/* Comparison Section */
-[data-theme="dark"] .comparison-section {
+[data-theme="dark"] .critical-incidents {
+    color: #ef4444 !important;
+}
+
+[data-theme="dark"] .no-critical {
+    color: #22c55e !important;
+}
+
+/* ================================================================
+   CHARTS Y GRÁFICOS
+   ================================================================ */
+
+/* Chart cards */
+[data-theme="dark"] .chart-card {
     background: var(--bg-card) !important;
     border: 1px solid var(--border-color) !important;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3) !important;
+    box-shadow: var(--shadow) !important;
+}
+
+[data-theme="dark"] .chart-card:hover {
+    box-shadow: var(--shadow-hover) !important;
+}
+
+[data-theme="dark"] .chart-header {
+    border-bottom: 1px solid var(--border-color) !important;
+}
+
+[data-theme="dark"] .chart-header h3 {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .chart-footer {
+    border-top: 1px solid var(--border-color) !important;
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .last-updated,
+[data-theme="dark"] .metrics-row,
+[data-theme="dark"] .safety-score,
+[data-theme="dark"] .availability,
+[data-theme="dark"] .overall-score {
+    color: var(--text-secondary) !important;
+}
+
+/* No data states */
+[data-theme="dark"] .no-data {
+    color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] .no-data.success i {
+    color: #22c55e !important;
+}
+
+[data-theme="dark"] .stock-alerts {
+    color: #f59e0b !important;
+}
+
+[data-theme="dark"] .stock-ok {
+    color: #22c55e !important;
+}
+
+/* Chart Card variantes */
+[data-theme="dark"] .chart-card--primary {
+    border-left: 4px solid #FF5F01 !important;
+}
+
+[data-theme="dark"] .chart-card--success {
+    border-left: 4px solid #22c55e !important;
+}
+
+[data-theme="dark"] .chart-card--warning {
+    border-left: 4px solid #f59e0b !important;
+}
+
+[data-theme="dark"] .chart-card--danger {
+    border-left: 4px solid #ef4444 !important;
+}
+
+[data-theme="dark"] .chart-card--info {
+    border-left: 4px solid #3b82f6 !important;
+}
+
+/* Chart hover effects */
+[data-theme="dark"] .chart-card:hover .chart-card__title,
+[data-theme="dark"] .chart-card--primary:hover .chart-card__title {
+    color: #FF5F01 !important;
+}
+
+[data-theme="dark"] .chart-card--success:hover .chart-card__title {
+    color: #22c55e !important;
+}
+
+[data-theme="dark"] .chart-card--warning:hover .chart-card__title {
+    color: #f59e0b !important;
+}
+
+[data-theme="dark"] .chart-card--danger:hover .chart-card__title {
+    color: #ef4444 !important;
+}
+
+[data-theme="dark"] .chart-card--info:hover .chart-card__title {
+    color: #3b82f6 !important;
+}
+
+/* ================================================================
+   CHARTCARD COMPONENT
+   ================================================================ */
+
+[data-theme="dark"] .chart-card__title {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .chart-card__subtitle {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .chart-card__total-value {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .chart-card__total-label {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .chart-card__loading {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .chart-card__loading i {
+    color: #FF5F01 !important;
+}
+
+[data-theme="dark"] .chart-card__no-data {
+    color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] .chart-card__footer-text,
+[data-theme="dark"] .chart-card__last-updated {
+    color: var(--text-secondary) !important;
+}
+
+/* ================================================================
+   RECOMENDACIONES
+   ================================================================ */
+
+[data-theme="dark"] .recommendations-section {
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important;
+    box-shadow: var(--shadow) !important;
 }
 
 [data-theme="dark"] .section-header h2 {
     color: var(--text-primary) !important;
 }
 
-[data-theme="dark"] .section-subtitle {
-    color: var(--text-secondary) !important;
-}
-
-/* Comparison Cards */
-[data-theme="dark"] .comparison-card {
-    background: rgba(255, 255, 255, 0.05) !important;
-    border: 1px solid var(--border-color) !important;
-}
-
-[data-theme="dark"] .comparison-header h4 {
+[data-theme="dark"] .recommendation-item {
+    background: var(--bg-secondary) !important;
+    border-left: 3px solid #FF5F01 !important;
     color: var(--text-primary) !important;
 }
 
-[data-theme="dark"] .current-value .value,
-[data-theme="dark"] .previous-value .value {
+[data-theme="dark"] .recommendation-item i {
+    color: #FF5F01 !important;
+}
+
+/* ================================================================
+   ESTADOS DE CARGA Y ERROR
+   ================================================================ */
+
+/* Loading */
+[data-theme="dark"] .loading-container {
     color: var(--text-primary) !important;
 }
 
-[data-theme="dark"] .current-value .label,
-[data-theme="dark"] .previous-value .label {
-    color: var(--text-secondary) !important;
+[data-theme="dark"] .loading-spinner {
+    color: #FF5F01 !important;
 }
 
-/* Loading & Error States */
 [data-theme="dark"] .loading-text {
     color: var(--text-secondary) !important;
+}
+
+/* Error */
+[data-theme="dark"] .error-container {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .error-icon {
+    color: #ef4444 !important;
 }
 
 [data-theme="dark"] .error-content h3 {
@@ -3226,53 +3498,175 @@
     color: var(--text-secondary) !important;
 }
 
-/* Goals Modal */
-[data-theme="dark"] .p-dialog {
-    background: var(--bg-card) !important;
+/* ================================================================
+   TOAST NOTIFICATIONS
+   ================================================================ */
+
+[data-theme="dark"] .toast-notification {
+    background: var(--notification-bg) !important;
     border: 1px solid var(--border-color) !important;
-}
-
-[data-theme="dark"] .p-dialog .p-dialog-header {
-    background: var(--bg-card) !important;
-    border-bottom: 1px solid var(--border-color) !important;
-}
-
-[data-theme="dark"] .p-dialog .p-dialog-title {
     color: var(--text-primary) !important;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3) !important;
 }
 
-[data-theme="dark"] .p-dialog .p-dialog-content {
-    background: var(--bg-card) !important;
-    color: var(--text-primary) !important;
-}
-
-[data-theme="dark"] .p-dialog .p-dialog-footer {
-    background: var(--bg-card) !important;
-    border-top: 1px solid var(--border-color) !important;
-}
-
-/* Alert priority colors for dark mode */
-[data-theme="dark"] .alert-card--high {
+[data-theme="dark"] .toast-notification.error {
     border-left-color: #ef4444 !important;
 }
 
-[data-theme="dark"] .alert-card--medium {
+[data-theme="dark"] .toast-notification.warning {
     border-left-color: #f59e0b !important;
 }
 
-[data-theme="dark"] .alert-card--low {
+[data-theme="dark"] .toast-notification.success {
     border-left-color: #22c55e !important;
 }
 
-/* Hover effects */
+[data-theme="dark"] .toast-close {
+    color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] .toast-close:hover {
+    color: var(--text-primary) !important;
+    background: var(--table-hover) !important;
+}
+
+/* ================================================================
+   RESPONSIVE ADJUSTMENTS
+   ================================================================ */
+
+/* Mobile dark mode adjustments */
+@media (max-width: 768px) {
+    [data-theme="dark"] .stats-header {
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+    }
+
+    [data-theme="dark"] .summary-card,
+    [data-theme="dark"] .chart-card {
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+    }
+}
+
+/* ================================================================
+   PRIME VUE CHART OVERRIDES
+   ================================================================ */
+
+/* Chart canvas dark mode */
+[data-theme="dark"] .p-chart canvas {
+    border-radius: 8px !important;
+    background: transparent !important;
+}
+
+/* Chart legend dark mode */
+[data-theme="dark"] .p-chart .chartjs-legend {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .p-chart .chartjs-legend-item {
+    color: var(--text-primary) !important;
+}
+
+/* ================================================================
+   LOADING ANIMATIONS DARK MODE
+   ================================================================ */
+
+[data-theme="dark"] .pi-spin {
+    color: #FF5F01 !important;
+}
+
+[data-theme="dark"] .chart-card--loading {
+    opacity: 0.6 !important;
+    background: var(--bg-secondary) !important;
+}
+
+/* ================================================================
+   HOVER EFFECTS DARK MODE
+   ================================================================ */
+
+[data-theme="dark"] .summary-card:hover {
+    transform: translateY(-2px) !important;
+    border-color: #FF5F01 !important;
+}
+
+[data-theme="dark"] .chart-card:hover {
+    transform: translateY(-2px) !important;
+    border-color: var(--border-hover) !important;
+}
+
 [data-theme="dark"] .alert-card:hover {
     background: var(--table-hover) !important;
 }
 
-[data-theme="dark"] .comparison-card:hover {
-    background: rgba(255, 255, 255, 0.08) !important;
+[data-theme="dark"] .recommendation-item:hover {
+    background: var(--table-hover) !important;
 }
 
+/* ================================================================
+   PERFORMANCE BADGES DARK MODE
+   ================================================================ */
+
+[data-theme="dark"] .performance-badge,
+[data-theme="dark"] .metric-badge,
+[data-theme="dark"] .safety-badge {
+    color: white !important;
+    /* Los backgrounds se mantienen con los colores originales */
+}
+
+/* ================================================================
+   SCROLLBAR PARA ALERTS CONTAINER
+   ================================================================ */
+
+[data-theme="dark"] .alerts-container::-webkit-scrollbar {
+    height: 6px !important;
+}
+
+[data-theme="dark"] .alerts-container::-webkit-scrollbar-track {
+    background: var(--bg-secondary) !important;
+    border-radius: 3px !important;
+}
+
+[data-theme="dark"] .alerts-container::-webkit-scrollbar-thumb {
+    background: var(--border-color) !important;
+    border-radius: 3px !important;
+}
+
+[data-theme="dark"] .alerts-container::-webkit-scrollbar-thumb:hover {
+    background: var(--border-hover) !important;
+}
+
+/* ================================================================
+   VARIABLES DE COLOR ESPECÍFICAS PARA CHARTS
+   ================================================================ */
+
+[data-theme="dark"] {
+    /* Chart specific colors for dark mode */
+    --chart-grid-color: #404040;
+    --chart-text-color: #b3b3b3;
+    --chart-axis-color: #666666;
+}
+
+/* ================================================================
+   FOCUS STATES DARK MODE
+   ================================================================ */
+
+[data-theme="dark"] .btn:focus {
+    box-shadow: 0 0 0 3px rgba(255, 95, 1, 0.3) !important;
+    outline: none !important;
+}
+
+[data-theme="dark"] .period-select:focus,
+[data-theme="dark"] .date-group input:focus {
+    outline: none !important;
+}
+
+/* ================================================================
+   ACCESSIBILITY IMPROVEMENTS DARK MODE
+   ================================================================ */
+
+[data-theme="dark"] .chart-card[tabindex]:focus,
+[data-theme="dark"] .summary-card[tabindex]:focus {
+    outline: 2px solid #FF5F01 !important;
+    outline-offset: 2px !important;
+}
 /* ========================================
    PROFILE COMPONENTS - DARK MODE
    Para Supervisor y Manager Profile

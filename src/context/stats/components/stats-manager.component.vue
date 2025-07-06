@@ -1,186 +1,239 @@
-<script>
-import ChartCardComponent from "./chart-card.component.vue";
-import AppButton from '../../../core/components/AppButton.vue';
-import AppInput from '../../../core/components/AppInput.vue';
-import AppNotification from '../../../core/components/AppNotification.vue';
 
+<script>
 import { statsService } from '../services/stats-api.service.js';
-import { Stats } from "../model/stats.entity.js";
+import { ManagerStats} from "../model/stats.entity.js";
 
 export default {
   name: 'ManagerStats',
-  components: {
-    ChartCardComponent,
-    AppButton,
-    AppInput,
-    AppNotification
-  },
+
   data() {
     return {
+      // Estados de carga
       loading: false,
       refreshing: false,
+      calculating: false,
       error: null,
+
+      // Datos principales
       stats: null,
       alerts: [],
-      comparison: null,
+
+      // Filtros de período
       selectedPeriod: 'CURRENT_MONTH',
       customStartDate: null,
       customEndDate: null,
-      showGoalsDialog: false,
-      savingGoals: false,
-      goalForm: {
-        targetProjects: null,
-        targetPersonnel: null,
-        maxIncidents: null,
-        budgetLimit: null,
-        targetEfficiency: null
-      },
+
+      // Notificaciones
       showNotification: false,
       notificationMessage: '',
       notificationType: 'success'
     };
   },
+
   computed: {
+    /**
+     * Opciones de período con i18n
+     */
     periodOptions() {
       return [
-        { value: 'CURRENT_MONTH', label: this.$t('stats.currentMonth') },
-        { value: 'CURRENT_QUARTER', label: this.$t('stats.currentQuarter') },
-        { value: 'CURRENT_YEAR', label: this.$t('stats.currentYear') },
-        { value: 'LAST_30_DAYS', label: this.$t('stats.last30Days') },
-        { value: 'LAST_90_DAYS', label: this.$t('stats.last90Days') },
-        { value: 'CUSTOM', label: this.$t('stats.customPeriod') }
+        { value: 'CURRENT_MONTH', label: this.$t('stats.periods.currentMonth') },
+        { value: 'CURRENT_QUARTER', label: this.$t('stats.periods.currentQuarter') },
+        { value: 'CURRENT_YEAR', label: this.$t('stats.periods.currentYear') },
+        { value: 'LAST_30_DAYS', label: this.$t('stats.periods.last30Days') },
+        { value: 'LAST_90_DAYS', label: this.$t('stats.periods.last90Days') },
+        { value: 'CUSTOM', label: this.$t('stats.periods.customPeriod') }
       ];
     },
 
-    // Datos para gráficos específicos
-    projectsSummaryData() {
-      if (!this.stats) return null;
-      return {
-        labels: [this.$t('stats.activeProjects'), this.$t('stats.completedProjects'), this.$t('stats.projectsPlanned')],
-        datasets: [{
-          data: [this.stats.activeProjects, this.stats.completedProjects, this.stats.totalProjects - this.stats.activeProjects - this.stats.completedProjects]
-        }]
-      };
-    },
-
-    performanceSummaryData() {
-      if (!this.stats) return null;
-      const performance = this.stats.getOverallPerformance ? this.stats.getOverallPerformance() : 0;
-      return {
-        labels: [this.$t('stats.achievement'), this.$t('stats.remaining')],
-        datasets: [{
-          data: [performance, 100 - performance]
-        }]
-      };
-    },
-
+    /**
+     * Datos para gráfico de proyectos
+     */
     projectsChartData() {
-      if (!this.stats?.projectsByStatus) return null;
+      if (!this.stats?.projectMetrics) return null;
       return {
-        labels: Object.keys(this.stats.projectsByStatus),
+        labels: Object.keys(this.stats.projectMetrics.projectsByStatus),
         datasets: [{
-          data: Object.values(this.stats.projectsByStatus)
+          data: Object.values(this.stats.projectMetrics.projectsByStatus),
+          backgroundColor: ['#FF5F01', '#22c55e', '#3b82f6', '#f59e0b', '#ef4444'],
+          borderWidth: 2,
+          borderColor: '#ffffff'
         }]
       };
     },
 
-    incidentsChartData() {
-      if (!this.stats?.incidentsBySeverity) return null;
-      return {
-        labels: Object.keys(this.stats.incidentsBySeverity),
-        datasets: [{
-          data: Object.values(this.stats.incidentsBySeverity)
-        }]
-      };
-    },
-
+    /**
+     * Datos para gráfico de personal
+     */
     personnelChartData() {
-      if (!this.stats?.personnelByType) return null;
+      if (!this.stats?.personnelMetrics) return null;
       return {
-        labels: Object.keys(this.stats.personnelByType),
+        labels: Object.keys(this.stats.personnelMetrics.personnelByType),
         datasets: [{
-          data: Object.values(this.stats.personnelByType)
+          data: Object.values(this.stats.personnelMetrics.personnelByType),
+          backgroundColor: ['#3b82f6', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6'],
+          borderWidth: 2,
+          borderColor: '#ffffff'
         }]
       };
     },
 
+    /**
+     * Datos para gráfico de incidentes
+     */
+    incidentsChartData() {
+      if (!this.stats?.incidentMetrics) return null;
+      return {
+        labels: Object.keys(this.stats.incidentMetrics.incidentsBySeverity),
+        datasets: [{
+          label: this.$t('stats.incidents.total'),
+          data: Object.values(this.stats.incidentMetrics.incidentsBySeverity),
+          backgroundColor: ['#ef4444', '#f59e0b', '#22c55e'],
+          borderWidth: 1
+        }]
+      };
+    },
+
+    /**
+     * Datos para gráfico de materiales
+     */
     materialsChartData() {
-      if (!this.stats?.materialsByCategory) return null;
+      if (!this.stats?.materialMetrics) return null;
       return {
-        labels: Object.keys(this.stats.materialsByCategory),
+        labels: Object.keys(this.stats.materialMetrics.materialsByCategory),
         datasets: [{
-          data: Object.values(this.stats.materialsByCategory)
+          data: Object.values(this.stats.materialMetrics.materialsByCategory),
+          backgroundColor: ['#FF5F01', '#3b82f6', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6'],
+          borderWidth: 2,
+          borderColor: '#ffffff'
         }]
       };
     },
 
+    /**
+     * Datos para gráfico de maquinaria
+     */
     machineryChartData() {
-      if (!this.stats?.machineryByStatus) return null;
+      if (!this.stats?.machineryMetrics) return null;
       return {
-        labels: Object.keys(this.stats.machineryByStatus),
+        labels: Object.keys(this.stats.machineryMetrics.machineryByStatus),
         datasets: [{
-          data: Object.values(this.stats.machineryByStatus)
+          label: this.$t('stats.machinery.total'),
+          data: Object.values(this.stats.machineryMetrics.machineryByStatus),
+          backgroundColor: ['#22c55e', '#f59e0b', '#ef4444'],
+          borderWidth: 1
         }]
       };
     },
 
-    costsTimelineData() {
-      if (!this.stats?.costsOverTime || !Array.isArray(this.stats.costsOverTime)) {
-        // Generar datos de ejemplo si no existen
-        return this.generateTimelineData('costs');
-      }
-      return {
-        labels: this.stats.costsOverTime.map(item => item.period || item.date),
-        datasets: [{
-          label: this.$t('stats.totalMaterialCost'),
-          data: this.stats.costsOverTime.map(item => item.amount || item.value)
-        }]
-      };
-    },
-
-    incidentsTimelineData() {
-      if (!this.stats?.incidentsOverTime || !Array.isArray(this.stats.incidentsOverTime)) {
-        return this.generateTimelineData('incidents');
-      }
-      return {
-        labels: this.stats.incidentsOverTime.map(item => item.period || item.date),
-        datasets: [{
-          label: this.$t('stats.totalIncidents'),
-          data: this.stats.incidentsOverTime.map(item => item.count || item.value)
-        }]
-      };
-    },
-
+    /**
+     * Datos para gráfico radar de performance
+     */
     performanceRadarData() {
-      if (!this.stats) return null;
+      if (!this.stats?.scoreBreakdown) return null;
 
-      const metrics = [
-        { label: this.$t('stats.projects'), current: this.getProjectsScore(), target: 100 },
-        { label: this.$t('stats.personnel'), current: this.stats.getPersonnelActiveRate?.() || 0, target: 100 },
-        { label: this.$t('stats.safetyScore'), current: this.getSafetyScore(), target: 100 },
-        { label: this.$t('stats.budgetUtilization'), current: this.getBudgetScore(), target: 100 },
-        { label: this.$t('stats.machineryAvailability'), current: this.stats.getMachineryAvailabilityRate?.() || 0, target: 100 }
-      ];
+      const breakdown = this.stats.scoreBreakdown;
+      const labels = Object.keys(breakdown);
+      const values = Object.values(breakdown);
 
       return {
-        labels: metrics.map(m => m.label),
-        datasets: [
-          {
-            label: this.$t('stats.current'),
-            data: metrics.map(m => m.current),
-            backgroundColor: 'rgba(255, 95, 1, 0.2)',
-            borderColor: '#FF5F01',
-            borderWidth: 2
-          },
-          {
-            label: this.$t('stats.target'),
-            data: metrics.map(m => m.target),
-            backgroundColor: 'rgba(34, 197, 94, 0.2)',
-            borderColor: '#22c55e',
-            borderWidth: 2
-          }
-        ]
+        labels: labels,
+        datasets: [{
+          label: this.$t('stats.performance.score'),
+          data: values,
+          backgroundColor: 'rgba(255, 95, 1, 0.2)',
+          borderColor: '#FF5F01',
+          borderWidth: 2,
+          pointBackgroundColor: '#FF5F01',
+          pointBorderColor: '#ffffff',
+          pointBorderWidth: 2
+        }]
       };
+    },
+
+    /**
+     * Opciones de configuración para gráficos
+     */
+    chartOptions() {
+      const baseOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: {
+              padding: 15,
+              usePointStyle: true,
+              font: { size: 12 }
+            }
+          }
+        }
+      };
+
+      return {
+        doughnut: {
+          ...baseOptions,
+          cutout: '60%',
+          plugins: {
+            ...baseOptions.plugins,
+            legend: { ...baseOptions.plugins.legend, position: 'right' }
+          }
+        },
+        pie: {
+          ...baseOptions,
+          plugins: {
+            ...baseOptions.plugins,
+            legend: { ...baseOptions.plugins.legend, position: 'right' }
+          }
+        },
+        bar: {
+          ...baseOptions,
+          scales: {
+            y: { beginAtZero: true, grid: { color: '#f3f4f6' } },
+            x: { grid: { display: false } }
+          }
+        },
+        horizontalBar: {
+          ...baseOptions,
+          indexAxis: 'y',
+          scales: {
+            x: { beginAtZero: true, grid: { color: '#f3f4f6' } },
+            y: { grid: { display: false } }
+          }
+        },
+        polarArea: baseOptions,
+        radar: {
+          ...baseOptions,
+          scales: {
+            r: {
+              beginAtZero: true,
+              max: 100,
+              grid: { color: '#f3f4f6' },
+              pointLabels: { font: { size: 11 } }
+            }
+          }
+        }
+      };
+    },
+
+    // Verificadores de datos
+    hasProjectData() {
+      return this.stats?.projectMetrics?.totalProjects > 0;
+    },
+
+    hasPersonnelData() {
+      return this.stats?.personnelMetrics?.totalPersonnel > 0;
+    },
+
+    hasIncidentData() {
+      return this.stats?.incidentMetrics?.totalIncidents > 0;
+    },
+
+    hasMaterialData() {
+      return this.stats?.materialMetrics?.totalMaterials > 0;
+    },
+
+    hasMachineryData() {
+      return this.stats?.machineryMetrics?.totalMachinery > 0;
     }
   },
 
@@ -188,65 +241,26 @@ export default {
     await this.loadStats();
   },
 
-  watch: {
-    stats: {
-      handler(newStats) {
-        if (newStats) {
-          this.goalForm = {
-            targetProjects: newStats.targetProjects,
-            targetPersonnel: newStats.targetPersonnel,
-            maxIncidents: newStats.maxIncidents,
-            budgetLimit: newStats.budgetLimit,
-            targetEfficiency: newStats.targetEfficiency
-          };
-        }
-      },
-      immediate: true
-    }
-  },
-
   methods: {
-    async getCurrentManagerId() {
-      try {
-        const managerId = await statsService.getCurrentManagerId();
-        return managerId;
-      } catch (error) {
-        console.error('❌ Error obteniendo Manager ID:', error);
-        return null;
-      }
-    },
-
+    /**
+     * Carga las estadísticas principales
+     */
     async loadStats() {
       try {
         this.loading = true;
         this.error = null;
 
         const managerId = await this.getCurrentManagerId();
-        if (!managerId) {
-          throw new Error('Manager ID not found in session');
-        }
+        const params = this.buildPeriodParams();
 
-        const params = {
-          period: this.selectedPeriod,
-          startDate: this.customStartDate,
-          endDate: this.customEndDate
-        };
+        // Cargar stats actuales
+        const stats = await statsService.getManagerStats(managerId, params);
+        this.stats = stats;
+        this.alerts = stats.alerts || [];
 
-        // 🎯 CARGAR STATS UNA SOLA VEZ
-        const statsData = await statsService.getManagerStats(managerId, params);
-
-        // 🚨 Generar alertas sin API calls adicionales
-        const alertsData = this.generateAlerts(statsData);
-
-        // 📊 Generar comparación básica
-        const comparisonData = this.generateComparison(statsData);
-
-        this.stats = statsData;
-        this.alerts = alertsData;
-        this.comparison = comparisonData;
-
+        console.log('✅ Stats cargadas:', stats);
       } catch (err) {
-        console.error('❌ Error loading stats:', err);
+        console.error('❌ Error cargando stats:', err);
         this.error = err.message;
         this.showNotificationMessage(this.$t('stats.errorLoading'), 'error');
       } finally {
@@ -254,118 +268,64 @@ export default {
       }
     },
 
-    generateAlerts(stats) {
-      const alerts = [];
-
-      if (stats.criticalIncidents > 0) {
-        alerts.push({
-          type: 'CRITICAL',
-          title: 'Incidentes Críticos',
-          message: `Hay ${stats.criticalIncidents} incidente(s) crítico(s) que requieren atención inmediata`,
-          count: stats.criticalIncidents,
-          priority: 'HIGH',
-          icon: 'pi-exclamation-triangle',
-          color: '#ef4444'
-        });
-      }
-
-      if (stats.budgetLimit && stats.totalMaterialCost > stats.budgetLimit * 0.9) {
-        const percentage = Math.round((stats.totalMaterialCost / stats.budgetLimit) * 100);
-        alerts.push({
-          type: 'BUDGET',
-          title: 'Límite de Presupuesto',
-          message: `Presupuesto al ${percentage}% del límite establecido`,
-          percentage,
-          priority: percentage > 100 ? 'HIGH' : 'MEDIUM',
-          icon: 'pi-dollar',
-          color: percentage > 100 ? '#ef4444' : '#f59e0b'
-        });
-      }
-
-      if (stats.criticalIncidents === 0 && stats.totalIncidents < 3) {
-        alerts.push({
-          type: 'SUCCESS',
-          title: 'Excelente Seguridad',
-          message: 'Muy pocos incidentes este período. ¡Buen trabajo!',
-          priority: 'LOW',
-          icon: 'pi-shield',
-          color: '#22c55e'
-        });
-      }
-
-      return alerts.sort((a, b) => {
-        const priorityOrder = { 'HIGH': 3, 'MEDIUM': 2, 'LOW': 1 };
-        return priorityOrder[b.priority] - priorityOrder[a.priority];
-      });
-    },
-
-    generateComparison(stats) {
-      return {
-        projects: {
-          label: 'Proyectos',
-          current: stats.totalProjects,
-          previous: 0,
-          change: 0,
-          percentChange: 0,
-          trend: 'stable',
-          icon: 'pi-briefcase',
-          color: '#6b7280'
-        },
-        personnel: {
-          label: 'Personal Activo',
-          current: stats.activePersonnel,
-          previous: 0,
-          change: 0,
-          percentChange: 0,
-          trend: 'stable',
-          icon: 'pi-users',
-          color: '#6b7280'
-        }
-      };
-    },
-
-    calculatePercentChange(oldValue, newValue) {
-      if (oldValue === 0) return newValue > 0 ? 100 : 0;
-      return Math.round(((newValue - oldValue) / oldValue) * 100);
-    },
-
+    /**
+     * Actualiza las estadísticas (sin recalcular)
+     */
     async refreshStats() {
       try {
         this.refreshing = true;
+        this.error = null;
 
-        // 🔄 Forzar recálculo (ignora cache)
         const managerId = await this.getCurrentManagerId();
-        const params = {
-          period: this.selectedPeriod,
-          startDate: this.customStartDate,
-          endDate: this.customEndDate,
-          forceRefresh: true // Flag para ignorar cache
-        };
+        const params = this.buildPeriodParams();
 
-        const statsData = await statsService.calculateManagerStats(managerId, params);
-        const alertsData = await statsService.getAlerts(managerId);
-        const comparisonData = await statsService.getPerformanceComparison(managerId);
-
-        // 💾 Guardar los nuevos datos
-        if (statsData.id) {
-          await statsService.update(statsData.id, statsData);
-        } else {
-          await statsService.create(statsData);
-        }
-
-        this.stats = statsData;
-        this.alerts = alertsData;
-        this.comparison = comparisonData;
+        const stats = await statsService.getCurrentManagerStats(managerId);
+        this.stats = stats;
+        this.alerts = stats.alerts || [];
 
         this.showNotificationMessage(this.$t('stats.dataRefreshed'), 'success');
       } catch (err) {
-        console.error('Error refreshing stats:', err);
+        console.error('❌ Error refrescando stats:', err);
         this.showNotificationMessage(this.$t('stats.errorLoading'), 'error');
       } finally {
         this.refreshing = false;
       }
     },
 
+    /**
+     * Calcula/recalcula las estadísticas
+     */
+    async calculateStats() {
+      try {
+        this.calculating = true;
+        this.error = null;
+
+        const managerId = await this.getCurrentManagerId();
+        const params = this.buildPeriodParams();
+
+        const request = {
+          ...params,
+          forceRecalculation: true,
+          saveHistory: true,
+          notes: `Recálculo manual - ${new Date().toLocaleString('es-PE')}`
+        };
+
+        const stats = await statsService.calculateManagerStats(managerId, request);
+        this.stats = stats;
+        this.alerts = stats.alerts || [];
+
+        this.showNotificationMessage(this.$t('stats.dataCalculated'), 'success');
+      } catch (err) {
+        console.error('❌ Error calculando stats:', err);
+        this.showNotificationMessage(this.$t('stats.errorCalculating'), 'error');
+      } finally {
+        this.calculating = false;
+      }
+    },
+
+    /**
+     * Maneja cambio de período
+     */
     onPeriodChange() {
       if (this.selectedPeriod !== 'CUSTOM') {
         this.customStartDate = null;
@@ -374,137 +334,109 @@ export default {
       this.loadStats();
     },
 
+    /**
+     * Maneja cambio de fechas personalizadas
+     */
     onCustomDateChange() {
       if (this.customStartDate && this.customEndDate) {
         this.loadStats();
       }
     },
 
-    async saveGoals() {
+    /**
+     * Obtiene el ID del manager actual
+     */
+    async getCurrentManagerId() {
       try {
-        this.savingGoals = true;
-        const managerId = await this.getCurrentManagerId();
-
-        if (!managerId) {
-          throw new Error('Manager ID not found');
-        }
-
-        await statsService.updateGoals(managerId, this.goalForm);
-
-        this.showGoalsDialog = false;
-        this.showNotificationMessage(this.$t('stats.goals.goalsUpdated'), 'success');
-
-        await this.loadStats();
-      } catch (err) {
-        console.error('Error saving goals:', err);
-        this.showNotificationMessage('Error saving goals', 'error');
-      } finally {
-        this.savingGoals = false;
+        return statsService.getCurrentManagerId();
+      } catch (error) {
+        throw new Error('No se pudo obtener el ID del manager autenticado');
       }
     },
 
-    async exportToExcel() {
-      try {
-        if (!this.stats) {
-          throw new Error('No stats data to export');
-        }
-        await statsService.exportToExcel(this.stats, 'estadisticas_manager');
-        this.showNotificationMessage(this.$t('stats.export.exportSuccessful'), 'success');
-      } catch (err) {
-        console.error('Error exporting:', err);
-        this.showNotificationMessage(this.$t('stats.export.exportError'), 'error');
+    /**
+     * Construye parámetros de período
+     */
+    buildPeriodParams() {
+      const params = { periodType: this.selectedPeriod };
+
+      if (this.selectedPeriod === 'CUSTOM') {
+        params.startDate = this.customStartDate;
+        params.endDate = this.customEndDate;
       }
+
+      return params;
     },
 
-    // Formateo de datos
-    formatCurrency(amount) {
-      return Stats.formatCurrency(amount);
-    },
-
-    formatMetricValue(value, key) {
-      if (key === 'costs') {
-        return this.formatCurrency(value);
+    /**
+     * Obtiene clase CSS para alerta
+     */
+    getAlertClass(alert) {
+      if (alert.includes('🚨') || alert.includes('crítico') || alert.includes('Crítico')) {
+        return 'alert-critical';
       }
-      return typeof value === 'number' ? value.toLocaleString('es-PE') : value;
-    },
-
-    // Cálculos para gráficos
-    getProjectsScore() {
-      if (!this.stats) return 0;
-      return this.stats.getProjectsCompletionRate?.() || 0;
-    },
-
-    getSafetyScore() {
-      if (!this.stats) return 100;
-      if (this.stats.totalPersonnel === 0) return 100;
-      const incidentRate = (this.stats.totalIncidents / this.stats.totalPersonnel) * 100;
-      return Math.max(0, 100 - incidentRate);
-    },
-
-    getBudgetScore() {
-      if (!this.stats || !this.stats.budgetLimit) return 100;
-      const utilization = (this.stats.totalMaterialCost / this.stats.budgetLimit) * 100;
-      return Math.max(0, 100 - Math.max(0, utilization - 100));
-    },
-
-    generateTimelineData(type) {
-      const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'];
-      const data = months.map(month => ({
-        period: month,
-        value: type === 'costs'
-            ? Math.floor(Math.random() * 50000) + 10000
-            : Math.floor(Math.random() * 10) + 1
-      }));
-
-      return {
-        labels: data.map(item => item.period),
-        datasets: [{
-          label: type === 'costs' ? this.$t('stats.totalMaterialCost') : this.$t('stats.totalIncidents'),
-          data: data.map(item => item.value)
-        }]
-      };
-    },
-
-    // Variantes de UI
-    getIncidentsVariant() {
-      if (!this.stats) return 'info';
-      if (this.stats.criticalIncidents > 0) return 'danger';
-      if (this.stats.totalIncidents > 5) return 'warning';
-      return 'success';
-    },
-
-    getIncidentsBadge() {
-      if (!this.stats) return null;
-      if (this.stats.criticalIncidents === 0) {
-        return {
-          type: 'success',
-          icon: 'pi-check',
-          text: this.$t('stats.alerts.excellentSafety')
-        };
+      if (alert.includes('⚠️') || alert.includes('limite') || alert.includes('bajo')) {
+        return 'alert-warning';
       }
-      return null;
+      if (alert.includes('✅') || alert.includes('Excelente') || alert.includes('Buen')) {
+        return 'alert-success';
+      }
+      return 'alert-info';
     },
 
-    getPerformanceBadge() {
-      if (!this.stats || !this.stats.getOverallPerformance) return null;
-
-      const performance = this.stats.getOverallPerformance();
-      if (performance === null || performance === undefined) return null;
-
-      if (performance >= 90) {
-        return { type: 'success', text: this.$t('stats.goals.achievedGoal') };
+    /**
+     * Obtiene icono para alerta
+     */
+    getAlertIcon(alert) {
+      if (alert.includes('🚨') || alert.includes('crítico')) {
+        return 'pi pi-exclamation-triangle';
       }
-      if (performance < 70) {
-        return { type: 'warning', text: this.$t('stats.goals.belowGoal') };
+      if (alert.includes('💰') || alert.includes('presupuesto')) {
+        return 'pi pi-dollar';
       }
-      return null;
+      if (alert.includes('📦') || alert.includes('stock')) {
+        return 'pi pi-box';
+      }
+      if (alert.includes('🔧') || alert.includes('mantenimiento')) {
+        return 'pi pi-cog';
+      }
+      if (alert.includes('✅') || alert.includes('Excelente')) {
+        return 'pi pi-check-circle';
+      }
+      return 'pi pi-info-circle';
     },
 
-    // Notificaciones
+    /**
+     * Muestra notificación
+     */
     showNotificationMessage(message, type = 'success') {
       this.notificationMessage = message;
       this.notificationType = type;
       this.showNotification = true;
+
+      // Auto-hide después de 5 segundos
+      setTimeout(() => {
+        this.hideNotification();
+      }, 5000);
+    },
+
+    /**
+     * Oculta notificación
+     */
+    hideNotification() {
+      this.showNotification = false;
+    },
+
+    /**
+     * Obtiene icono para notificación
+     */
+    getNotificationIcon() {
+      switch (this.notificationType) {
+        case 'success': return 'pi pi-check';
+        case 'error': return 'pi pi-times';
+        case 'warning': return 'pi pi-exclamation-triangle';
+        default: return 'pi pi-info';
+      }
     }
   }
 };
@@ -516,69 +448,73 @@ export default {
     <div class="stats-header">
       <div class="header-content">
         <div class="header-title">
-          <h1>{{ $t('stats.dashboard') }}</h1>
+          <h1><i class="pi pi-chart-bar"></i> {{ $t('stats.title') }}</h1>
           <p class="header-subtitle">{{ $t('stats.subtitle') }}</p>
         </div>
 
         <!-- Filtros de período -->
         <div class="header-filters">
-          <AppInput
-              v-model="selectedPeriod"
-              type="select"
-              :label="$t('stats.period')"
-              :placeholder="$t('stats.selectPeriod')"
-              :options="periodOptions"
-              @update:modelValue="onPeriodChange"
-              :disabled="loading"
-              class="period-select"
-          />
+          <div class="filter-group">
+            <label>{{ $t('stats.periods.selectPeriod') }}:</label>
+            <select
+                v-model="selectedPeriod"
+                @change="onPeriodChange"
+                :disabled="loading"
+                class="period-select"
+            >
+              <option
+                  v-for="option in periodOptions"
+                  :key="option.value"
+                  :value="option.value"
+              >
+                {{ option.label }}
+              </option>
+            </select>
+          </div>
 
           <!-- Fechas personalizadas -->
           <div v-if="selectedPeriod === 'CUSTOM'" class="custom-dates">
-            <AppInput
-                v-model="customStartDate"
-                type="date"
-                :label="$t('stats.startDate')"
-                @update:modelValue="onCustomDateChange"
-                :disabled="loading"
-            />
-            <AppInput
-                v-model="customEndDate"
-                type="date"
-                :label="$t('stats.endDate')"
-                @update:modelValue="onCustomDateChange"
-                :disabled="loading"
-            />
+            <div class="date-group">
+              <label>{{ $t('stats.periods.from') }}:</label>
+              <input
+                  v-model="customStartDate"
+                  type="date"
+                  @change="onCustomDateChange"
+                  :disabled="loading"
+              />
+            </div>
+            <div class="date-group">
+              <label>{{ $t('stats.periods.to') }}:</label>
+              <input
+                  v-model="customEndDate"
+                  type="date"
+                  @change="onCustomDateChange"
+                  :disabled="loading"
+              />
+            </div>
           </div>
         </div>
       </div>
 
       <!-- Acciones del header -->
       <div class="header-actions">
-        <AppButton
-            :label="$t('stats.refreshData')"
-            icon="pi pi-refresh"
-            variant="secondary"
+        <button
             @click="refreshStats"
-            :loading="refreshing"
-            :disabled="loading"
-        />
+            :disabled="loading || refreshing"
+            class="btn btn-secondary"
+        >
+          <i class="pi pi-refresh" :class="{ 'pi-spin': refreshing }"></i>
+          {{ refreshing ? $t('stats.refreshing') : $t('stats.refresh') }}
+        </button>
 
-        <AppButton
-            :label="$t('stats.export.exportExcel')"
-            icon="pi pi-file-excel"
-            variant="secondary"
-            @click="exportToExcel"
-            :disabled="loading || !stats"
-        />
-
-        <AppButton
-            :label="$t('stats.goals.setGoals')"
-            icon="pi pi-cog"
-            variant="primary"
-            @click="showGoalsDialog = true"
-            :disabled="loading"
-        />
+        <button
+            @click="calculateStats"
+            :disabled="loading || calculating"
+            class="btn btn-primary"
+        >
+          <i class="pi pi-calculator" :class="{ 'pi-spin': calculating }"></i>
+          {{ calculating ? $t('stats.calculating') : $t('stats.recalculate') }}
+        </button>
       </div>
     </div>
 
@@ -586,195 +522,271 @@ export default {
     <div v-if="alerts.length > 0" class="alerts-section">
       <div class="alerts-container">
         <div
-            v-for="alert in alerts"
-            :key="alert.type"
+            v-for="(alert, index) in alerts"
+            :key="index"
             class="alert-card"
-            :class="`alert-card--${alert.priority.toLowerCase()}`"
+            :class="getAlertClass(alert)"
         >
           <div class="alert-icon">
-            <i :class="['pi', alert.icon]" :style="{ color: alert.color }"></i>
+            <i :class="getAlertIcon(alert)"></i>
           </div>
           <div class="alert-content">
-            <h4 class="alert-title">{{ alert.title }}</h4>
-            <p class="alert-message">{{ alert.message }}</p>
-          </div>
-          <div v-if="alert.count" class="alert-badge">
-            {{ alert.count }}
+            <p class="alert-message">{{ alert }}</p>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Cards numéricas importantes (solo 2) - Usando ChartCard como cards simples -->
+    <!-- Cards resumen principales -->
     <div class="summary-cards" v-if="!loading && stats">
-      <ChartCardComponent
-          :title="$t('stats.summary')"
-          :subtitle="$t('stats.overview')"
-          chart-type="doughnut"
-          :data="projectsSummaryData"
-          :total-value="`${stats.activeProjects}/${stats.totalProjects}`"
-          :total-label="$t('stats.projects')"
-          variant="primary"
-          color-scheme="primary"
-          :height="200"
-          :footer-text="`${stats.criticalIncidents} ${$t('stats.criticalIncidents').toLowerCase()}`"
-          :last-updated="stats.updatedAt"
-      />
+      <!-- Performance General -->
+      <div class="summary-card performance-card">
+        <div class="card-header">
+          <h3><i class="pi pi-trophy"></i> {{ $t('stats.performance.title') }}</h3>
+          <div class="performance-badge" :style="{ backgroundColor: stats.getPerformanceColor() }">
+            {{ stats.performanceGrade }}
+          </div>
+        </div>
+        <div class="card-content">
+          <div class="performance-score">
+            <span class="score-value">{{ stats.overallPerformanceScore.toFixed(1) }}%</span>
+            <span class="score-label">{{ $t('stats.performance.score') }}</span>
+          </div>
+          <div class="performance-status">
+            <i :class="stats.getPerformanceIcon()" :style="{ color: stats.getPerformanceColor() }"></i>
+            <span>{{ stats.overallStatus }}</span>
+          </div>
+        </div>
+      </div>
 
-      <ChartCardComponent
-          :title="$t('stats.overallPerformance')"
-          :subtitle="$t('stats.efficiency')"
-          chart-type="doughnut"
-          :data="performanceSummaryData"
-          :total-value="stats.getOverallPerformance ? stats.getOverallPerformance() : 0"
-          total-label="%"
-          variant="success"
-          color-scheme="success"
-          :height="200"
-          :footer-text="$t('stats.goals.achievedGoal')"
-      />
+      <!-- Proyectos Summary -->
+      <div class="summary-card projects-card">
+        <div class="card-header">
+          <h3><i class="pi pi-briefcase"></i> {{ $t('stats.projects.title') }}</h3>
+          <div class="metric-badge">
+            {{ stats.projectMetrics.totalProjects }}
+          </div>
+        </div>
+        <div class="card-content">
+          <div class="metrics-grid">
+            <div class="metric-item">
+              <span class="metric-value">{{ stats.projectMetrics.activeProjects }}</span>
+              <span class="metric-label">{{ $t('stats.projects.active') }}</span>
+            </div>
+            <div class="metric-item">
+              <span class="metric-value">{{ stats.projectMetrics.completedProjects }}</span>
+              <span class="metric-label">{{ $t('stats.projects.completed') }}</span>
+            </div>
+            <div class="metric-item">
+              <span class="metric-value">{{ stats.projectMetrics.completionRate.toFixed(1) }}%</span>
+              <span class="metric-label">{{ $t('stats.projects.completionRate') }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Safety Summary -->
+      <div class="summary-card safety-card">
+        <div class="card-header">
+          <h3><i class="pi pi-shield"></i> {{ $t('stats.incidents.safety') }}</h3>
+          <div class="safety-badge" :style="{ backgroundColor: stats.incidentMetrics.getSafetyIndicator().color }">
+            {{ stats.incidentMetrics.safetyScore.toFixed(0) }}
+          </div>
+        </div>
+        <div class="card-content">
+          <div class="safety-status">
+            <i :class="stats.incidentMetrics.getSafetyIndicator().icon"
+               :style="{ color: stats.incidentMetrics.getSafetyIndicator().color }"></i>
+            <span>{{ stats.incidentMetrics.safetyStatus }}</span>
+          </div>
+          <div class="safety-metrics">
+            <span v-if="stats.incidentMetrics.criticalIncidents > 0" class="critical-incidents">
+              {{ stats.incidentMetrics.criticalIncidents }} {{ $t('stats.incidents.critical').toLowerCase() }}
+            </span>
+            <span v-else class="no-critical">
+              {{ $t('stats.incidents.noIncidents') }}
+            </span>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Grid principal de gráficos -->
     <div class="charts-grid" v-if="!loading && stats">
-      <!-- Proyectos por estado - Donut Chart -->
-      <ChartCardComponent
-          :title="$t('stats.projects')"
-          :subtitle="$t('stats.projectsByStatus')"
-          chart-type="doughnut"
-          :data="projectsChartData"
-          :total-value="stats.totalProjects"
-          :total-label="$t('stats.totalProjects')"
-          variant="primary"
-          color-scheme="primary"
-          :last-updated="stats.updatedAt"
-      />
-
-      <!-- Incidentes por severidad - Bar Chart -->
-      <ChartCardComponent
-          :title="$t('stats.incidents')"
-          :subtitle="$t('stats.incidentsBySeverity')"
-          chart-type="bar"
-          :data="incidentsChartData"
-          :total-value="stats.totalIncidents"
-          :total-label="$t('stats.totalIncidents')"
-          variant="danger"
-          color-scheme="danger"
-      />
-
-      <!-- Personal por tipo - Pie Chart -->
-      <ChartCardComponent
-          :title="$t('stats.personnel')"
-          :subtitle="$t('stats.personnelByType')"
-          chart-type="pie"
-          :data="personnelChartData"
-          :total-value="stats.totalPersonnel"
-          :total-label="$t('stats.totalPersonnel')"
-          variant="info"
-          color-scheme="cool"
-      />
-
-      <!-- Costos en el tiempo - Line Chart -->
-      <ChartCardComponent
-          :title="$t('stats.materials')"
-          :subtitle="$t('stats.totalMaterialCost')"
-          chart-type="line"
-          :data="costsTimelineData"
-          :total-value="formatCurrency(stats.totalMaterialCost)"
-          :total-label="$t('stats.totalMaterialCost')"
-          variant="warning"
-          color-scheme="warning"
-          :height="350"
-      />
-
-      <!-- Maquinaria por estado - Horizontal Bar -->
-      <ChartCardComponent
-          :title="$t('stats.machinery')"
-          :subtitle="$t('stats.machineryByStatus')"
-          chart-type="horizontalBar"
-          :data="machineryChartData"
-          :total-value="stats.totalMachinery"
-          :total-label="$t('stats.totalMachinery')"
-          variant="info"
-          color-scheme="cool"
-      />
-
-      <!-- Incidentes en el tiempo - Line Chart -->
-      <ChartCardComponent
-          :title="$t('stats.trends')"
-          :subtitle="$t('stats.incidents') + ' ' + $t('stats.trends').toLowerCase()"
-          chart-type="line"
-          :data="incidentsTimelineData"
-          variant="warning"
-          color-scheme="danger"
-          :height="350"
-      />
-
-      <!-- Materiales por categoría - Polar Area -->
-      <ChartCardComponent
-          :title="$t('stats.materials')"
-          :subtitle="$t('stats.materialsByCategory')"
-          chart-type="polarArea"
-          :data="materialsChartData"
-          variant="success"
-          color-scheme="warm"
-      />
-
-      <!-- Performance Radar - Radar Chart -->
-      <ChartCardComponent
-          :title="$t('stats.performance')"
-          :subtitle="$t('stats.comparison.title')"
-          chart-type="radar"
-          :data="performanceRadarData"
-          variant="success"
-          color-scheme="default"
-          :height="400"
-          :footer-text="$t('stats.comparison.subtitle')"
-      />
-    </div>
-
-    <!-- Comparación de rendimiento -->
-    <div v-if="comparison && !loading" class="comparison-section">
-      <div class="section-header">
-        <h2>{{ $t('stats.comparison.title') }}</h2>
-        <p class="section-subtitle">{{ $t('stats.comparison.subtitle') }}</p>
+      <!-- Proyectos por estado -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <h3>{{ $t('stats.projects.byStatus') }}</h3>
+          <div class="chart-total">
+            <span class="total-value">{{ stats.projectMetrics.totalProjects }}</span>
+            <span class="total-label">{{ $t('stats.projects.total') }}</span>
+          </div>
+        </div>
+        <div class="chart-content">
+          <pv-chart
+              v-if="hasProjectData"
+              type="doughnut"
+              :data="projectsChartData"
+              :options="chartOptions.doughnut"
+              class="chart"
+          />
+          <div v-else class="no-data">
+            <i class="pi pi-chart-pie"></i>
+            <p>{{ $t('stats.charts.noDataAvailable') }}</p>
+          </div>
+        </div>
+        <div class="chart-footer">
+          <span class="last-updated">{{ $t('stats.meta.lastUpdated') }}: {{ stats.getFormattedCalculatedAt() }}</span>
+        </div>
       </div>
 
-      <div class="comparison-grid">
+      <!-- Personal por tipo -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <h3>{{ $t('stats.personnel.byType') }}</h3>
+          <div class="chart-total">
+            <span class="total-value">{{ stats.personnelMetrics.totalPersonnel }}</span>
+            <span class="total-label">{{ $t('stats.personnel.total') }}</span>
+          </div>
+        </div>
+        <div class="chart-content">
+          <pv-chart
+              v-if="hasPersonnelData"
+              type="pie"
+              :data="personnelChartData"
+              :options="chartOptions.pie"
+              class="chart"
+          />
+          <div v-else class="no-data">
+            <i class="pi pi-users"></i>
+            <p>{{ $t('stats.charts.noDataAvailable') }}</p>
+          </div>
+        </div>
+        <div class="chart-footer">
+          <div class="metrics-row">
+            <span>{{ $t('stats.personnel.attendance') }}: {{ stats.personnelMetrics.averageAttendanceRate.toFixed(1) }}%</span>
+            <span>{{ $t('stats.personnel.salary') }}: {{ stats.personnelMetrics.formatSalary() }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Incidentes por severidad -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <h3>{{ $t('stats.incidents.bySeverity') }}</h3>
+          <div class="chart-total safety-indicator" :style="{ color: stats.incidentMetrics.getSafetyIndicator().color }">
+            <span class="total-value">{{ stats.incidentMetrics.totalIncidents }}</span>
+            <span class="total-label">{{ $t('stats.incidents.total') }}</span>
+          </div>
+        </div>
+        <div class="chart-content">
+          <pv-chart
+              v-if="hasIncidentData"
+              type="bar"
+              :data="incidentsChartData"
+              :options="chartOptions.bar"
+              class="chart"
+          />
+          <div v-else class="no-data success">
+            <i class="pi pi-shield"></i>
+            <p>{{ $t('stats.incidents.noIncidents') }}</p>
+          </div>
+        </div>
+        <div class="chart-footer">
+          <span class="safety-score">{{ $t('stats.incidents.safetyScore') }}: {{ stats.incidentMetrics.safetyScore.toFixed(1) }}%</span>
+        </div>
+      </div>
+
+      <!-- Materiales por categoría -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <h3>{{ $t('stats.materials.byCategory') }}</h3>
+          <div class="chart-total">
+            <span class="total-value">{{ stats.materialMetrics.formatCost() }}</span>
+            <span class="total-label">{{ $t('stats.materials.cost') }}</span>
+          </div>
+        </div>
+        <div class="chart-content">
+          <pv-chart
+              v-if="hasMaterialData"
+              type="polarArea"
+              :data="materialsChartData"
+              :options="chartOptions.polarArea"
+              class="chart"
+          />
+          <div v-else class="no-data">
+            <i class="pi pi-box"></i>
+            <p>{{ $t('stats.charts.noDataAvailable') }}</p>
+          </div>
+        </div>
+        <div class="chart-footer">
+          <div class="stock-alerts" v-if="stats.materialMetrics.stockAlerts.length > 0">
+            <i class="pi pi-exclamation-triangle"></i>
+            <span>{{ stats.materialMetrics.stockAlerts.length }} alertas de stock</span>
+          </div>
+          <span v-else class="stock-ok">{{ $t('stats.materials.inventory') }}: {{ stats.materialMetrics.inventoryHealthScore.toFixed(0) }}%</span>
+        </div>
+      </div>
+
+      <!-- Maquinaria por estado -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <h3>{{ $t('stats.machinery.byStatus') }}</h3>
+          <div class="chart-total">
+            <span class="total-value">{{ stats.machineryMetrics.totalMachinery }}</span>
+            <span class="total-label">{{ $t('stats.machinery.total') }}</span>
+          </div>
+        </div>
+        <div class="chart-content">
+          <pv-chart
+              v-if="hasMachineryData"
+              type="horizontalBar"
+              :data="machineryChartData"
+              :options="chartOptions.horizontalBar"
+              class="chart"
+          />
+          <div v-else class="no-data">
+            <i class="pi pi-cog"></i>
+            <p>{{ $t('stats.charts.noDataAvailable') }}</p>
+          </div>
+        </div>
+        <div class="chart-footer">
+          <span class="availability">{{ $t('stats.machinery.availability') }}: {{ stats.machineryMetrics.activeRate.toFixed(1) }}%</span>
+        </div>
+      </div>
+
+      <!-- Performance Breakdown -->
+      <div class="chart-card performance-breakdown">
+        <div class="chart-header">
+          <h3>{{ $t('stats.performance.title') }} - Breakdown</h3>
+        </div>
+        <div class="chart-content">
+          <pv-chart
+              type="radar"
+              :data="performanceRadarData"
+              :options="chartOptions.radar"
+              class="chart"
+          />
+        </div>
+        <div class="chart-footer">
+          <span class="overall-score">{{ $t('stats.performance.score') }}: {{ stats.overallPerformanceScore.toFixed(1) }}%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recomendaciones -->
+    <div v-if="stats && stats.recommendations.length > 0" class="recommendations-section">
+      <div class="section-header">
+        <h2><i class="pi pi-lightbulb"></i> {{ $t('stats.recommendations.title') }}</h2>
+      </div>
+      <div class="recommendations-list">
         <div
-            v-for="(metric, key) in comparison"
-            :key="key"
-            class="comparison-card"
+            v-for="(recommendation, index) in stats.recommendations"
+            :key="index"
+            class="recommendation-item"
         >
-          <div class="comparison-header">
-            <i :class="['pi', metric.icon]" :style="{ color: metric.color }"></i>
-            <h4>{{ metric.label }}</h4>
-          </div>
-
-          <div class="comparison-values">
-            <div class="current-value">
-              <span class="value">{{ formatMetricValue(metric.current, key) }}</span>
-              <span class="label">{{ $t('stats.current') }}</span>
-            </div>
-
-            <div class="comparison-arrow">
-              <i :class="['pi', `pi-arrow-${metric.trend}`]" :style="{ color: metric.color }"></i>
-            </div>
-
-            <div class="previous-value">
-              <span class="value">{{ formatMetricValue(metric.previous, key) }}</span>
-              <span class="label">{{ $t('stats.previous') }}</span>
-            </div>
-          </div>
-
-          <div class="comparison-change" :style="{ color: metric.color }">
-            <span class="change-value">
-              {{ metric.change > 0 ? '+' : '' }}{{ formatMetricValue(metric.change, key) }}
-            </span>
-            <span class="change-percent">
-              ({{ metric.percentChange > 0 ? '+' : '' }}{{ metric.percentChange }}%)
-            </span>
-          </div>
+          <i class="pi pi-lightbulb"></i>
+          <span>{{ recommendation }}</span>
         </div>
       </div>
     </div>
@@ -793,90 +805,33 @@ export default {
         <i class="pi pi-exclamation-triangle error-icon"></i>
         <h3>{{ $t('stats.errorLoading') }}</h3>
         <p>{{ error }}</p>
-        <AppButton
-            :label="$t('stats.tryAgain')"
-            icon="pi pi-refresh"
-            variant="primary"
+        <button
             @click="loadStats"
-        />
+            class="btn btn-primary"
+        >
+          <i class="pi pi-refresh"></i>
+          {{ $t('stats.tryAgain') }}
+        </button>
       </div>
     </div>
 
-    <!-- Modal de metas -->
-    <pv-dialog
-        v-model:visible="showGoalsDialog"
-        :header="$t('stats.goals.title')"
-        modal
-        :style="{ width: '500px' }"
-    >
-      <div class="goals-form">
-        <AppInput
-            v-model="goalForm.targetProjects"
-            type="number"
-            :label="$t('stats.goals.targetProjects')"
-            :min="0"
-        />
-
-        <AppInput
-            v-model="goalForm.targetPersonnel"
-            type="number"
-            :label="$t('stats.goals.targetPersonnel')"
-            :min="0"
-        />
-
-        <AppInput
-            v-model="goalForm.maxIncidents"
-            type="number"
-            :label="$t('stats.goals.maxIncidents')"
-            :min="0"
-        />
-
-        <AppInput
-            v-model="goalForm.budgetLimit"
-            type="number"
-            :label="$t('stats.goals.budgetLimit')"
-            :min="0"
-        />
-
-        <AppInput
-            v-model="goalForm.targetEfficiency"
-            type="number"
-            :label="$t('stats.goals.targetEfficiency')"
-            :min="0"
-            :max="100"
-        />
-      </div>
-
-      <template #footer>
-        <AppButton
-            label="Cancelar"
-            variant="secondary"
-            @click="showGoalsDialog = false"
-        />
-        <AppButton
-            :label="$t('stats.goals.saveGoals')"
-            variant="primary"
-            @click="saveGoals"
-            :loading="savingGoals"
-        />
-      </template>
-    </pv-dialog>
-
-    <!-- Notificaciones -->
-    <AppNotification
-        v-model="showNotification"
-        :message="notificationMessage"
-        :type="notificationType"
-        :auto-close="true"
-    />
+    <!-- Toast para notificaciones -->
+    <div v-if="showNotification" class="toast-notification" :class="notificationType">
+      <i :class="getNotificationIcon()"></i>
+      <span>{{ notificationMessage }}</span>
+      <button @click="hideNotification" class="toast-close">
+        <i class="pi pi-times"></i>
+      </button>
+    </div>
   </div>
 </template>
 
 <style scoped>
 .manager-stats {
   padding: 1.5rem;
-  background-color: #f8f9fa;
+  background-color: #f9fafb;
   min-height: 100vh;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
 /* Header */
@@ -885,7 +840,7 @@ export default {
   border-radius: 12px;
   padding: 1.5rem;
   margin-bottom: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   border: 1px solid #e5e7eb;
 }
 
@@ -902,6 +857,9 @@ export default {
   font-size: 1.75rem;
   font-weight: 700;
   color: #111827;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .header-subtitle {
@@ -914,10 +872,34 @@ export default {
   display: flex;
   gap: 1rem;
   align-items: flex-end;
+  flex-wrap: wrap;
 }
 
-.period-select {
-  min-width: 200px;
+.filter-group, .date-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.filter-group label, .date-group label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.period-select, .date-group input {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  background: white;
+  min-width: 150px;
+}
+
+.period-select:focus, .date-group input:focus {
+  outline: none;
+  border-color: #FF5F01;
+  box-shadow: 0 0 0 3px rgba(255, 95, 1, 0.1);
 }
 
 .custom-dates {
@@ -932,7 +914,50 @@ export default {
   flex-wrap: wrap;
 }
 
-/* Alerts */
+/* Botones */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background-color: #FF5F01;
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: #e54801;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 95, 1, 0.3);
+}
+
+.btn-secondary {
+  background-color: white;
+  color: #374151;
+  border: 1px solid #d1d5db;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background-color: #f9fafb;
+  border-color: #FF5F01;
+  color: #FF5F01;
+}
+
+/* Alertas */
 .alerts-section {
   margin-bottom: 1.5rem;
 }
@@ -951,68 +976,183 @@ export default {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  min-width: 280px;
+  min-width: 300px;
   flex-shrink: 0;
   border-left: 4px solid transparent;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-.alert-card--high {
+.alert-critical {
   border-left-color: #ef4444;
+  background-color: #fef2f2;
 }
 
-.alert-card--medium {
+.alert-warning {
   border-left-color: #f59e0b;
+  background-color: #fffbeb;
 }
 
-.alert-card--low {
+.alert-success {
   border-left-color: #22c55e;
+  background-color: #f0fdf4;
+}
+
+.alert-info {
+  border-left-color: #3b82f6;
+  background-color: #eff6ff;
 }
 
 .alert-icon {
   font-size: 1.25rem;
+  color: inherit;
 }
 
 .alert-content {
   flex: 1;
 }
 
-.alert-title {
+.alert-message {
   margin: 0;
   font-size: 0.875rem;
-  font-weight: 600;
   color: #374151;
+  line-height: 1.4;
 }
 
-.alert-message {
-  margin: 0.25rem 0 0 0;
-  font-size: 0.75rem;
-  color: #6b7280;
-  line-height: 1.3;
-}
-
-.alert-badge {
-  background: #FF5F01;
-  color: white;
-  border-radius: 50%;
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-
-/* Summary Cards */
+/* Cards de resumen */
 .summary-cards {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 1.5rem;
   margin-bottom: 2rem;
 }
 
-/* Charts Grid */
+.summary-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+  transition: all 0.3s ease;
+}
+
+.summary-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.card-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1f2937;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.performance-badge, .metric-badge, .safety-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  color: white;
+  font-weight: 700;
+  font-size: 0.875rem;
+  min-width: 40px;
+  text-align: center;
+}
+
+.metric-badge {
+  background-color: #FF5F01;
+}
+
+.card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.performance-score {
+  text-align: center;
+}
+
+.score-value {
+  display: block;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #111827;
+  line-height: 1;
+}
+
+.score-label {
+  display: block;
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-top: 0.25rem;
+}
+
+.performance-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.metric-item {
+  text-align: center;
+}
+
+.metric-value {
+  display: block;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.metric-label {
+  display: block;
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-top: 0.25rem;
+}
+
+.safety-status {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.safety-metrics {
+  text-align: center;
+}
+
+.critical-incidents {
+  color: #ef4444;
+  font-weight: 600;
+}
+
+.no-critical {
+  color: #22c55e;
+  font-weight: 500;
+}
+
+/* Grid de gráficos */
 .charts-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
@@ -1020,112 +1160,178 @@ export default {
   margin-bottom: 2rem;
 }
 
-/* Comparison Section */
-.comparison-section {
+.chart-card {
   background: white;
   border-radius: 12px;
   padding: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   border: 1px solid #e5e7eb;
-  margin-bottom: 1.5rem;
-}
-
-.section-header {
-  margin-bottom: 1.5rem;
-  text-align: center;
-}
-
-.section-header h2 {
-  margin: 0;
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #111827;
-}
-
-.section-subtitle {
-  margin: 0.5rem 0 0 0;
-  color: #6b7280;
-  font-size: 0.875rem;
-}
-
-.comparison-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1rem;
-}
-
-.comparison-card {
-  background: #f9fafb;
-  border-radius: 8px;
-  padding: 1rem;
-  border: 1px solid #e5e7eb;
-}
-
-.comparison-header {
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
+  flex-direction: column;
+  min-height: 400px;
 }
 
-.comparison-header h4 {
-  margin: 0;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #374151;
-}
-
-.comparison-values {
+.chart-header {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  margin-bottom: 0.75rem;
+  align-items: center;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid #f3f4f6;
+  padding-bottom: 1rem;
 }
 
-.current-value,
-.previous-value {
-  text-align: center;
+.chart-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1f2937;
 }
 
-.current-value .value,
-.previous-value .value {
+.chart-total {
+  text-align: right;
+}
+
+.total-value {
   display: block;
-  font-size: 1.25rem;
+  font-size: 1.5rem;
   font-weight: 700;
   color: #111827;
 }
 
-.current-value .label,
-.previous-value .label {
+.total-label {
   display: block;
   font-size: 0.75rem;
   color: #6b7280;
   margin-top: 0.25rem;
 }
 
-.comparison-arrow {
-  font-size: 1.5rem;
+.safety-indicator .total-value {
+  color: inherit;
 }
 
-.comparison-change {
-  text-align: center;
-  font-size: 0.875rem;
-  font-weight: 600;
+.chart-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 250px;
+  position: relative;
 }
 
-.change-percent {
-  margin-left: 0.25rem;
-  opacity: 0.8;
+.chart {
+  width: 100%;
+  height: 100%;
 }
 
-/* Loading & Error States */
-.loading-container,
-.error-container {
+.no-data {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 3rem;
+  color: #9ca3af;
+  text-align: center;
+  padding: 2rem;
+}
+
+.no-data i {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.no-data.success i {
+  color: #22c55e;
+  opacity: 1;
+}
+
+.no-data p {
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.chart-footer {
+  border-top: 1px solid #f3f4f6;
+  padding-top: 1rem;
+  margin-top: 1rem;
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.metrics-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.stock-alerts {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #f59e0b;
+}
+
+.stock-ok {
+  color: #22c55e;
+}
+
+.safety-score, .availability, .overall-score {
+  font-weight: 500;
+  color: #374151;
+}
+
+.performance-breakdown {
+  grid-column: 1 / -1;
+}
+
+/* Recomendaciones */
+.recommendations-section {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+  margin-bottom: 2rem;
+}
+
+.section-header h2 {
+  margin: 0 0 1rem 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1f2937;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.recommendations-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.recommendation-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: #f9fafb;
+  border-radius: 8px;
+  border-left: 3px solid #FF5F01;
+}
+
+.recommendation-item i {
+  color: #FF5F01;
+  margin-top: 0.125rem;
+  flex-shrink: 0;
+}
+
+/* Estados de carga y error */
+.loading-container, .error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
   text-align: center;
 }
 
@@ -1160,12 +1366,56 @@ export default {
   color: #6b7280;
 }
 
-/* Goals Modal */
-.goals-form {
+/* Toast de notificaciones */
+.toast-notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: white;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  border-left: 4px solid #22c55e;
   display: flex;
-  flex-direction: column;
-  gap: 1rem;
+  align-items: center;
+  gap: 0.75rem;
+  max-width: 400px;
+  z-index: 1000;
+  animation: slideInRight 0.3s ease;
 }
+
+.toast-notification.error {
+  border-left-color: #ef4444;
+}
+
+.toast-notification.warning {
+  border-left-color: #f59e0b;
+}
+
+.toast-close {
+  background: none;
+  border: none;
+  padding: 0.25rem;
+  cursor: pointer;
+  color: #9ca3af;
+  margin-left: auto;
+}
+
+.toast-close:hover {
+  color: #374151;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
 
 /* Responsive Design */
 @media (max-width: 1024px) {
@@ -1175,12 +1425,12 @@ export default {
   }
 
   .summary-cards {
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
     gap: 1rem;
   }
 
-  .comparison-grid {
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  .metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
@@ -1222,8 +1472,13 @@ export default {
     gap: 1rem;
   }
 
-  .comparison-grid {
+  .metrics-grid {
     grid-template-columns: 1fr;
+  }
+
+  .metrics-row {
+    flex-direction: column;
+    gap: 0.5rem;
   }
 
   .alerts-container {
@@ -1234,16 +1489,508 @@ export default {
   .alert-card {
     min-width: auto;
   }
+
+  .chart-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .chart-total {
+    text-align: left;
+  }
 }
 
 @media (max-width: 480px) {
-  .comparison-values {
+  .header-title h1 {
+    font-size: 1.5rem;
+  }
+
+  .chart-card {
+    min-height: 350px;
+  }
+
+  .performance-breakdown {
+    grid-column: 1;
+  }
+}
+
+/* Mejoras de accesibilidad */
+@media (prefers-reduced-motion: reduce) {
+  .summary-card:hover,
+  .btn:hover {
+    transform: none;
+  }
+
+  .toast-notification {
+    animation: none;
+  }
+}
+
+
+
+.period-select, .date-group input {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(#d1d5db);
+  border-radius: 6px;
+  font-size: 0.875rem;
+  background: white;
+  min-width: 150px;
+}
+
+.period-select:focus, .date-group input:focus {
+  outline: none;
+  border-color: var(#FF5F01);
+  box-shadow: 0 0 0 3px rgba(255, 95, 1, 0.1);
+}
+
+.custom-dates {
+  display: flex;
+  gap: 1rem;
+}
+
+.header-actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* Botones */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+/* ================================================================
+   MANAGER STATS RESPONSIVE
+   ================================================================ */
+
+/* Tablets - 1024px y menos */
+@media (max-width: 1024px) {
+  .manager-stats {
+    padding: 1rem;
+  }
+
+  .stats-header {
+    padding: 1rem;
+  }
+
+  .header-content {
     flex-direction: column;
+    align-items: stretch;
+    gap: 1rem;
+  }
+
+  .header-filters {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .custom-dates {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .header-actions {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .charts-grid {
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 1rem;
+  }
+
+  .summary-cards {
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+  }
+
+  .metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+
+  .alerts-container {
+    gap: 0.75rem;
+  }
+
+  .alert-card {
+    min-width: 280px;
+  }
+
+  .recommendations-list {
     gap: 0.5rem;
   }
 
-  .comparison-arrow {
-    transform: rotate(90deg);
+  .recommendation-item {
+    padding: 0.5rem 0.75rem;
+  }
+}
+
+/* Mobile - 768px y menos */
+@media (max-width: 768px) {
+  .manager-stats {
+    padding: 0.75rem;
+  }
+
+  .stats-header {
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .header-title h1 {
+    font-size: 1.5rem;
+  }
+
+  .header-subtitle {
+    font-size: 0.8rem;
+  }
+
+  .header-filters {
+    gap: 0.5rem;
+  }
+
+  .period-select,
+  .date-group input {
+    min-width: auto;
+    width: 100%;
+  }
+
+  .header-actions {
+    gap: 0.5rem;
+    justify-content: stretch;
+  }
+
+  .btn {
+    flex: 1;
+    min-width: 0;
+    font-size: 0.8rem;
+    padding: 0.5rem 0.75rem;
+  }
+
+  /* Summary Cards Mobile */
+  .summary-cards {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .summary-card {
+    padding: 1rem;
+  }
+
+  .card-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .card-header h3 {
+    font-size: 0.9rem;
+  }
+
+  .performance-badge,
+  .metric-badge,
+  .safety-badge {
+    align-self: flex-start;
+    font-size: 0.8rem;
+    padding: 0.25rem 0.5rem;
+  }
+
+  .metrics-grid {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .score-value {
+    font-size: 1.75rem;
+  }
+
+  .metric-value {
+    font-size: 1.1rem;
+  }
+
+  /* Charts Grid Mobile */
+  .charts-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .chart-card {
+    min-height: 320px;
+    padding: 1rem;
+  }
+
+  .chart-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+    padding-bottom: 0.75rem;
+  }
+
+  .chart-header h3 {
+    font-size: 0.9rem;
+  }
+
+  .chart-total {
+    text-align: left;
+  }
+
+  .total-value {
+    font-size: 1.25rem;
+  }
+
+  .total-label {
+    font-size: 0.7rem;
+  }
+
+  .chart-content {
+    min-height: 200px;
+  }
+
+  .chart-footer {
+    padding-top: 0.5rem;
+    margin-top: 0.75rem;
+    font-size: 0.7rem;
+  }
+
+  .metrics-row {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  /* Alerts Mobile */
+  .alerts-container {
+    flex-direction: column;
+    overflow-x: visible;
+    gap: 0.5rem;
+  }
+
+  .alert-card {
+    min-width: auto;
+    padding: 0.75rem;
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+    gap: 0.5rem;
+  }
+
+  .alert-icon {
+    align-self: center;
+  }
+
+  .alert-message {
+    font-size: 0.8rem;
+  }
+
+  /* Recommendations Mobile */
+  .recommendations-section {
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .section-header h2 {
+    font-size: 1.1rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .recommendation-item {
+    padding: 0.75rem;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+  }
+
+  /* Loading & Error Mobile */
+  .loading-container,
+  .error-container {
+    padding: 2rem 1rem;
+  }
+
+  .error-content {
+    max-width: 100%;
+  }
+
+  .error-icon {
+    font-size: 2.5rem;
+  }
+
+  .error-content h3 {
+    font-size: 1.1rem;
+  }
+
+  .error-content p {
+    font-size: 0.85rem;
+  }
+
+  /* Toast Mobile */
+  .toast-notification {
+    left: 0.75rem;
+    right: 0.75rem;
+    top: 10px;
+    max-width: none;
+    padding: 0.75rem;
+    font-size: 0.85rem;
+  }
+}
+
+/* Mobile Small - 480px y menos */
+@media (max-width: 480px) {
+  .manager-stats {
+    padding: 0.5rem;
+  }
+
+  .stats-header {
+    padding: 0.5rem;
+  }
+
+  .header-title h1 {
+    font-size: 1.25rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+
+  .header-subtitle {
+    font-size: 0.75rem;
+  }
+
+  .btn {
+    font-size: 0.75rem;
+    padding: 0.5rem;
+  }
+
+  /* Summary Cards Ultra Mobile */
+  .summary-card {
+    padding: 0.75rem;
+  }
+
+  .card-header h3 {
+    font-size: 0.85rem;
+  }
+
+  .score-value {
+    font-size: 1.5rem;
+  }
+
+  .metric-value {
+    font-size: 1rem;
+  }
+
+  .metric-label,
+  .score-label {
+    font-size: 0.7rem;
+  }
+
+  /* Charts Ultra Mobile */
+  .chart-card {
+    min-height: 280px;
+    padding: 0.75rem;
+  }
+
+  .chart-content {
+    min-height: 160px;
+  }
+
+  .chart-header h3 {
+    font-size: 0.85rem;
+  }
+
+  .total-value {
+    font-size: 1.1rem;
+  }
+
+  .no-data i {
+    font-size: 2rem;
+  }
+
+  .no-data p {
+    font-size: 0.8rem;
+  }
+
+  /* Performance breakdown full width */
+  .performance-breakdown {
+    grid-column: 1;
+  }
+
+  /* Alerts Ultra Mobile */
+  .alert-card {
+    padding: 0.5rem;
+  }
+
+  .alert-message {
+    font-size: 0.75rem;
+    line-height: 1.3;
+  }
+
+  /* Recommendations Ultra Mobile */
+  .recommendations-section {
+    padding: 0.75rem;
+  }
+
+  .section-header h2 {
+    font-size: 1rem;
+  }
+
+  .recommendation-item {
+    padding: 0.5rem;
+    font-size: 0.8rem;
+    line-height: 1.3;
+  }
+
+  /* Toast Ultra Mobile */
+  .toast-notification {
+    left: 0.5rem;
+    right: 0.5rem;
+    padding: 0.5rem;
+    font-size: 0.8rem;
+  }
+
+  .toast-close {
+    padding: 0.25rem;
+  }
+}
+
+/* Landscape Mobile - altura máxima 500px */
+@media (max-height: 500px) and (orientation: landscape) {
+  .manager-stats {
+    padding: 0.5rem;
+  }
+
+  .stats-header {
+    margin-bottom: 0.75rem;
+  }
+
+  .summary-cards {
+    margin-bottom: 1rem;
+  }
+
+  .charts-grid {
+    margin-bottom: 1rem;
+  }
+
+  .chart-card {
+    min-height: 250px;
+  }
+
+  .chart-content {
+    min-height: 140px;
+  }
+
+  .recommendations-section {
+    margin-bottom: 0.75rem;
   }
 }
 </style>
+
+

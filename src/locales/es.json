@@ -783,7 +783,21 @@
     "machineryManager": "Gestor de Maquinaria",
     "allTypes": "Todos los Tipos",
     "allStatuses": "Todos los Estados",
-    "exportAll": "Exportar Todo"
+    "exportAll": "Exportar Todo",
+    "machineryManagement": "Gestión de Maquinaria",
+    "viewMachineryDetails": "Ver detalles e información de maquinaria",
+    "typeEXCAVATOR": "Excavadora",
+    "typeTRACTOR": "Tractor",
+    "typeCRANE": "Grúa",
+    "typeBULLDOZER": "Bulldozer",
+    "typeLOADER": "Cargadora",
+    "typeDUMP_TRUCK": "Volquete",
+    "typeCOMPACTOR": "Compactadora",
+    "typeMIXER": "Mezcladora de Concreto",
+    "typeGENERATOR": "Generador",
+    "typePUMP": "Bomba de Agua",
+    "statusACTIVE": "Activo",
+    "statusMAINTENANCE": "Mantenimiento"
   },
   "incidents": {
     "title": "Incidentes",

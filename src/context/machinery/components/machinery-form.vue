@@ -5,13 +5,14 @@ import AppNotification from "../../../core/components/AppNotification.vue";
 import { MachineryEntity } from "../models/machinery.entity.js";
 import { MachineryApiService } from "../services/machinery-api.service.js";
 import { PersonnelApiService } from "../../personnel/services/personnel-api.service.js";
-
+import ExportButton from '../../../core/exports/components/ExportButton.vue'
 export default {
   name: 'MachineryForm',
   components: {
     AppButton,
     AppTable,
-    AppNotification
+    AppNotification,
+    ExportButton,
   },
   props: {
     projectId: {
@@ -23,6 +24,10 @@ export default {
       default: false
     },
     allowEditing: {
+      type: Boolean,
+      default: false
+    },
+    isAddingNew: {
       type: Boolean,
       default: false
     }
@@ -186,9 +191,9 @@ export default {
       return this.personnel.find(p => p.id === this.selectedMachine.personnelId);
     },
 
-    // Verificar si puede editar
+    // Modificar este computed existente:
     canEdit() {
-      return this.allowEditing && !this.readonly && this.selectedMachine;
+      return this.allowEditing && !this.readonly && (this.selectedMachine || this.isAddingNew);
     }
   },
 
@@ -196,6 +201,11 @@ export default {
     await this.loadMachinery();
     await this.loadPersonnel();
     await this.loadAvailableOperators();
+    if (this.isAddingNew) {
+      this.selectedMachine = new MachineryEntity({ projectId: this.projectId });
+      this.currentView = 'detail';
+      this.startEditing();
+    }
   },
 
   methods: {
@@ -248,11 +258,18 @@ export default {
 
         console.log('Saving changes for machinery:', this.selectedMachine.id);
 
-        // Actualizar en el servidor
-        const updatedMachine = await this.machineryService.update(
-            this.selectedMachine.id,
-            this.selectedMachine
-        );
+
+        let updatedMachine;
+        if (this.selectedMachine.id) {
+          // Actualizar existente
+          updatedMachine = await this.machineryService.update(
+              this.selectedMachine.id,
+              this.selectedMachine
+          );
+        } else {
+          // Crear nueva
+          updatedMachine = await this.machineryService.create(this.selectedMachine);
+        }
 
         // Actualizar en la lista local
         const index = this.allMachinery.findIndex(m => m.id === updatedMachine.id);
@@ -268,10 +285,11 @@ export default {
         this.hasChanges = false;
         this.originalData = null;
 
-        this.showNotificationMessage(
-            this.$t('machinery.updatedSuccessfully', 'Machinery updated successfully'),
-            'success'
-        );
+        const successMessage = this.selectedMachine.id
+            ? this.$t('machinery.updatedSuccessfully', 'Machinery updated successfully')
+            : this.$t('machinery.createdSuccessfully', 'Machinery created successfully');
+
+        this.showNotificationMessage(successMessage, 'success');
 
       } catch (error) {
         console.error('💥 Error saving changes:', error);
@@ -425,21 +443,11 @@ export default {
       };
     },
 
-    async handleExportAll() {
-      try {
-        const fileName = this.$t('machinery.machineryReport', 'Machinery Report');
-        await this.machineryService.exportToExcel(this.filteredMachinery, fileName);
-        this.showNotificationMessage(
-            this.$t('machinery.exportedSuccessfully', 'Exported successfully'),
-            'success'
-        );
-      } catch (error) {
-        console.error('Error exporting:', error);
-        this.showNotificationMessage(
-            this.$t('machinery.errorExporting', 'Error exporting'),
-            'error'
-        );
-      }
+    onExportComplete(result) {
+      this.showNotificationMessage(
+          this.$t('machinery.exportedSuccessfully', 'Exported successfully'),
+          'success'
+      );
     },
 
     showNotificationMessage(message, type = 'success') {
@@ -520,19 +528,18 @@ export default {
       <!-- Header con controles -->
       <div class="manager-header">
         <div class="header-left">
-          <h1 class="page-title">{{ $t('machinery.machineryManagement', 'Machinery Management') }}</h1>
+
           <p class="page-subtitle">{{ $t('machinery.viewMachineryDetails', 'View machinery details and information') }}</p>
         </div>
 
-        <div class="header-controls">
-          <AppButton
-              :label="$t('exports.export', 'Export')"
-              icon="pi pi-download"
-              variant="primary"
-              @click="handleExportAll"
-              :disabled="allMachinery.length === 0"
-          />
-        </div>
+        <ExportButton
+            :data="filteredMachinery"
+            type="machinery"
+            :formats="['excel', 'pdf']"
+            :button-label="$t('exports.export', 'Export')"
+            variant="primary"
+            @export-complete="onExportComplete"
+        />
       </div>
 
       <!-- Estadísticas -->
@@ -619,7 +626,7 @@ export default {
             :paginator="true"
             :rows="15"
             :show-export-button="false"
-            :show-filter-button="true"
+            :show-filter-button="false"
             data-key="id"
             @row-click="handleMachineryClick"
             class="machinery-table"
@@ -641,9 +648,9 @@ export default {
         <div class="header-back">
           <AppButton
               icon="pi pi-arrow-left"
-              :label="$t('common.back', 'Back')"
+              :label="isAddingNew ? $t('common.cancel', 'Cancel') : $t('common.back', 'Back')"
               variant="secondary"
-              @click="backToList"
+              @click="isAddingNew ? $emit('cancel') : backToList()"
               :disabled="isSaving"
           />
 
@@ -1289,43 +1296,155 @@ export default {
 
 .machine-summary {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: 1.5rem;
   padding: 2rem;
-  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-  border-radius: 12px;
-  border: 1px solid #e9ecef;
+  background: linear-gradient(135deg, rgba(26, 32, 44, 0) 0%, rgba(45, 55, 72, 0.01) 100%);
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0);
+  position: relative;
+  overflow: hidden;
 }
-
+.machine-summary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #FF5F01, #ff7a2b, #06b6d4, #22c55e);
+  border-radius: 16px 16px 0 0;
+}
 .summary-item {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 0.75rem;
-  text-align: center;
-  background-color: transparent;
+  align-items: flex-start;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, rgba(45, 55, 72, 0.02) 0%, rgba(26, 32, 44, 0.01) 100%);
+  border-radius: 12px;
+  box-shadow:
+      0 4px 15px rgba(0, 0, 0, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+.summary-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--item-color, #FF5F01);
+  border-radius: 12px 12px 0 0;
+}
+
+.summary-item:hover {
+  transform: translateY(-3px);
+  box-shadow:
+      0 8px 25px rgba(0, 0, 0, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
 .summary-item .label {
   font-size: 0.875rem;
-  color: #666;
+  color: #a0aec0;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.summary-item .value {
-  font-size: 2rem;
-  font-weight: 800;
+  letter-spacing: 1px;
+  margin-bottom: 0.75rem;
   line-height: 1;
 }
 
-.value.active { color: #22c55e; }
-.value.inactive { color: #ef4444; }
-.value.assigned { color: #f59e0b; }
-.value.available { color: #06b6d4; }
-.value.provider { color: #3b82f6; }
+.summary-item .value {
+  font-size: 1.25rem;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--item-color, #e2e8f0);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
 
+.summary-item:has(.value.active) {
+  --item-color: #22c55e;
+}
+
+.summary-item:has(.value.inactive) {
+  --item-color: #ef4444;
+}
+
+.summary-item:has(.value.assigned) {
+  --item-color: #f59e0b;
+}
+
+.summary-item:has(.value.available) {
+  --item-color: #06b6d4;
+}
+
+.summary-item:has(.value.provider) {
+  --item-color: #3b82f6;
+}
+
+.value.active {
+  color: #22c55e;
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.value.inactive {
+  color: #ef4444;
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.value.assigned {
+  color: #f59e0b;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.value.available {
+  color: #06b6d4;
+  background: linear-gradient(135deg, #06b6d4, #0891b2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.value.provider {
+  color: #3b82f6;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.summary-item {
+  animation: fadeInUp 0.5s ease-out;
+}
+
+.summary-item:nth-child(1) { animation-delay: 0.1s; }
+.summary-item:nth-child(2) { animation-delay: 0.2s; }
+.summary-item:nth-child(3) { animation-delay: 0.3s; }
 .empty-state {
   display: flex;
   flex-direction: column;
@@ -1791,5 +1910,33 @@ export default {
 
 .clickeable-avatar:hover .avatar-placeholder {
   color: #FF5F01;
+}
+
+@media (max-width: 768px) {
+  .machine-summary {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    padding: 1.5rem;
+  }
+
+  .summary-item {
+    padding: 1rem;
+  }
+
+  .summary-item .value {
+    font-size: 1.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .machine-summary {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+    padding: 1rem;
+  }
+
+  .summary-item .value {
+    font-size: 1.5rem;
+  }
 }
 </style>

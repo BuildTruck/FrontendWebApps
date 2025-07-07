@@ -5403,3 +5403,457 @@
         opacity: 0.9;
     }
 }
+
+/* ================================================================
+  DARK MODE - MACHINERY COMPONENTS
+  ================================================================ */
+
+/* ================================================================
+  MACHINERY SUPERVISOR DARK MODE
+  ================================================================ */
+[data-theme="dark"] .machinery-supervisor {
+    background-color: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .supervisor-header {
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important;
+    box-shadow: var(--shadow) !important;
+}
+
+[data-theme="dark"] .page-title {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .page-subtitle {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .add-form-container {
+    background-color: var(--bg-primary) !important;
+}
+
+[data-theme="dark"] .general-view {
+    background-color: var(--bg-primary) !important;
+}
+
+/* ================================================================
+  MACHINERY FORM DARK MODE
+  ================================================================ */
+[data-theme="dark"] .machinery-form {
+    background-color: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .list-view {
+    background-color: var(--bg-primary) !important;
+}
+
+[data-theme="dark"] .detail-view {
+    background-color: var(--bg-primary) !important;
+}
+
+[data-theme="dark"] .manager-header {
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important;
+    box-shadow: var(--shadow) !important;
+}
+
+[data-theme="dark"] .header-left .page-title {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .header-left .page-subtitle {
+    color: var(--text-secondary) !important;
+}
+
+/* ================================================================
+  ESTADÍSTICAS DARK MODE
+  ================================================================ */
+[data-theme="dark"] .stats-container .stat-card {
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important;
+    box-shadow: var(--shadow) !important;
+}
+
+[data-theme="dark"] .stats-container .stat-card:hover {
+    box-shadow: var(--shadow-hover) !important;
+    border-color: var(--border-hover) !important;
+}
+
+[data-theme="dark"] .stat-number {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .stat-label {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .stat-icon {
+    color: var(--text-muted) !important;
+}
+
+/* ================================================================
+  FILTROS Y CONTROLES DARK MODE
+  ================================================================ */
+[data-theme="dark"] .filters-section {
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important;
+    box-shadow: var(--shadow) !important;
+}
+
+[data-theme="dark"] .controls-section {
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important;
+    box-shadow: var(--shadow) !important;
+}
+
+[data-theme="dark"] .filter-select label {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .filter-select select {
+    background: var(--input-bg) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+[data-theme="dark"] .filter-select select:focus {
+    border-color: #FF5F01 !important;
+    box-shadow: 0 0 0 2px rgba(255, 95, 1, 0.2) !important;
+}
+
+[data-theme="dark"] .filter-dropdown .filter-select {
+    background: var(--input-bg) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+[data-theme="dark"] .filter-dropdown .filter-select:focus {
+    border-color: #FF5F01 !important;
+    box-shadow: 0 0 0 3px rgba(255, 95, 1, 0.1) !important;
+}
+
+[data-theme="dark"] .filter-icon {
+    color: var(--text-muted) !important;
+}
+
+/* ================================================================
+  TABLA DARK MODE
+  ================================================================ */
+[data-theme="dark"] .machinery-table-section {
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important;
+    box-shadow: var(--shadow) !important;
+}
+
+[data-theme="dark"] .table-section {
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important;
+    box-shadow: var(--shadow) !important;
+}
+
+[data-theme="dark"] .machinery-table {
+    background: var(--bg-card) !important;
+    color: var(--text-primary) !important;
+}
+
+/* ================================================================
+  VISTA DE DETALLE DARK MODE
+  ================================================================ */
+[data-theme="dark"] .detail-header {
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important;
+    box-shadow: var(--shadow) !important;
+}
+
+[data-theme="dark"] .header-back {
+    background: transparent !important;
+}
+
+[data-theme="dark"] .edit-actions {
+    background: transparent !important;
+}
+
+[data-theme="dark"] .machine-info {
+    background: transparent !important;
+}
+
+[data-theme="dark"] .machine-avatar {
+    background: var(--bg-secondary) !important;
+    border: 4px solid var(--border-color) !important;
+    box-shadow: var(--shadow-hover) !important;
+}
+
+[data-theme="dark"] .machine-avatar:hover {
+    border-color: #FF5F01 !important;
+    box-shadow: 0 12px 30px rgba(255, 95, 1, 0.3) !important;
+}
+
+[data-theme="dark"] .avatar-placeholder {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .machine-title {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .machine-title.editable-field:hover {
+    color: #FF5F01 !important;
+}
+
+[data-theme="dark"] .editable-title {
+    color: var(--text-primary) !important;
+    background: var(--input-bg) !important;
+    border: 2px solid #FF5F01 !important;
+}
+
+[data-theme="dark"] .editable-title:focus {
+    box-shadow: 0 0 0 3px rgba(255, 95, 1, 0.2) !important;
+}
+
+/* ================================================================
+  META ITEMS DARK MODE
+  ================================================================ */
+[data-theme="dark"] .meta-item {
+    background: var(--bg-secondary) !important;
+    border-left: 4px solid #FF5F01 !important;
+}
+
+[data-theme="dark"] .meta-item:hover {
+    background: var(--bg-card) !important;
+    box-shadow: var(--shadow) !important;
+}
+
+[data-theme="dark"] .meta-label {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .meta-value {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .meta-value.editable-field:hover {
+    border-color: #FF5F01 !important;
+    background: rgba(255, 95, 1, 0.05) !important;
+    color: #FF5F01 !important;
+}
+
+[data-theme="dark"] .meta-value.readonly {
+    color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] .meta-value.readonly:hover {
+    border-color: transparent !important;
+    background: transparent !important;
+    color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] .meta-input,
+[data-theme="dark"] .meta-select,
+[data-theme="dark"] .meta-textarea {
+    background: var(--input-bg) !important;
+    color: var(--text-primary) !important;
+    border: 2px solid #FF5F01 !important;
+}
+
+[data-theme="dark"] .meta-input:focus,
+[data-theme="dark"] .meta-select:focus,
+[data-theme="dark"] .meta-textarea:focus {
+    box-shadow: 0 0 0 3px rgba(255, 95, 1, 0.2) !important;
+    border-color: #FF5F01 !important;
+}
+
+/* ================================================================
+  RESUMEN DE MÁQUINA DARK MODE
+  ================================================================ */
+[data-theme="dark"] .machine-summary {
+    background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-card) 100%) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+[data-theme="dark"] .summary-item {
+    background-color: transparent !important;
+}
+
+[data-theme="dark"] .summary-item .label {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .summary-item .value {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .summary-item .value.active {
+    color: #22c55e !important;
+}
+
+[data-theme="dark"] .summary-item .value.inactive {
+    color: #ef4444 !important;
+}
+
+[data-theme="dark"] .summary-item .value.assigned {
+    color: #f59e0b !important;
+}
+
+[data-theme="dark"] .summary-item .value.available {
+    color: #06b6d4 !important;
+}
+
+[data-theme="dark"] .summary-item .value.provider {
+    color: #3b82f6 !important;
+}
+
+/* ================================================================
+  ESTADO VACÍO DARK MODE
+  ================================================================ */
+[data-theme="dark"] .empty-state {
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .empty-state i {
+    color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] .empty-state h3 {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .empty-state p {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .empty-icon {
+    color: var(--text-muted) !important;
+}
+
+/* ================================================================
+  ESTADO DE CARGA DARK MODE
+  ================================================================ */
+[data-theme="dark"] .loading-state {
+    color: var(--text-secondary) !important;
+    background-color: var(--bg-primary) !important;
+}
+
+[data-theme="dark"] .loading-state i {
+    color: #FF5F01 !important;
+}
+
+[data-theme="dark"] .loading-state p {
+    color: var(--text-primary) !important;
+}
+
+/* ================================================================
+  ACCIONES DE DETALLE DARK MODE
+  ================================================================ */
+[data-theme="dark"] .detail-actions {
+    background: var(--bg-card) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+}
+
+/* ================================================================
+  CAMBIOS PENDIENTES DARK MODE
+  ================================================================ */
+[data-theme="dark"] .has-changes {
+    border-left: 4px solid #f59e0b !important;
+    background: rgba(245, 158, 11, 0.1) !important;
+}
+
+[data-theme="dark"] .saving-overlay::before {
+    background: rgba(42, 42, 42, 0.8) !important;
+}
+
+[data-theme="dark"] .saving-overlay::after {
+    color: var(--text-primary) !important;
+}
+
+/* ================================================================
+  RESPONSIVE DARK MODE
+  ================================================================ */
+@media (max-width: 768px) {
+    [data-theme="dark"] .supervisor-header {
+        background: var(--bg-card) !important;
+        border: 1px solid var(--border-color) !important;
+    }
+
+    [data-theme="dark"] .detail-header {
+        background: var(--bg-card) !important;
+        border: 1px solid var(--border-color) !important;
+    }
+
+    [data-theme="dark"] .machinery-table-section {
+        background: var(--bg-card) !important;
+        border: 1px solid var(--border-color) !important;
+    }
+
+    [data-theme="dark"] .summary-item {
+        background: var(--bg-card) !important;
+        border-left: 4px solid #FF5F01 !important;
+    }
+}
+
+/* ================================================================
+  EFECTOS HOVER DARK MODE
+  ================================================================ */
+[data-theme="dark"] .machinery-table .p-datatable-tbody > tr:hover {
+    background-color: var(--table-hover) !important;
+    box-shadow: var(--shadow) !important;
+}
+
+[data-theme="dark"] .machinery-table .p-datatable-tbody > tr {
+    background-color: var(--bg-card) !important;
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .machinery-table .p-datatable-thead > tr > th {
+    background-color: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+}
+
+[data-theme="dark"] .machinery-table .p-datatable-tbody > tr > td {
+    border-bottom: 1px solid var(--border-color) !important;
+    color: var(--text-primary) !important;
+}
+
+/* ================================================================
+  STATUS DOTS DARK MODE
+  ================================================================ */
+[data-theme="dark"] .status-container {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .status-dot.status-success {
+    background-color: #22c55e !important;
+}
+
+[data-theme="dark"] .status-dot.status-danger {
+    background-color: #ef4444 !important;
+}
+
+[data-theme="dark"] .status-dot.status-warning {
+    background-color: #f97316 !important;
+}
+
+[data-theme="dark"] .status-dot.status-info {
+    background-color: #3b82f6 !important;
+}
+
+[data-theme="dark"] .status-dot.status-default {
+    background-color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] .machinery-type-display {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .personnel-container {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .unassigned-text {
+    color: var(--text-muted) !important;
+}

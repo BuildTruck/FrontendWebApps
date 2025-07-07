@@ -1024,7 +1024,29 @@
       "byStatus": "Machinery by Status",
       "availability": "Availability",
       "efficiency": "Efficiency",
-      "summary": "Machinery Summary"
+      "summary": "Machinery Summary",
+
+      "machineryManagement": "Machinery Management",
+      "viewMachineryDetails": "View machinery details and information",
+      "allStatuses": "All Statuses",
+      "exportAll": "Export All",
+
+
+      "typeEXCAVATOR": "Excavator",
+      "typeTRACTOR": "Tractor",
+      "typeCRANE": "Crane",
+      "typeBULLDOZER": "Bulldozer",
+      "typeLOADER": "Loader",
+      "typeDUMP_TRUCK": "Dump Truck",
+      "typeCOMPACTOR": "Compactor",
+      "typeMIXER": "Concrete Mixer",
+      "typeGENERATOR": "Generator",
+      "typePUMP": "Water Pump",
+
+
+      "statusACTIVE": "Active",
+      "statusMAINTENANCE": "Maintenance"
+
     },
 
     "alerts": {

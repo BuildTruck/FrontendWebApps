@@ -25,3 +25,5 @@ dist-ssr
 /tatus
  
  
+# Local Netlify folder
+.netlify

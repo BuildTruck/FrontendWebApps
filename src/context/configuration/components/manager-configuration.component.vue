@@ -76,7 +76,7 @@ export default {
     },
 
     async reactivarTutorialProyecto() {
-      await this.resetSpecificTutorial('manager-project') // ← Agregar await
+      await this.resetSpecificTutorial('manager-projects') // ← Agregar await
       this.showNotification(this.$t('settings.projectTutorialReactivated'), 'success')
     },
 

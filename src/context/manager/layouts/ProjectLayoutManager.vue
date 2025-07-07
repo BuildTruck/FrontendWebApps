@@ -97,10 +97,14 @@ export default {
     }
 
     setTimeout(async () => {
-      const { dev, resetUserProgress } = this.tutorialComposable
-      await resetUserProgress() // ← Ahora es async
-      await dev.forceStart('manager-project', managerProjectSteps)
-    }, 500)
+      // ✅ USAR: Los métodos del tutorialComposable directamente
+      const shouldShow = await this.tutorialComposable.shouldShowTutorial('manager-projects')
+      if (shouldShow) {
+        // ✅ IMPORTAR: managerProjectSteps al inicio del archivo
+        const { managerProjectSteps } = await import('../../../core/tutorial/config/manager-project.js')
+        await this.tutorialComposable.startTutorial('manager-projects', managerProjectSteps)
+      }
+    }, 1000)
   },
   methods: {
 

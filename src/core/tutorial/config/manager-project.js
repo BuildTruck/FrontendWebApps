@@ -134,7 +134,7 @@ export const managerProjectSteps = [
 ]
 
 export const managerProjectConfig = {
-    id: 'manager-project',
+    id: 'manager-projects',
     name: 'Gestión de Proyecto Individual',
     description: 'Tutorial para la gestión detallada de un proyecto específico',
     steps: managerProjectSteps,

@@ -368,10 +368,7 @@ export default {
       stopPolling();
     });
 
-    // Watch para detectar cambios en el summary
-    watch(() => summary.value.unreadCount, (newCount, oldCount) => {
-      console.log(`👀 Contador cambió: ${oldCount} → ${newCount}`);
-    });
+
 
     return {
       // State
@@ -562,14 +559,6 @@ export default {
                 <i class="pi pi-check"></i>
               </button>
 
-              <button
-                  v-if="notification.hasAction"
-                  @click.stop="handleActionClick(notification)"
-                  class="btn-action"
-                  :title="notification.actionText || $t('notifications.viewDetails')"
-              >
-                <i class="pi pi-external-link"></i>
-              </button>
             </div>
 
             <!-- Unread Indicator -->

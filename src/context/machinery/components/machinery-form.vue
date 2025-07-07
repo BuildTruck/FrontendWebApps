@@ -1230,7 +1230,7 @@ export default {
   display: block;
   font-size: 1.125rem;
   font-weight: 600;
-  color: #333;
+  color: #423d3d;
   cursor: pointer;
   position: relative;
   transition: all 0.2s ease;
@@ -1256,7 +1256,7 @@ export default {
 .meta-value.readonly:hover {
   border-color: transparent;
   background: transparent;
-  color: #333;
+  color: #494e49;
 }
 
 .edit-icon {
@@ -1364,7 +1364,7 @@ export default {
   font-weight: 800;
   line-height: 1;
   color: var(--item-color, #e2e8f0);
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
 }
 
 .summary-item:has(.value.active) {
@@ -1380,7 +1380,7 @@ export default {
 }
 
 .summary-item:has(.value.available) {
-  --item-color: #06b6d4;
+  --item-color: #0a6477;
 }
 
 .summary-item:has(.value.provider) {

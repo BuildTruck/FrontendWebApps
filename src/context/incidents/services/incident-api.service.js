@@ -11,7 +11,12 @@ export class IncidentApiService extends BaseService {
     async getByProject(projectId) {
         try {
             const response = await http.get(`/incident/project/${projectId}`);
-            return Incident.fromJsonArray(response.data || []);
+
+            // AGREGAR ESTAS LÍNEAS PARA DEBUG:
+            console.log('🔍 Backend response:', response.data);
+            console.log('🔍 First incident from backend:', response.data[0]);
+
+            return response.data || [];
         } catch (error) {
             console.error(`Error fetching project incidents ${projectId}:`, error);
             return [];

@@ -19,7 +19,8 @@ export class Incident {
         // Dates
         this.occurredAt = data.occurredAt ? new Date(data.occurredAt) : new Date();
         this.resolvedAt = data.resolvedAt ? new Date(data.resolvedAt) : null;
-
+        this.registerDate = data.registerDate || null;
+        this.createdAt = data.createdAt || null;
         // Image
         this.image = data.image || null; // URL de Cloudinary
         this.imageFile = data.imageFile || null; // File para subir

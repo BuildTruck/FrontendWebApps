@@ -939,7 +939,21 @@
     "assigned": "Asignado",
     "unassigned": "No asignado",
     "assignment": "Asignación",
-    "noIncidentsMatchFilter": "Ningún incidente coincide con los filtros actuales"
+    "noIncidentsMatchFilter": "Ningún incidente coincide con los filtros actuales",
+    "incidentManagement": "Gestión de Incidentes",
+    "manageIncidentsDescription": "Administra y supervisa todos los incidentes del proyecto",
+    "viewIncidentDetails": "Ver detalles e información de incidentes",
+    "filterByType": "Filtrar por Tipo",
+    "filterBySeverity": "Filtrar por Severidad",
+    "filterByStatus": "Filtrar por Estado",
+    "filterByAssignment": "Filtrar por Asignación",
+    "available": "Disponible",
+    "noIncidentsFound": "No se encontraron incidentes",
+    "tryAdjustingFilters": "Intenta ajustar tus filtros",
+    "noAssignment": "Sin asignar",
+    "createdAt": "Creado en",
+    "statusRESUELTO": "Resuelto",
+    "noReporter": "Sin reportador"
 
   },
   "stats": {

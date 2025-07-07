@@ -63,27 +63,25 @@ export default {
     }
   },
   mounted() {
-    this.themeStore.initializeTheme();
+    //this.themeStore.initializeTheme();
     this.loadUserSettings();
   },
   methods: {
-    reactivarTutorialLayout() {
-      this.resetSpecificTutorial('manager-layout')
+    async reactivarTutorialLayout() {
+      await this.resetSpecificTutorial('manager') // ← Agregar await
       this.showNotification(this.$t('settings.tutorialReactivated'), 'success')
-
-      // Redirigir después de 1 segundo
       setTimeout(() => {
         this.$router.push('/proyectos')
       }, 1000)
     },
 
-    reactivarTutorialProyecto() {
-      this.resetSpecificTutorial('manager-project')
+    async reactivarTutorialProyecto() {
+      await this.resetSpecificTutorial('manager-project') // ← Agregar await
       this.showNotification(this.$t('settings.projectTutorialReactivated'), 'success')
     },
 
-    resetearTodosLosTutorials() {
-      this.resetUserProgress()
+    async resetearTodosLosTutorials() {
+      await this.resetUserProgress() // ← Agregar await
       this.showNotification(this.$t('settings.allTutorialsReset'), 'success')
     },
     switchTab(tab) {
@@ -95,7 +93,11 @@ export default {
         const config = await configurationService.loadCurrentUserSettings();
         this.settings = config;
         this.originalSettings = new Configuration(config.toJSON());
-        this.themeStore.setTheme(config.theme);
+
+        // ✅ Aplicar tema SIN guardarlo
+        this.themeStore.currentTheme = config.theme;
+        this.themeStore.applyThemeToBody();
+
       } catch (error) {
         console.error('Error loading user settings:', error);
         this.showNotification(this.$t("settings.loadError"), "error", false);

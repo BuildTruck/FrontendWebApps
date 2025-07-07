@@ -121,7 +121,7 @@ export const managerLayoutSteps = [
 ]
 
 export const managerLayoutConfig = {
-    id: 'manager-layout',
+    id: 'manager',
     name: 'Panel Principal de Manager',
     description: 'Tutorial de introducción al panel principal para gestores de proyecto',
     steps: managerLayoutSteps,

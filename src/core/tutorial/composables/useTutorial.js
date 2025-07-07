@@ -22,7 +22,7 @@ export function useTutorial() {
         console.log('🎯 [useTutorial] Iniciando tutorial:', tutorialId)
 
         // Verificar si debe mostrar
-        if (!shouldShowTutorial(tutorialId)) {
+        if (! await shouldShowTutorial(tutorialId)) {
             console.log('✅ [useTutorial] Tutorial ya completado:', tutorialId)
             return false
         }
@@ -66,28 +66,28 @@ export function useTutorial() {
     }
 
     // Métodos de verificación
-    const shouldShowTutorial = (tutorialId) => {
-        return tutorialStore.shouldShowTutorial(tutorialId)
+    const shouldShowTutorial = async (tutorialId) => {
+        return await tutorialStore.shouldShowTutorial(tutorialId) // ← Agregar await
     }
 
-    const hasCompletedTutorial = (tutorialId) => {
-        return tutorialStore.hasCompletedTutorial(tutorialId)
+    const hasCompletedTutorial = async (tutorialId) => {
+        return await tutorialStore.hasCompletedTutorial(tutorialId) // ← Agregar await
     }
 
     // Métodos de gestión de progreso
-    const resetUserProgress = () => {
-        tutorialStore.resetUserProgress()
+    const resetUserProgress = async () => {
+        await tutorialStore.resetUserProgress() // ← Agregar await
     }
 
-    const resetSpecificTutorial = (tutorialId) => {
-        tutorialStore.resetSpecificTutorial(tutorialId)
+    const resetSpecificTutorial = async (tutorialId) => {
+        await tutorialStore.resetSpecificTutorial(tutorialId) // ← Agregar await
     }
 
     // Auto-trigger del tutorial para layouts
     const autoStartTutorial = async (tutorialId, steps, delay = 1000) => {
         console.log('🔄 [useTutorial] Verificando auto-inicio:', tutorialId)
 
-        if (!shouldShowTutorial(tutorialId)) {
+        if (!await shouldShowTutorial(tutorialId)) {
             console.log('✅ [useTutorial] Tutorial ya visto:', tutorialId)
             return false
         }

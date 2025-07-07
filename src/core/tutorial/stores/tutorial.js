@@ -1,6 +1,7 @@
 // src/core/tutorial/stores/tutorial.js
 import { defineStore } from 'pinia'
 import { AuthService } from '../../../auth/services/auth-api.service.js'
+import{configurationService} from "../../../context/configuration/services/configuration-api.service.js";
 
 export const useTutorialStore = defineStore('tutorial', {
     state: () => ({
@@ -21,33 +22,22 @@ export const useTutorialStore = defineStore('tutorial', {
 
         // IDs de tutorials disponibles
         TUTORIAL_IDS: {
-            MANAGER_LAYOUT: 'manager-layout',
-            MANAGER_PROJECT: 'manager-project',
-            SUPERVISOR_LAYOUT: 'supervisor-layout',
-            ADMIN_LAYOUT: 'admin-layout'
+            MANAGER_LAYOUT: 'manager',        // ❌ Era 'manager-layout'
+            MANAGER_PROJECT: 'manager-projects', // ✅ Ya está correcto
+            SUPERVISOR_LAYOUT: 'supervisor',     // ❌ Era 'supervisor-layout'
+            ADMIN_LAYOUT: 'admin'               // ❌ Era 'admin-layout'
         }
     }),
 
     getters: {
         // Obtener progreso del usuario actual
         userProgress: (state) => {
+            // Este getter ahora es solo para compatibilidad
+            // El progreso real se obtiene desde configurationService
             const user = AuthService.getCurrentUser()
             if (!user) return { userId: null, completedTutorials: [] }
 
-            const progress = JSON.parse(localStorage.getItem('tutorial_progress') || '{}')
-
-            // Si es diferente usuario, retornar progreso vacío
-            if (progress.userId !== user.id) {
-                return { userId: user.id, completedTutorials: [] }
-            }
-
-            return progress
-        },
-
-        // Verificar si ya completó un tutorial específico
-        hasCompletedTutorial: (state) => (tutorialId) => {
-            const progress = state.userProgress
-            return progress.completedTutorials?.includes(tutorialId) || false
+            return { userId: user.id, completedTutorials: [] }
         },
 
         // Paso actual
@@ -77,16 +67,45 @@ export const useTutorialStore = defineStore('tutorial', {
     },
 
     actions: {
+        async hasCompletedTutorial(tutorialId) {
+            try {
+                console.log('🔍 [TUTORIAL] Verificando:', tutorialId);
+                const result = await configurationService.isTutorialCompleted(tutorialId);
+                console.log('🔍 [TUTORIAL] Resultado:', result);
+                return result;
+            } catch (error) {
+                console.error('❌ [TUTORIAL] Error:', error);
+                return false;
+            }
+        },
+
+// Obtener progreso de tutoriales (ASYNC)
+        async getTutorialProgress() {
+            try {
+                return await configurationService.getTutorialProgress()
+            } catch (error) {
+                console.error('Error getting tutorial progress:', error)
+                return {}
+            }
+        },
         // Inicializar tutorial
         async startTutorial(tutorialId, steps) {
             try {
                 console.log('🎯 Iniciando tutorial:', tutorialId)
 
-                // Verificar si ya completó este tutorial
-                if (this.hasCompletedTutorial(tutorialId)) {
-                    console.log('✅ Tutorial ya completado:', tutorialId)
-                    return false
+                // DESCOMENTAR y arreglar la verificación:
+                try {
+                    const isCompleted = await this.hasCompletedTutorial(tutorialId)
+                    if (isCompleted) {
+                        console.log('✅ Tutorial ya completado:', tutorialId)
+                        return false
+                    }
+                } catch (error) {
+                    console.warn('⚠️ Error verificando tutorial, continuando:', error)
+                    // Si hay error en la verificación, continuar con el tutorial
                 }
+
+                console.log('🚀 Iniciando tutorial...')
 
                 // Configurar estado
                 this.currentTutorial = tutorialId
@@ -267,8 +286,8 @@ export const useTutorialStore = defineStore('tutorial', {
             try {
                 console.log('🎉 Completando tutorial:', this.currentTutorial)
 
-                // Guardar progreso en localStorage
-                this.saveTutorialProgress(this.currentTutorial)
+                // Guardar progreso en backend
+                await this.saveTutorialProgress(this.currentTutorial)
 
                 // Reset estado
                 this.resetTutorial()
@@ -286,9 +305,14 @@ export const useTutorialStore = defineStore('tutorial', {
 
             console.log('⏭️ Saltando tutorial:', this.currentTutorial)
 
-            // Marcar como completado aunque lo haya saltado
-            this.saveTutorialProgress(this.currentTutorial)
-            this.resetTutorial()
+            try {
+                // Marcar como completado aunque lo haya saltado
+                await this.saveTutorialProgress(this.currentTutorial)
+                this.resetTutorial()
+            } catch (error) {
+                console.error('❌ Error saltando tutorial:', error)
+                this.resetTutorial() // Reset aunque falle el guardado
+            }
         },
 
         // Saltar paso actual
@@ -325,54 +349,66 @@ export const useTutorialStore = defineStore('tutorial', {
         },
 
         // Guardar progreso en localStorage
-        saveTutorialProgress(tutorialId) {
+        async saveTutorialProgress(tutorialId) {
             const user = AuthService.getCurrentUser()
-            if (!user) return
-
-            const currentProgress = this.userProgress
-            const updatedProgress = {
-                userId: user.id,
-                completedTutorials: [
-                    ...(currentProgress.completedTutorials || []),
-                    tutorialId
-                ].filter((item, index, arr) => arr.indexOf(item) === index) // Remover duplicados
+            if (!user) {
+                throw new Error('No hay usuario autenticado')
             }
 
-            localStorage.setItem('tutorial_progress', JSON.stringify(updatedProgress))
-            console.log('💾 Progreso guardado:', updatedProgress)
+            try {
+                await configurationService.markTutorialCompleted(tutorialId)
+                console.log('💾 Progreso guardado en backend:', tutorialId)
+            } catch (error) {
+                console.error('❌ Error guardando progreso:', error)
+                // MEJORADO: Proporcionar más información del error
+                if (error.response?.status === 400) {
+                    console.error('❌ Error 400: Datos inválidos enviados al servidor')
+                    console.error('❌ Datos que causaron el error:', error.config?.data)
+                }
+                throw error
+            }
         },
 
         // Reset progreso de usuario (para testing o re-activar tutorials)
-        resetUserProgress() {
+        async resetUserProgress() {
             const user = AuthService.getCurrentUser()
             if (!user) return
 
-            localStorage.removeItem('tutorial_progress')
-            console.log('🔄 Progreso de usuario reseteado')
+            try {
+                await configurationService.resetAllTutorials()
+                console.log('🔄 Progreso de usuario reseteado en backend')
+            } catch (error) {
+                console.error('❌ Error reseteando progreso:', error)
+                throw error
+            }
         },
 
         // Reset progreso de tutorial específico
-        resetSpecificTutorial(tutorialId) {
+        async resetSpecificTutorial(tutorialId) {
             const user = AuthService.getCurrentUser()
             if (!user) return
 
-            const currentProgress = this.userProgress
-            const updatedProgress = {
-                userId: user.id,
-                completedTutorials: (currentProgress.completedTutorials || [])
-                    .filter(id => id !== tutorialId)
+            try {
+                await configurationService.resetTutorial(tutorialId)
+                console.log('🔄 Tutorial reseteado en backend:', tutorialId)
+            } catch (error) {
+                console.error('❌ Error reseteando tutorial:', error)
+                throw error
             }
-
-            localStorage.setItem('tutorial_progress', JSON.stringify(updatedProgress))
-            console.log('🔄 Tutorial reseteado:', tutorialId)
         },
 
         // Verificar si debe mostrar tutorial (método de conveniencia)
-        shouldShowTutorial(tutorialId) {
+        async shouldShowTutorial(tutorialId) {
             const user = AuthService.getCurrentUser()
             if (!user) return false
 
-            return !this.hasCompletedTutorial(tutorialId)
+            try {
+                const isCompleted = await this.hasCompletedTutorial(tutorialId)
+                return !isCompleted
+            } catch (error) {
+                console.error('Error checking if should show tutorial:', error)
+                return true // En caso de error, mostrar el tutorial
+            }
         }
     }
 })

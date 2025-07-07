@@ -3,10 +3,14 @@
 export const adminLayoutSteps = [
     {
         id: 'admin-welcome',
-        target: '.dashboard-header',
+        target: '[data-tutorial="dashboard-header"]',
         title: 'Panel de Administración',
         description: 'Bienvenido al panel de administración de BuildTruck. Desde aquí gestionas todo el sistema y usuarios.',
-        position: 'bottom',
+        position: {
+            desktop: { placement: 'bottom', offset: { x: 0, y: 15 } },
+            tablet: { placement: 'bottom', offset: { x: 0, y: 20 } },
+            mobile: { placement: 'bottom', offset: { x: 0, y: 25 } }
+        },
         order: 1,
         optional: false
     },
@@ -15,7 +19,11 @@ export const adminLayoutSteps = [
         target: '[data-tutorial="notifications"]',
         title: 'Notificaciones del Sistema',
         description: 'Recibe alertas importantes sobre el sistema: nuevos usuarios, errores, y actualizaciones críticas.',
-        position: 'bottom',
+        position: {
+            desktop: { placement: 'bottom-left', offset: { x: -20, y: 15 } },
+            tablet: { placement: 'bottom', offset: { x: -10, y: 20 } },
+            mobile: { placement: 'bottom', offset: { x: 0, y: 25 } }
+        },
         order: 2,
         optional: true
     },
@@ -24,7 +32,11 @@ export const adminLayoutSteps = [
         target: '[data-tutorial="language"]',
         title: 'Configuración de Idioma',
         description: 'Cambia el idioma de la interfaz administrativa.',
-        position: 'bottom',
+        position: {
+            desktop: { placement: 'bottom-right', offset: { x: 20, y: 15 } },
+            tablet: { placement: 'bottom', offset: { x: 10, y: 20 } },
+            mobile: { placement: 'left', offset: { x: -30, y: 0 } }
+        },
         order: 3,
         optional: true
     },
@@ -33,7 +45,11 @@ export const adminLayoutSteps = [
         target: '[data-tutorial="dashboard"]',
         title: 'Dashboard Principal',
         description: 'Tu vista principal con estadísticas clave: usuarios activos, nuevos registros y métricas del sistema.',
-        position: 'right',
+        position: {
+            desktop: { placement: 'right', offset: { x: 25, y: 0 } },
+            tablet: { placement: 'right', offset: { x: 20, y: -5 } },
+            mobile: { placement: 'bottom', offset: { x: 0, y: 15 } }
+        },
         order: 4,
         optional: false
     },
@@ -42,7 +58,11 @@ export const adminLayoutSteps = [
         target: '.stats-grid',
         title: 'Estadísticas del Sistema',
         description: 'Monitorea en tiempo real: total de usuarios, managers, supervisores y actividad reciente.',
-        position: 'bottom',
+        position: {
+            desktop: { placement: 'bottom', offset: { x: -100, y: -200 } },
+            tablet: { placement: 'bottom', offset: { x: -100, y: -250 } },
+            mobile: { placement: 'top', offset: { x: -100, y: -150 } }
+        },
         order: 5,
         optional: false
     },
@@ -51,7 +71,11 @@ export const adminLayoutSteps = [
         target: '[data-tutorial="usuarios"]',
         title: 'Gestión de Usuarios',
         description: 'Crea, edita y administra todos los usuarios del sistema: managers, supervisores y administradores.',
-        position: 'right',
+        position: {
+            desktop: { placement: 'right', offset: { x: 25, y: 5 } },
+            tablet: { placement: 'right', offset: { x: 20, y: 0 } },
+            mobile: { placement: 'bottom', offset: { x: 0, y: 15 } }
+        },
         order: 6,
         optional: false
     },
@@ -60,7 +84,11 @@ export const adminLayoutSteps = [
         target: '.charts-section',
         title: 'Gráficos y Analytics',
         description: 'Visualiza tendencias y distribución de usuarios con gráficos interactivos y reportes.',
-        position: 'top',
+        position: {
+            desktop: { placement: 'top', offset: { x: 0, y: -15 } },
+            tablet: { placement: 'top', offset: { x: 0, y: -20 } },
+            mobile: { placement: 'bottom', offset: { x: 0, y: 20 } }
+        },
         order: 7,
         optional: true
     },
@@ -69,7 +97,11 @@ export const adminLayoutSteps = [
         target: '.quick-actions',
         title: 'Acciones Rápidas',
         description: 'Accesos directos a las funciones más utilizadas para agilizar tu trabajo administrativo.',
-        position: 'top',
+        position: {
+            desktop: { placement: 'top', offset: { x: 0, y: -200 } },
+            tablet: { placement: 'top', offset: { x: 0, y: -200 } },
+            mobile: { placement: 'bottom', offset: { x: 0, y: 20 } }
+        },
         order: 8,
         optional: true
     },
@@ -78,7 +110,11 @@ export const adminLayoutSteps = [
         target: '.recent-users',
         title: 'Usuarios Recientes',
         description: 'Revisa los usuarios más recientes del sistema y sus estados de activación.',
-        position: 'top',
+        position: {
+            desktop: { placement: 'top-left', offset: { x: 200, y: -150 } },
+            tablet: { placement: 'top', offset: { x: 200, y: -200 } },
+            mobile: { placement: 'bottom', offset: { x: 0, y: 200 } }
+        },
         order: 9,
         optional: true
     },
@@ -87,7 +123,11 @@ export const adminLayoutSteps = [
         target: '.active-users',
         title: 'Usuarios Activos',
         description: 'Monitorea qué usuarios han estado activos recientemente en el sistema.',
-        position: 'top',
+        position: {
+            desktop: { placement: 'top-right', offset: { x: 20, y: -15 } },
+            tablet: { placement: 'top', offset: { x: 10, y: -20 } },
+            mobile: { placement: 'bottom', offset: { x: 0, y: 20 } }
+        },
         order: 10,
         optional: true
     },
@@ -96,14 +136,18 @@ export const adminLayoutSteps = [
         target: '[data-tutorial="configuraciones"]',
         title: 'Configuraciones del Sistema',
         description: 'Accede a configuraciones avanzadas del sistema, parámetros globales y ajustes técnicos.',
-        position: 'right',
+        position: {
+            desktop: { placement: 'right', offset: { x: 25, y: -200 } },
+            tablet: { placement: 'right', offset: { x: 20, y: -150 } },
+            mobile: { placement: 'top', offset: { x: 0, y: -150 } }
+        },
         order: 11,
         optional: true
     }
 ]
 
 export const adminLayoutConfig = {
-    id: 'admin-layout',
+    id: 'admin',
     name: 'Panel de Administración',
     description: 'Tutorial completo para administradores del sistema BuildTruck',
     steps: adminLayoutSteps,
@@ -123,9 +167,30 @@ export const adminLayoutConfig = {
         highlightClass: 'tutorial-highlight-admin',
 
         tooltip: {
-            maxWidth: 400,
+            maxWidth: {
+                desktop: 400,
+                tablet: 350,
+                mobile: 280
+            },
             showProgress: true,
-            showNavigation: true
+            showNavigation: true,
+            responsive: {
+                mobile: {
+                    maxWidth: 280,
+                    fontSize: '14px',
+                    padding: '12px'
+                },
+                tablet: {
+                    maxWidth: 350,
+                    fontSize: '15px',
+                    padding: '15px'
+                },
+                desktop: {
+                    maxWidth: 400,
+                    fontSize: '16px',
+                    padding: '18px'
+                }
+            }
         }
     },
 
@@ -167,6 +232,11 @@ export const adminLayoutConfig = {
             // Verificar que los gráficos estén renderizados
             const charts = document.querySelectorAll('.chart-card canvas, .chart-card svg')
             return charts.length > 0
+        },
+
+        sidebarVisible: () => {
+            const sidebar = document.querySelector('.sidebar')
+            return sidebar && getComputedStyle(sidebar).display !== 'none'
         }
     },
 
@@ -371,6 +441,7 @@ export function canStartAdminLayoutTutorial() {
     // Verificaciones adicionales específicas para admin
     const hasAdminRole = adminLayoutConfig.validators.hasAdminPermissions()
     const dashboardLoaded = adminLayoutConfig.validators.dashboardLoaded()
+    const sidebarVisible = adminLayoutConfig.validators.sidebarVisible()
 
     if (!hasAdminRole) {
         console.warn('⚠️ Usuario no tiene permisos de administrador')
@@ -379,6 +450,11 @@ export function canStartAdminLayoutTutorial() {
 
     if (!dashboardLoaded) {
         console.warn('⚠️ Dashboard no está completamente cargado')
+        return false
+    }
+
+    if (!sidebarVisible) {
+        console.warn('⚠️ Sidebar no está visible')
         return false
     }
 
@@ -447,7 +523,8 @@ export function checkSystemHealth() {
         dashboard: adminLayoutConfig.validators.dashboardLoaded(),
         charts: adminLayoutConfig.validators.chartsRendered(),
         permissions: adminLayoutConfig.validators.hasAdminPermissions(),
-        route: adminLayoutConfig.validators.correctAdminRoute()
+        route: adminLayoutConfig.validators.correctAdminRoute(),
+        sidebar: adminLayoutConfig.validators.sidebarVisible()
     }
 
     const isHealthy = Object.values(health).every(status => status)
@@ -461,4 +538,29 @@ export function checkSystemHealth() {
             .map(([key, status]) => key),
         details: health
     }
+}
+
+// Helper para detectar el tipo de dispositivo
+export function getDeviceType() {
+    const width = window.innerWidth
+
+    if (width <= 768) {
+        return 'mobile'
+    } else if (width <= 1024) {
+        return 'tablet'
+    } else {
+        return 'desktop'
+    }
+}
+
+// Helper para obtener la posición según el dispositivo
+export function getResponsivePosition(step) {
+    const deviceType = getDeviceType()
+
+    if (step.position && typeof step.position === 'object' && step.position[deviceType]) {
+        return step.position[deviceType]
+    }
+
+    // Fallback a desktop si no existe configuración específica
+    return step.position?.desktop || step.position || { placement: 'bottom', offset: { x: 0, y: 15 } }
 }

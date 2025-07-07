@@ -293,14 +293,14 @@ export default {
         <div class="tutorial-actions">
           <AppButton
               :label="$t('settings.restartManagerTutorial')"
-              variant="secondary"
+              variant="primary"
               icon="pi pi-refresh"
               @click="reactivarTutorialLayout"
           />
 
           <AppButton
               :label="$t('settings.restartProjectTutorial')"
-              variant="secondary"
+              variant="primary"
               icon="pi pi-refresh"
               @click="reactivarTutorialProyecto"
           />
@@ -330,7 +330,10 @@ export default {
   margin: 0 auto;
   padding: 2rem;
 }
-
+.tutorial-actions{
+  display: flex;
+  gap: 0.5rem;
+}
 /* Navegación de tabs */
 .tabs-navigation {
   display: flex;

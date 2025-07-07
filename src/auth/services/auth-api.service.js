@@ -183,5 +183,17 @@ export const AuthService = {
             console.error('Error en reset password:', error);
             throw error; // Re-throw para que el componente pueda manejar diferentes tipos de error
         }
+    },
+    async changePassword(id, currentPassword, newPassword) {
+        try {
+            const response = await http.put(`${this.basePath}/${id}/password`, {
+                currentPassword,
+                newPassword
+            })
+            return { success: true }
+        } catch (error) {
+            console.error('Error cambiando contraseña:', error)
+            throw error
+        }
     }
 }

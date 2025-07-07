@@ -3,12 +3,15 @@ import AppButton from '../../../core/components/AppButton.vue';
 import LanguageSwitcher from "../../../core/components/language-switcher.component.vue";
 import {useThemeStore} from "../../../core/stores/theme.js";
 import {useLogo} from "../../../core/composables/useLogo.js";
+import {projectService} from "../../projects/services/projects-api.service.js";
+import NotificationBell from "../../../core/notifications/components/NotificationBell.vue";
 
 export default {
   name: 'ProjectLayoutManager',
   components: {
     AppButton,
-    LanguageSwitcher
+    LanguageSwitcher,
+    NotificationBell
   },
   props: {
     projectName: {
@@ -39,7 +42,7 @@ export default {
   },
   data() {
     return {
-      // Configuración básica de pestañas sin contadores estáticos
+      currentProjectName: this.projectName || 'Proyecto',
       tabs: [
         { id: 'documentacion', label: 'Documentación' },
         { id: 'personal', label: 'Personal' },
@@ -67,6 +70,14 @@ export default {
     const pathParts = currentPath.split('/');
     const lastPart = pathParts[pathParts.length - 1];
 
+    if (!this.projectName || this.projectName === 'Proyecto') {
+      try {
+        const response = await projectService.getProjectById(this.projectId);
+        this.projectName = response.data.name || 'Proyecto';
+      } catch (error) {
+        console.error('Error cargando nombre del proyecto:', error);
+      }
+    }
 
     if (this.tabs.some(tab => tab.id === lastPart)) {
       this.activeTab = lastPart;
@@ -111,8 +122,11 @@ export default {
     <div class="main-content">
       <!-- Header -->
       <header class="project-header">
-        <h1 class="project-title">{{ $t('project.title') }} {{ projectName }}</h1>
-        <language-switcher/>
+        <h1 class="project-title">{{ $t('project.title') }} {{ currentProjectName }}</h1>
+        <div class="header-actions">
+          <NotificationBell />
+          <language-switcher/>
+        </div>
       </header>
 
       <!-- Tabs Navigation con contadores dinámicos -->
@@ -140,6 +154,15 @@ export default {
 </template>
 
 <style scoped>
+.header-bar {
+  justify-content: space-between; /* ← Agregar */
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
 /* El CSS permanece igual al anterior */
 /* Layout principal con barra lateral */
 .project-layout {

@@ -391,6 +391,7 @@ export default {
         case 'qualified':
           return 'status-success';
         case 'unqualified':
+        case 'rechazado':
           return 'status-danger';
         case 'new':
           return 'status-info';

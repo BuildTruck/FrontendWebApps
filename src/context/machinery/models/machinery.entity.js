@@ -1,23 +1,21 @@
 export class MachineryEntity {
     constructor(data = {}) {
         this.id = data.id ?? undefined;
-
-        // Project assignment
         this.projectId = data.projectId !== undefined ? data.projectId : null;
-
-        // Basic machinery information
         this.name = data.name || '';
         this.licensePlate = data.licensePlate || '';
         this.machineryType = data.machineryType || '';
         this.status = data.status || 'ACTIVE';
         this.provider = data.provider || '';
         this.description = data.description || '';
-
-        // Personnel assignment (RENTED_OPERATOR only)
         this.personnelId = data.personnelId || null;
 
-        // Image (base64)
-        this.image = data.image || null;
+        // ✅ MANEJAR tanto image como imageUrl
+        this.image = data.image || data.imageUrl || null;
+
+        // ✅ AGREGAR campos para manejo de imágenes en formularios
+        this.imageFile = data.imageFile || null;
+        this.removeImage = data.removeImage || false;
 
         // Audit fields - Peru timezone
         this.createdAt = data.createdAt ? new Date(data.createdAt) : this.getCurrentPeruDate();
@@ -87,21 +85,29 @@ export class MachineryEntity {
         return data;
     }
 
+    static convertStatusFromBackend(statusNumber) {
+        const statusMap = {
+            0: 'ACTIVE',
+            1: 'MAINTENANCE'
+        };
+        return statusMap[statusNumber] || 'ACTIVE';
+    }
+
     static fromAPI(apiData) {
         return new MachineryEntity({
             id: apiData.id,
-            projectId: apiData.projectId || apiData.project_id,
+            projectId: apiData.projectId,
             name: apiData.name || '',
-            licensePlate: apiData.licensePlate || apiData.license_plate || apiData.placa || '',
-            machineryType: apiData.machineryType || apiData.machinery_type || apiData.tipo || '',
-            status: apiData.status || apiData.estado || 'ACTIVE',
-            provider: apiData.provider || apiData.proveedor || '',
-            description: apiData.description || apiData.descripcion || '',
-            personnelId: apiData.personnelId || apiData.personnel_id || apiData.operatorId || null,
-            image: apiData.image || apiData.imagen || null,
-            registerDate: MachineryEntity.parseAPIDate(apiData.registerDate || apiData.register_date || apiData.fechaRegistro),
-            createdAt: MachineryEntity.parseAPIDate(apiData.createdAt || apiData.created_at),
-            updatedAt: MachineryEntity.parseAPIDate(apiData.updatedAt || apiData.updated_at)
+            licensePlate: apiData.licensePlate || '',
+            machineryType: apiData.machineryType || '',
+            status: this.convertStatusFromBackend(apiData.status), // Convertir número a string
+            provider: apiData.provider || '',
+            description: apiData.description || '',
+            personnelId: apiData.personnelId || null,
+            image: apiData.imageUrl || null, // Backend usa imageUrl
+            registerDate: this.parseAPIDate(apiData.registerDate),
+            createdAt: this.parseAPIDate(apiData.createdAt),
+            updatedAt: this.parseAPIDate(apiData.updatedAt)
         });
     }
 
@@ -218,8 +224,6 @@ export class MachineryEntity {
     static get STATUSES() {
         return [
             { value: 'ACTIVE', label: 'Active', color: '#22c55e' },
-            { value: 'INACTIVE', label: 'Inactive', color: '#6b7280' },
-            { value: 'DAMAGED', label: 'Damaged', color: '#ef4444' },
             { value: 'MAINTENANCE', label: 'Maintenance', color: '#f97316' }
         ];
     }

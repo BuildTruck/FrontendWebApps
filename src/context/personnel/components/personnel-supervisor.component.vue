@@ -164,7 +164,6 @@ export default {
 
 /* Header - Altura fija */
 .supervisor-header {
-  background: linear-gradient(135deg, #FF5F01 0%, #E04E00 100%);
   color: white;
   padding: 1.5rem 2rem; /* ✅ Reducir padding para dar más espacio al contenido */
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -202,7 +201,7 @@ export default {
 .tabs-navigation {
   display: flex;
   gap: 0.5rem;
-  border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+  border-bottom: 2px solid rgba(255, 95, 1, 0.3);
   padding-bottom: 1rem;
   position: relative;
 }
@@ -211,12 +210,12 @@ export default {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.625rem 1.25rem; /* ✅ Reducir padding vertical */
-  background: transparent;
-  border: 2px solid transparent;
+  background-color: #ffa16e;
+  padding: 0.625rem 1.25rem;
+  border: 2px solid rgba(255, 255, 255, 0.2); /* Border sutil pero visible */
   border-radius: 8px;
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 0.875rem; /* ✅ Reducir tamaño de fuente */
+  color: rgba(255, 255, 255, 0.9); /* Texto más opaco */
+  font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -225,17 +224,18 @@ export default {
 }
 
 .tab-button:hover {
-  background-color: rgba(255, 255, 255, 0.1);
-  color: white;
+  background-color: rgba(255, 95, 1, 0.2); /* Hover más visible */
+  color:  #FF5F01;
+  border-color: rgba(255, 95, 1, 0.5); /* Border naranja más visible */
   transform: translateY(-2px);
 }
 
 .tab-button.active {
-  background-color: white;
-  color: #FF5F01;
-  border-color: white;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15),
-  0 2px 4px rgba(0, 0, 0, 0.1);
+  background-color: #FF5F01;
+  color: white;
+  border-color: #FF5F01;
+  box-shadow: 0 4px 12px rgba(255, 95, 1, 0.3),
+  0 2px 4px rgba(255, 95, 1, 0.2);
 }
 
 .tab-button.active::after {
@@ -248,7 +248,7 @@ export default {
   height: 0;
   border-left: 8px solid transparent;
   border-right: 8px solid transparent;
-  border-top: 8px solid white;
+  border-top: 8px solid #FF5F01;
 }
 
 .tab-button i {

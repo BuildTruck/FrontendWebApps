@@ -3,10 +3,14 @@ import { AuthService } from '../../../auth/services/auth-api.service.js';
 import LanguageSwitcher from "../../../core/components/language-switcher.component.vue";
 import { useThemeStore} from "../../../core/stores/theme.js";
 import { useLogo} from "../../../core/composables/useLogo.js";
+import NotificationBell from "../../../core/notifications/components/NotificationBell.vue";
+import TutorialOverlay from "../../../core/tutorial/components/TutorialOverlay.vue";
+import { useTutorial } from "../../../core/tutorial/composables/useTutorial.js";
+import { managerLayoutSteps } from "../../../core/tutorial/config/manager-layout.js";
 
 export default {
   name: 'ManagerLayout',
-  components: {LanguageSwitcher},
+  components: {LanguageSwitcher,NotificationBell, TutorialOverlay},
   props: {
     userName: {
       type: String,
@@ -16,20 +20,25 @@ export default {
   setup() {
     const themeStore = useThemeStore()
     const { logoSrc } = useLogo()
-    return { themeStore, logoSrc }
+    const tutorialComposable = useTutorial()
+
+    return {
+      themeStore,
+      logoSrc,
+      tutorialComposable
+    }
   },
   data() {
     return {
       displayName: '',
       menuItems: [
-        { id: 'proyectos', label: 'navigation.proyectos', icon: 'pi pi-home', route: '/proyectos', active: true },
-        { id: 'estadisticas', label: 'navigation.estadisticas', icon: 'pi pi-chart-bar', route: '/estadisticas', active: false },
-        { id: 'reportes', label: 'navigation.reportes', icon: 'pi pi-file', route: '/reportes', active: false },
-        { id: 'configuracion', label: 'navigation.configuracion', icon: 'pi pi-cog', route: '/configuracion', active: false }
+        { id: 'proyectos', label: 'navigation.proyectos', icon: 'pi pi-home', route: '/proyectos', active: true ,tutorialId: 'proyectos' },
+        { id: 'estadisticas', label: 'navigation.estadisticas', icon: 'pi pi-chart-bar', route: '/estadisticas', active: false,tutorialId: 'estadisticas'},
+        { id: 'configuracion', label: 'navigation.configuracion', icon: 'pi pi-cog', route: '/configuracion', active: false,tutorialId: 'configuracion' }
       ],
       profileItems: [
-        { id: 'perfil', label: 'navigation.perfil', icon: 'pi pi-user', route: '/perfil', active: false },
-        { id: 'salir', label: 'navigation.salir', icon: 'pi pi-sign-out', route: '/logout', active: false }
+        { id: 'perfil', label: 'navigation.perfil', icon: 'pi pi-user', route: '/perfil', active: false,tutorialId: 'perfil' },
+        { id: 'salir', label: 'navigation.salir', icon: 'pi pi-sign-out', route: '/logout', active: false,tutorialId: 'salir' }
       ]
     }
   },
@@ -38,6 +47,27 @@ export default {
     this.displayName = userData.name || this.userName;
 
     await this.themeStore.initializeTheme();
+  },
+  async mounted() {
+    console.log('🔍 ManagerLayout mounted...')
+
+    // PRODUCCIÓN: Solo mostrar tutorial en primer login
+    setTimeout(async () => {
+      try {
+        const { shouldShowTutorial, initializeLayoutTutorial } = this.tutorialComposable
+
+        // Verificar si debe mostrar el tutorial
+        if (shouldShowTutorial('manager-layout')) {
+          console.log('🎯 Primer acceso detectado, iniciando tutorial...')
+          await initializeLayoutTutorial('manager', managerLayoutSteps)
+        } else {
+          console.log('✅ Tutorial ya completado anteriormente')
+        }
+
+      } catch (error) {
+        console.error('❌ Error en tutorial:', error)
+      }
+    }, 500)
   },
   computed: {
     activeMenuId() {
@@ -58,6 +88,27 @@ export default {
     }
   },
   methods: {
+    nextTutorialStep() {
+      this.tutorialComposable.nextStep()
+    },
+
+    prevTutorialStep() {
+      this.tutorialComposable.previousStep()
+    },
+
+    restartTutorial() {
+      const { dev, resetUserProgress } = this.tutorialComposable
+      resetUserProgress()
+      dev.forceStart('manager-layout', managerLayoutSteps)
+    },
+
+    // Ver qué elemento está siendo destacado
+    debugTutorial() {
+      const { currentStep, highlightElement } = this.tutorialComposable
+      console.log('🔍 Paso actual:', currentStep.value)
+      console.log('🎯 Elemento:', highlightElement.value)
+      console.log('📍 DOM element:', document.querySelector(highlightElement.value))
+    },
     navigateTo(route) {
       // Si es la opción de salir, ejecutar logout
       if (route === '/logout') {
@@ -66,7 +117,25 @@ export default {
         this.$router.push(route);
       }
     },
+    simulateDevice(device) {
+      const sizes = {
+        mobile: 375,
+        tablet: 768,
+        desktop: 1200
+      }
 
+      // Simular cambio de viewport
+      Object.defineProperty(window, 'innerWidth', {
+        writable: true,
+        configurable: true,
+        value: sizes[device]
+      })
+
+      // Reiniciar tutorial para ver cambios
+      this.restartTutorial()
+
+      console.log(`📱 Simulando ${device} (${sizes[device]}px)`)
+    },
     logout() {
       // Llamar al método logout del AuthService
       AuthService.logout();
@@ -90,6 +159,7 @@ export default {
               v-for="item in menuItems"
               :key="item.id"
               :class="['menu-item', { active: activeMenuId === item.id }]"
+              :data-tutorial="item.tutorialId"
               @click="navigateTo(item.route)"
           >
             <i :class="item.icon"></i>
@@ -108,6 +178,7 @@ export default {
               v-for="item in profileItems"
               :key="item.id"
               :class="['menu-item', { active: activeMenuId === item.id }]"
+              :data-tutorial="item.tutorialId"
               @click="navigateTo(item.route)"
           >
             <i :class="item.icon"></i>
@@ -120,10 +191,14 @@ export default {
     <!-- Contenido principal con header fijo -->
     <div class="main-wrapper">
       <!-- Header bar fijo -->
-      <header class="header-bar">
+      <header class="header-bar" data-tutorial="header-bar" >
         <h1 class="page-title">{{ $t(pageTitle) }}</h1>
 
-        <language-switcher/>
+        <div class="header-actions">
+          <NotificationBell data-tutorial="notifications" />
+          <language-switcher data-tutorial="language"/>
+
+        </div>
 
       </header>
 
@@ -134,9 +209,19 @@ export default {
     </div>
 
   </div>
+  <TutorialOverlay />
 </template>
 
 <style scoped>
+.header-bar {
+  justify-content: space-between; /* ← Agregar */
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
 .app-container {
   display: flex;
   height: 100vh;

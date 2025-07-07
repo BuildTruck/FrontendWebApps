@@ -27,13 +27,19 @@ export class Documentation {
         }).replace(' ', 'T') + '-05:00'
     }
 
-    validate() {
+    validate(isForCreation = false) {
         const errors = {}
+
         if (!this.projectId) errors.projectId = 'El ID del proyecto es obligatorio'
         if (!this.title?.trim()) errors.title = 'El título es obligatorio'
         if (!this.description?.trim()) errors.description = 'La descripción es obligatoria'
-        if (!this.imagePath) errors.imagePath = 'La imagen es obligatoria'
         if (!this.date) errors.date = 'La fecha es obligatoria'
+
+        // Solo validar imagePath para actualizaciones, no para creación
+        // En creación, la imagen se maneja por separado en el servicio
+        if (!isForCreation && !this.imagePath) {
+            errors.imagePath = 'La imagen es obligatoria'
+        }
 
         return {
             isValid: Object.keys(errors).length === 0,

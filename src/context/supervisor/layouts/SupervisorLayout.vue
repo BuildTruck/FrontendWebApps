@@ -3,10 +3,11 @@ import { AuthService } from '../../../auth/services/auth-api.service.js';
 import LanguageSwitcher from "../../../core/components/language-switcher.component.vue";
 import { useThemeStore } from "../../../core/stores/theme.js";
 import { useLogo } from "../../../core/composables/useLogo.js";
+import NotificationBell from "../../../core/notifications/components/NotificationBell.vue";
 
 export default {
   name: 'SupervisorLayout',
-  components: {LanguageSwitcher},
+  components: {LanguageSwitcher,NotificationBell },
   props: {
     userName: {
       type: String,
@@ -135,7 +136,10 @@ export default {
       <!-- Header bar fijo -->
       <header class="header-bar">
         <h1 class="page-title">{{ $t(pageTitle) }}</h1>
-        <language-switcher/>
+        <div class="header-actions">
+          <NotificationBell />
+          <language-switcher/>
+        </div>
       </header>
 
       <!-- Área de contenido -->
@@ -147,6 +151,16 @@ export default {
 </template>
 
 <style scoped>
+.header-bar {
+  justify-content: space-between; /* ← Agregar */
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
 .app-container {
   display: flex;
   height: 100vh;

@@ -38,16 +38,6 @@ export default [
         ]
     },
     {
-        path: '/reportes',
-        component: ManagerLayout,
-        children: [
-            {
-                path: '',
-                component: ReportsManagerComponent,
-            }
-        ]
-    },
-    {
         path: '/configuracion',
         component: ManagerLayout,
         children: [

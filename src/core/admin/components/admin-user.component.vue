@@ -55,9 +55,9 @@ export default {
     },
     roleOptions() {
       return [
-        { value: 'admin', label: this.$t('admin.users.roles.admin') },
-        { value: 'manager', label: this.$t('admin.users.roles.manager') },
-        { value: 'supervisor', label: this.$t('admin.users.roles.supervisor') }
+        { value: 'Admin', label: this.$t('admin.users.roles.admin') },
+        { value: 'Manager', label: this.$t('admin.users.roles.manager') },
+        { value: 'Supervisor', label: this.$t('admin.users.roles.supervisor') }
       ]
     },
     emailPreview() {
@@ -65,12 +65,12 @@ export default {
         return this.currentUser.email || 'N/A'
       }
 
-      // Para modo crear, mostrar preview solo si hay nombre
+      // Para modo crear, mostrar preview con nombre y apellido
       if (!this.currentUser.name || this.currentUser.name.trim() === '') {
-        return 'nombre@buildtruck.com'
+        return 'nombre.apellido@buildtruck.com'
       }
 
-      return userService.generateEmailPreview(this.currentUser.name)
+      return userService.generateEmailPreview(this.currentUser.name, this.currentUser.lastName)
     }
   },
   async mounted() {
@@ -82,12 +82,11 @@ export default {
       return {
         id: null,
         email: '',
-        password: '',
         personalEmail: '',
         name: '',
         lastName: '',
         phone: '',
-        role: 'supervisor',
+        role: 'Supervisor',
         permissions: []
       }
     },
@@ -163,7 +162,7 @@ export default {
     validateUser() {
       this.errors = {}
 
-
+      // Limpiar espacios
       this.currentUser.name = this.currentUser.name?.trim() || ''
       this.currentUser.lastName = this.currentUser.lastName?.trim() || ''
       this.currentUser.personalEmail = this.currentUser.personalEmail?.trim() || ''
@@ -175,10 +174,6 @@ export default {
 
       if (!this.currentUser.lastName) {
         this.errors.lastName = this.$t('admin.users.validation.lastnameRequired')
-      }
-
-      if (this.modalMode === 'create' && !this.currentUser.password) {
-        this.errors.password = this.$t('admin.users.validation.passwordRequired')
       }
 
       if (!this.currentUser.role) {
@@ -206,27 +201,17 @@ export default {
       try {
         this.isSubmitting = true
 
-
         const userData = {
-          email: this.currentUser.email || '',
-          personalEmail: this.currentUser.personalEmail || '',
           name: this.currentUser.name.trim(),
-          lastName: this.currentUser.lastName.trim(), // SOLO lastName en camelCase
+          lastName: this.currentUser.lastName.trim(),
+          personalEmail: this.currentUser.personalEmail || '',
           phone: this.currentUser.phone || '',
-          role: this.currentUser.role,
-          permissions: this.currentUser.permissions || []
+          role: this.currentUser.role
         }
 
-        // Solo agregar password en modo crear
-        if (this.modalMode === 'create') {
-          userData.password = this.currentUser.password
-        } else {
+        if (this.modalMode === 'edit') {
           userData.id = this.currentUser.id
         }
-
-        // Doble verificación - eliminar cualquier campo lastname en minúscula
-        delete userData.lastname;
-        delete userData.last_name;
 
         console.log('Datos a enviar:', userData) // Para debug
 
@@ -245,7 +230,6 @@ export default {
 
       } catch (error) {
         console.error('Error guardando usuario:', error)
-
 
         if (error.response?.data?.message) {
           this.showNotification(error.response.data.message, 'error')
@@ -337,13 +321,20 @@ export default {
 
     getRoleColor(role) {
       switch(role) {
-        case 'admin': return '#f44336'
-        case 'manager': return '#2196F3'
-        case 'supervisor': return '#4CAF50'
+        case 'Admin': return '#f44336'
+        case 'Manager': return '#2196F3'
+        case 'Supervisor': return '#4CAF50'
         default: return '#666'
       }
     },
-
+    getRoleLabel(role) {
+      switch(role) {
+        case 'Admin': return this.$t('admin.users.roles.admin')
+        case 'Manager': return this.$t('admin.users.roles.manager')
+        case 'Supervisor': return this.$t('admin.users.roles.supervisor')
+        default: return role
+      }
+    },
     handleKeyDown(event) {
       if (event.key === 'Escape' && (this.showModal || this.deleteConfirm.visible) && !this.isSubmitting) {
         if (this.deleteConfirm.visible) {
@@ -430,7 +421,7 @@ export default {
                 class="role-badge"
                 :style="{ backgroundColor: getRoleColor(user.role) }"
             >
-              {{ $t(`admin.users.roles.${user.role}`) }}
+              {{ getRoleLabel(user.role) }}
             </span>
           </div>
           <div class="cell">{{ formatDate(user.createdAt) }}</div>
@@ -489,17 +480,6 @@ export default {
               </small>
             </div>
 
-            <app-input
-                v-if="modalMode === 'create'"
-                v-model="currentUser.password"
-                :label="$t('admin.users.form.password')"
-                type="password"
-                :placeholder="$t('admin.users.form.passwordPlaceholder')"
-                :error="errors.password"
-                :disabled="isSubmitting"
-                required
-                full-width
-            />
 
             <app-input
                 v-model="currentUser.name"
@@ -552,6 +532,17 @@ export default {
                 full-width
             />
           </div>
+
+          <div v-if="modalMode === 'create'" class="password-note">
+            <div class="info-box">
+              <i class="pi pi-info-circle"></i>
+              <div>
+                <strong>Contraseña temporal:</strong>
+                <p>El sistema generará automáticamente una contraseña temporal para el usuario. Se recomienda que el usuario la cambie en su primer acceso.</p>
+              </div>
+            </div>
+          </div>
+
         </div>
 
         <div class="modal-footer">

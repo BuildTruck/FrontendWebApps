@@ -1,6 +1,60 @@
+<template>
+  <div class="chart-card" :class="[`chart-card--${variant}`, { 'chart-card--loading': loading }]">
+    <!-- Header -->
+    <div class="chart-card__header">
+      <div class="chart-card__title-section">
+        <h3 class="chart-card__title">{{ title }}</h3>
+        <p v-if="subtitle" class="chart-card__subtitle">{{ subtitle }}</p>
+      </div>
+
+      <!-- Total value display -->
+      <div v-if="totalValue !== null" class="chart-card__total">
+        <span class="chart-card__total-value">{{ formattedTotal }}</span>
+        <span class="chart-card__total-label">{{ totalLabel }}</span>
+      </div>
+    </div>
+
+    <!-- Chart Container -->
+    <div class="chart-card__content">
+      <div class="chart-card__chart-container" :style="{ height: chartHeight }">
+        <!-- Loading state -->
+        <div v-if="loading" class="chart-card__loading">
+          <i class="pi pi-spin pi-spinner"></i>
+          <span>{{ $t('stats.charts.loadingChart') }}</span>
+        </div>
+
+        <!-- Chart -->
+        <pv-chart
+            v-else-if="hasData"
+            :type="normalizedChartType"
+            :data="chartData"
+            :options="chartOptions"
+            class="chart-card__chart"
+            @select="handleChartClick"
+        />
+
+        <!-- No data state -->
+        <div v-else class="chart-card__no-data">
+          <i :class="getNoDataIcon()"></i>
+          <p>{{ noDataMessage || $t('stats.charts.noDataAvailable') }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div v-if="footerText || lastUpdated" class="chart-card__footer">
+      <span v-if="footerText" class="chart-card__footer-text">{{ footerText }}</span>
+      <span v-if="lastUpdated" class="chart-card__last-updated">
+        {{ $t('stats.meta.lastUpdated') }}: {{ formatDate(lastUpdated) }}
+      </span>
+    </div>
+  </div>
+</template>
+
 <script>
 export default {
-  name: 'ChartCardComponent',
+  name: 'ChartCard',
+
   props: {
     // Básicos
     title: {
@@ -44,10 +98,6 @@ export default {
       type: [String, Number],
       default: 300
     },
-    width: {
-      type: [String, Number],
-      default: '100%'
-    },
 
     // Información adicional
     totalValue: {
@@ -69,226 +119,103 @@ export default {
       default: null
     },
 
-    // Comportamiento
-    clickable: {
-      type: Boolean,
-      default: false
-    },
+    // Estados
     loading: {
       type: Boolean,
       default: false
     },
 
-    // Colores personalizados
-    colorScheme: {
+    // Mensaje personalizado para sin datos
+    noDataMessage: {
       type: String,
-      default: 'default',
-      validator: value => ['default', 'primary', 'success', 'warning', 'danger', 'cool', 'warm'].includes(value)
+      default: null
     }
   },
 
-  emits: ['click', 'chartClick'],
+  emits: ['chartClick'],
 
   computed: {
-    chartData() {
-      if (this.loading) {
-        return this.getEmptyChartData();
-      }
-      return this.formatChartData(this.data);
+    /**
+     * Normaliza el tipo de gráfico para PrimeVue
+     */
+    normalizedChartType() {
+      return this.chartType === 'horizontalBar' ? 'bar' : this.chartType;
     },
 
+    /**
+     * Datos del gráfico con colores por defecto
+     */
+    chartData() {
+      if (!this.data || this.loading) {
+        return this.getEmptyChartData();
+      }
+
+      const processedData = { ...this.data };
+
+      // Aplicar colores por defecto si no los tiene
+      if (processedData.datasets && processedData.datasets.length > 0) {
+        processedData.datasets = processedData.datasets.map((dataset, index) => ({
+          ...dataset,
+          backgroundColor: dataset.backgroundColor || this.getDefaultColors(),
+          borderColor: dataset.borderColor || (this.isLineChart ? this.getDefaultColors() : '#ffffff'),
+          borderWidth: dataset.borderWidth || (this.isLineChart ? 2 : 1)
+        }));
+      }
+
+      return processedData;
+    },
+
+    /**
+     * Opciones del gráfico combinadas
+     */
     chartOptions() {
       const baseOptions = this.getBaseOptions();
       const typeSpecificOptions = this.getTypeSpecificOptions();
-      const userOptions = this.options;
 
-      return this.mergeDeep(baseOptions, typeSpecificOptions, userOptions);
+      return this.mergeDeep(baseOptions, typeSpecificOptions, this.options);
     },
 
+    /**
+     * Altura del gráfico
+     */
     chartHeight() {
       return typeof this.height === 'number' ? `${this.height}px` : this.height;
     },
 
-    chartWidth() {
-      return typeof this.width === 'number' ? `${this.width}px` : this.width;
-    },
-
-    colorPalette() {
-      return this.getColorPalette(this.colorScheme);
-    },
-
-    hasTotal() {
-      return this.totalValue !== null && this.totalValue !== undefined;
-    },
-
+    /**
+     * Total formateado
+     */
     formattedTotal() {
       if (typeof this.totalValue === 'number') {
         return this.totalValue.toLocaleString('es-PE');
       }
       return this.totalValue;
+    },
+
+    /**
+     * Verifica si hay datos para mostrar
+     */
+    hasData() {
+      if (!this.data || !this.data.datasets) return false;
+
+      return this.data.datasets.some(dataset =>
+          dataset.data && dataset.data.length > 0 &&
+          dataset.data.some(value => value > 0)
+      );
+    },
+
+    /**
+     * Verifica si es gráfico de línea
+     */
+    isLineChart() {
+      return ['line', 'radar'].includes(this.chartType);
     }
   },
 
   methods: {
-    formatChartData(data) {
-      if (!data) return this.getEmptyChartData();
-
-      switch (this.chartType) {
-        case 'pie':
-        case 'doughnut':
-        case 'polarArea':
-          return this.formatCircularChartData(data);
-        case 'bar':
-        case 'horizontalBar':
-          return this.formatBarChartData(data);
-        case 'line':
-          return this.formatLineChartData(data);
-        case 'radar':
-          return this.formatRadarChartData(data);
-        default:
-          return data;
-      }
-    },
-
-    formatCircularChartData(data) {
-      // Para gráficos circulares: pie, doughnut, polarArea
-      if (data.labels && data.datasets) {
-        return {
-          labels: data.labels,
-          datasets: [{
-            data: data.datasets[0]?.data || [],
-            backgroundColor: this.colorPalette.slice(0, data.labels.length),
-            borderColor: '#ffffff',
-            borderWidth: 2,
-            ...data.datasets[0]
-          }]
-        };
-      }
-
-      // Si viene como objeto { key: value }
-      if (typeof data === 'object' && !Array.isArray(data)) {
-        const labels = Object.keys(data);
-        const values = Object.values(data);
-
-        return {
-          labels,
-          datasets: [{
-            data: values,
-            backgroundColor: this.colorPalette.slice(0, labels.length),
-            borderColor: '#ffffff',
-            borderWidth: 2
-          }]
-        };
-      }
-
-      return this.getEmptyChartData();
-    },
-
-    formatBarChartData(data) {
-      if (data.labels && data.datasets) {
-        return {
-          labels: data.labels,
-          datasets: data.datasets.map((dataset, index) => ({
-            ...dataset,
-            backgroundColor: dataset.backgroundColor || this.colorPalette[index % this.colorPalette.length],
-            borderColor: dataset.borderColor || this.colorPalette[index % this.colorPalette.length],
-            borderWidth: 1
-          }))
-        };
-      }
-
-      // Si viene como objeto { key: value }
-      if (typeof data === 'object' && !Array.isArray(data)) {
-        const labels = Object.keys(data);
-        const values = Object.values(data);
-
-        return {
-          labels,
-          datasets: [{
-            label: this.title,
-            data: values,
-            backgroundColor: this.colorPalette[0],
-            borderColor: this.colorPalette[0],
-            borderWidth: 1
-          }]
-        };
-      }
-
-      return this.getEmptyChartData();
-    },
-
-    formatLineChartData(data) {
-      if (data.labels && data.datasets) {
-        return {
-          labels: data.labels,
-          datasets: data.datasets.map((dataset, index) => ({
-            ...dataset,
-            borderColor: dataset.borderColor || this.colorPalette[index % this.colorPalette.length],
-            backgroundColor: dataset.backgroundColor || `${this.colorPalette[index % this.colorPalette.length]}20`,
-            tension: 0.4,
-            pointBackgroundColor: dataset.borderColor || this.colorPalette[index % this.colorPalette.length],
-            pointBorderColor: '#ffffff',
-            pointBorderWidth: 2,
-            pointRadius: 4
-          }))
-        };
-      }
-
-      // Para arrays de datos temporales
-      if (Array.isArray(data)) {
-        const labels = data.map((item, index) => item.label || item.date || `Punto ${index + 1}`);
-        const values = data.map(item => item.value || item.amount || 0);
-
-        return {
-          labels,
-          datasets: [{
-            label: this.title,
-            data: values,
-            borderColor: this.colorPalette[0],
-            backgroundColor: `${this.colorPalette[0]}20`,
-            tension: 0.4,
-            pointBackgroundColor: this.colorPalette[0],
-            pointBorderColor: '#ffffff',
-            pointBorderWidth: 2,
-            pointRadius: 4
-          }]
-        };
-      }
-
-      return this.getEmptyChartData();
-    },
-
-    formatRadarChartData(data) {
-      if (data.labels && data.datasets) {
-        return {
-          labels: data.labels,
-          datasets: data.datasets.map((dataset, index) => ({
-            ...dataset,
-            backgroundColor: dataset.backgroundColor || `${this.colorPalette[index % this.colorPalette.length]}30`,
-            borderColor: dataset.borderColor || this.colorPalette[index % this.colorPalette.length],
-            borderWidth: 2,
-            pointBackgroundColor: dataset.borderColor || this.colorPalette[index % this.colorPalette.length],
-            pointBorderColor: '#ffffff',
-            pointBorderWidth: 2
-          }))
-        };
-      }
-
-      return this.getEmptyChartData();
-    },
-
-    getEmptyChartData() {
-      return {
-        labels: ['Sin datos'],
-        datasets: [{
-          data: [1],
-          backgroundColor: ['#e5e7eb'],
-          borderColor: ['#d1d5db'],
-          borderWidth: 1
-        }]
-      };
-    },
-
+    /**
+     * Opciones base para todos los gráficos
+     */
     getBaseOptions() {
       return {
         responsive: true,
@@ -298,47 +225,36 @@ export default {
             display: true,
             position: 'bottom',
             labels: {
-              padding: 20,
+              padding: 15,
               usePointStyle: true,
-              font: {
-                size: 12
-              }
+              font: { size: 12 },
+              color: '#374151'
             }
           },
           tooltip: {
             backgroundColor: 'rgba(0, 0, 0, 0.8)',
             titleColor: '#ffffff',
             bodyColor: '#ffffff',
-            borderColor: '#ffffff',
+            borderColor: '#FF5F01',
             borderWidth: 1,
             cornerRadius: 6,
             displayColors: true
-          }
-        },
-        onHover: (event, activeElements) => {
-          event.native.target.style.cursor = activeElements.length > 0 ? 'pointer' : 'default';
-        },
-        onClick: (event, activeElements) => {
-          if (activeElements.length > 0) {
-            this.$emit('chartClick', {
-              element: activeElements[0],
-              data: this.chartData,
-              event
-            });
           }
         }
       };
     },
 
+    /**
+     * Opciones específicas por tipo de gráfico
+     */
     getTypeSpecificOptions() {
       switch (this.chartType) {
         case 'pie':
         case 'doughnut':
           return {
+            cutout: this.chartType === 'doughnut' ? '60%' : '0%',
             plugins: {
-              legend: {
-                position: 'right'
-              }
+              legend: { position: 'right' }
             }
           };
 
@@ -347,24 +263,12 @@ export default {
             scales: {
               y: {
                 beginAtZero: true,
-                grid: {
-                  color: '#f3f4f6'
-                },
-                ticks: {
-                  font: {
-                    size: 11
-                  }
-                }
+                grid: { color: '#f3f4f6' },
+                ticks: { font: { size: 11 }, color: '#6b7280' }
               },
               x: {
-                grid: {
-                  display: false
-                },
-                ticks: {
-                  font: {
-                    size: 11
-                  }
-                }
+                grid: { display: false },
+                ticks: { font: { size: 11 }, color: '#6b7280' }
               }
             }
           };
@@ -375,14 +279,12 @@ export default {
             scales: {
               x: {
                 beginAtZero: true,
-                grid: {
-                  color: '#f3f4f6'
-                }
+                grid: { color: '#f3f4f6' },
+                ticks: { font: { size: 11 }, color: '#6b7280' }
               },
               y: {
-                grid: {
-                  display: false
-                }
+                grid: { display: false },
+                ticks: { font: { size: 11 }, color: '#6b7280' }
               }
             }
           };
@@ -392,20 +294,17 @@ export default {
             scales: {
               y: {
                 beginAtZero: true,
-                grid: {
-                  color: '#f3f4f6'
-                }
+                grid: { color: '#f3f4f6' },
+                ticks: { font: { size: 11 }, color: '#6b7280' }
               },
               x: {
-                grid: {
-                  display: false
-                }
+                grid: { display: false },
+                ticks: { font: { size: 11 }, color: '#6b7280' }
               }
             },
             elements: {
-              point: {
-                hoverRadius: 8
-              }
+              point: { radius: 4, hoverRadius: 8 },
+              line: { tension: 0.4 }
             }
           };
 
@@ -414,13 +313,28 @@ export default {
             scales: {
               r: {
                 beginAtZero: true,
-                grid: {
-                  color: '#f3f4f6'
-                },
+                max: 100,
+                grid: { color: '#f3f4f6' },
                 pointLabels: {
-                  font: {
-                    size: 11
-                  }
+                  font: { size: 11 },
+                  color: '#6b7280'
+                },
+                ticks: {
+                  font: { size: 10 },
+                  color: '#6b7280'
+                }
+              }
+            }
+          };
+
+        case 'polarArea':
+          return {
+            scales: {
+              r: {
+                beginAtZero: true,
+                grid: { color: '#f3f4f6' },
+                ticks: {
+                  display: false
                 }
               }
             }
@@ -431,41 +345,82 @@ export default {
       }
     },
 
-    getColorPalette(scheme) {
-      const palettes = {
-        default: [
-          '#FF5F01', '#3b82f6', '#22c55e', '#f59e0b', '#ef4444',
-          '#8b5cf6', '#06b6d4', '#f97316', '#84cc16', '#ec4899'
-        ],
-        primary: [
-          '#FF5F01', '#FF7F01', '#FF9F01', '#FFBF01', '#FFDF01',
-          '#FFF001', '#E0E001', '#C0C001', '#A0A001', '#808001'
-        ],
-        success: [
-          '#22c55e', '#16a34a', '#15803d', '#166534', '#14532d',
-          '#84cc16', '#65a30d', '#4d7c0f', '#365314', '#1a2e05'
-        ],
-        warning: [
-          '#f59e0b', '#d97706', '#b45309', '#92400e', '#78350f',
-          '#f97316', '#ea580c', '#c2410c', '#9a3412', '#7c2d12'
-        ],
-        danger: [
-          '#ef4444', '#dc2626', '#b91c1c', '#991b1b', '#7f1d1d',
-          '#f87171', '#fca5a5', '#fecaca', '#fee2e2', '#fef2f2'
-        ],
-        cool: [
-          '#3b82f6', '#1d4ed8', '#1e40af', '#1e3a8a', '#172554',
-          '#06b6d4', '#0891b2', '#0e7490', '#155e75', '#164e63'
-        ],
-        warm: [
-          '#f59e0b', '#d97706', '#b45309', '#92400e', '#78350f',
-          '#ec4899', '#db2777', '#be185d', '#9d174d', '#831843'
-        ]
-      };
-
-      return palettes[scheme] || palettes.default;
+    /**
+     * Colores por defecto basados en el branding
+     */
+    getDefaultColors() {
+      return [
+        '#FF5F01', // Primary orange
+        '#22c55e', // Success green
+        '#3b82f6', // Info blue
+        '#f59e0b', // Warning yellow
+        '#ef4444', // Danger red
+        '#8b5cf6', // Purple
+        '#06b6d4', // Cyan
+        '#f97316', // Orange
+        '#84cc16', // Lime
+        '#ec4899'  // Pink
+      ];
     },
 
+    /**
+     * Datos vacíos para estado de carga
+     */
+    getEmptyChartData() {
+      return {
+        labels: [''],
+        datasets: [{
+          data: [1],
+          backgroundColor: ['#e5e7eb'],
+          borderColor: ['#d1d5db'],
+          borderWidth: 1
+        }]
+      };
+    },
+
+    /**
+     * Icono para estado sin datos
+     */
+    getNoDataIcon() {
+      const iconMap = {
+        pie: 'pi pi-chart-pie',
+        doughnut: 'pi pi-chart-pie',
+        bar: 'pi pi-chart-bar',
+        horizontalBar: 'pi pi-chart-bar',
+        line: 'pi pi-chart-line',
+        radar: 'pi pi-sitemap',
+        polarArea: 'pi pi-chart-pie'
+      };
+
+      return iconMap[this.chartType] || 'pi pi-chart-pie';
+    },
+
+    /**
+     * Maneja clics en el gráfico
+     */
+    handleChartClick(event) {
+      this.$emit('chartClick', event);
+    },
+
+    /**
+     * Formatea fecha
+     */
+    formatDate(date) {
+      if (!date) return '';
+
+      const d = new Date(date);
+      return d.toLocaleDateString('es-PE', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    },
+
+    /**
+     * Merge profundo de objetos
+     */
     mergeDeep(target, ...sources) {
       if (!sources.length) return target;
       const source = sources.shift();
@@ -484,111 +439,36 @@ export default {
       return this.mergeDeep(target, ...sources);
     },
 
+    /**
+     * Verifica si es objeto
+     */
     isObject(item) {
       return item && typeof item === 'object' && !Array.isArray(item);
-    },
-
-    handleClick() {
-      if (this.clickable && !this.loading) {
-        this.$emit('click');
-      }
-    },
-
-    formatDate(date) {
-      if (!date) return '';
-      const d = new Date(date);
-      return d.toLocaleDateString('es-PE', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
     }
   }
 };
 </script>
-
-<template>
-  <div
-      class="chart-card"
-      :class="[
-      `chart-card--${variant}`,
-      { 'chart-card--clickable': clickable, 'chart-card--loading': loading }
-    ]"
-      @click="handleClick"
-  >
-    <!-- Header -->
-    <div class="chart-card__header">
-      <div class="chart-card__title-section">
-        <h3 class="chart-card__title">{{ title }}</h3>
-        <p v-if="subtitle" class="chart-card__subtitle">{{ subtitle }}</p>
-      </div>
-
-      <!-- Total value display -->
-      <div v-if="hasTotal" class="chart-card__total">
-        <span class="chart-card__total-value">{{ formattedTotal }}</span>
-        <span class="chart-card__total-label">{{ totalLabel }}</span>
-      </div>
-    </div>
-
-    <!-- Chart Container -->
-    <div class="chart-card__content">
-      <div
-          class="chart-card__chart-container"
-          :style="{ height: chartHeight, width: chartWidth }"
-      >
-        <div v-if="loading" class="chart-card__loading">
-          <i class="pi pi-spin pi-spinner"></i>
-          <span>Cargando gráfico...</span>
-        </div>
-
-        <pv-chart
-            v-else
-            :type="chartType === 'horizontalBar' ? 'bar' : chartType"
-            :data="chartData"
-            :options="chartOptions"
-            class="chart-card__chart"
-        />
-      </div>
-    </div>
-
-    <!-- Footer -->
-    <div v-if="footerText || lastUpdated" class="chart-card__footer">
-      <span v-if="footerText" class="chart-card__footer-text">{{ footerText }}</span>
-      <span v-if="lastUpdated" class="chart-card__last-updated">
-        Actualizado: {{ formatDate(lastUpdated) }}
-      </span>
-    </div>
-  </div>
-</template>
 
 <style scoped>
 .chart-card {
   background: white;
   border-radius: 12px;
   padding: 1.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   border: 1px solid #e5e7eb;
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
-  height: 100%;
   display: flex;
   flex-direction: column;
+  min-height: 300px;
+  transition: all 0.3s ease;
 }
 
 .chart-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
 }
 
-.chart-card--clickable {
-  cursor: pointer;
-}
-
-.chart-card--clickable:hover {
-  border-color: #FF5F01;
+.chart-card--loading {
+  opacity: 0.7;
 }
 
 /* Variantes */
@@ -615,10 +495,11 @@ export default {
 /* Header */
 .chart-card__header {
   display: flex;
-  justify-content: space-between;
   align-items: flex-start;
   margin-bottom: 1rem;
   gap: 1rem;
+  border-bottom: 1px solid #f3f4f6;
+  padding-bottom: 1rem;
 }
 
 .chart-card__title-section {
@@ -673,6 +554,9 @@ export default {
   position: relative;
   flex: 1;
   min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .chart-card__chart {
@@ -698,15 +582,38 @@ export default {
   color: #FF5F01;
 }
 
+.chart-card__no-data {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #9ca3af;
+  text-align: center;
+  padding: 2rem;
+}
+
+.chart-card__no-data i {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.chart-card__no-data p {
+  margin: 0;
+  font-size: 0.875rem;
+}
+
 /* Footer */
 .chart-card__footer {
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid #f3f4f6;
   padding-top: 0.75rem;
   margin-top: 1rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 0.5rem;
+  font-size: 0.75rem;
+  color: #6b7280;
 }
 
 .chart-card__footer-text,
@@ -719,16 +626,11 @@ export default {
   text-align: right;
 }
 
-/* Loading state */
-.chart-card--loading {
-  opacity: 0.6;
-  pointer-events: none;
-}
-
 /* Responsive */
 @media (max-width: 768px) {
   .chart-card {
     padding: 1rem;
+    min-height: 250px;
   }
 
   .chart-card__header {
@@ -742,7 +644,7 @@ export default {
   }
 
   .chart-card__chart-container {
-    min-height: 250px;
+    min-height: 150px;
   }
 
   .chart-card__footer {
@@ -756,12 +658,7 @@ export default {
   }
 }
 
-/* Mejoras visuales para los gráficos */
-:deep(.chart-card__chart canvas) {
-  border-radius: 8px;
-}
-
-/* Animaciones suaves */
+/* Animaciones */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -775,5 +672,35 @@ export default {
 
 .chart-card__chart {
   animation: fadeIn 0.5s ease-out;
+}
+
+/* Mejoras para gráficos específicos */
+:deep(.p-chart canvas) {
+  border-radius: 8px;
+}
+
+/* Estados de hover mejorados */
+.chart-card:hover .chart-card__title {
+  color: #FF5F01;
+}
+
+.chart-card--primary:hover .chart-card__title {
+  color: #FF5F01;
+}
+
+.chart-card--success:hover .chart-card__title {
+  color: #22c55e;
+}
+
+.chart-card--warning:hover .chart-card__title {
+  color: #f59e0b;
+}
+
+.chart-card--danger:hover .chart-card__title {
+  color: #ef4444;
+}
+
+.chart-card--info:hover .chart-card__title {
+  color: #3b82f6;
 }
 </style>

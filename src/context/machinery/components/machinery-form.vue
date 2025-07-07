@@ -55,8 +55,6 @@ export default {
     statusOptions() {
       return [
         { value: 'ACTIVE', label: this.$t('machinery.statusActive') },
-        { value: 'INACTIVE', label: this.$t('machinery.statusInactive') },
-        { value: 'DAMAGED', label: this.$t('machinery.statusDamaged') },
         { value: 'MAINTENANCE', label: this.$t('machinery.statusMaintenance') }
       ];
     },
@@ -126,9 +124,9 @@ export default {
           this.localMachinery = new MachineryEntity({ ...this.machinery });
           this.localMachinery.projectId = this.currentProjectId;
 
-          // Asegurar que la imagen se copie correctamente
-          if (this.machinery.image) {
-            this.localMachinery.image = this.machinery.image;
+          // ✅ CAMBIAR: Usar imageUrl del backend
+          if (this.machinery.imageUrl || this.machinery.image) {
+            this.localMachinery.image = this.machinery.imageUrl || this.machinery.image;
           }
         } else {
           this.localMachinery = new MachineryEntity({
@@ -176,31 +174,11 @@ export default {
       return validation.isValid;
     },
 
-    async processImage() {
-      if (this.localMachinery.image && this.localMachinery.image instanceof File) {
-        try {
-          const compressedImage = await this.machineryService.uploadImage(
-              this.localMachinery.image,
-              this.currentProjectId
-          );
-          this.localMachinery.image = compressedImage;
-        } catch (error) {
-          console.error('Error processing image:', error);
-          this.showNotificationMessage('Error processing image: ' + error.message, 'error');
-          return false;
-        }
-      }
-      return true;
-    },
 
     async handleSave() {
       this.loading = true;
 
       try {
-        const imageProcessed = await this.processImage();
-        if (!imageProcessed) {
-          return;
-        }
 
         const isValid = await this.validateForm();
 
@@ -416,11 +394,13 @@ export default {
             />
 
             <AppInput
-                v-model="localMachinery.image"
                 :label="$t('machinery.image')"
                 type="photo"
                 :error="errors.image"
                 :disabled="loading"
+                :model-value="imagePreviewUrl || localMachinery.image"
+                @file-selected="onImageSelected"
+                @file-removed="removeImage"
             />
           </div>
         </div>

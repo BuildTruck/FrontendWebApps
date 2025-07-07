@@ -58,6 +58,28 @@ export default {
     await this.loadIncidents()
   },
   methods: {
+    async handleDelete(selectedItems) {
+      if (!selectedItems || selectedItems.length === 0) return;
+
+      try {
+        this.loading = true;
+
+        if (selectedItems.length === 1) {
+          await incidentApiService.delete(selectedItems[0].id);
+        } else {
+          const ids = selectedItems.map(item => item.id);
+          await Promise.all(ids.map(id => incidentApiService.delete(id)));
+        }
+
+        this.showNotificationMessage('Incidentes eliminados correctamente', 'success');
+        await this.loadIncidents();
+      } catch (error) {
+        console.error('Error deleting incidents:', error);
+        this.showNotificationMessage('Error al eliminar incidentes', 'error');
+      } finally {
+        this.loading = false;
+      }
+    },
     getCurrentProjectIdFromSession() {
       try {
         const user = JSON.parse(sessionStorage.getItem('user'));
@@ -158,26 +180,6 @@ export default {
       this.selectedIncident = null
       this.isReadonly = false
       this.isEditing = false
-    },
-
-    async handleDelete(selectedIncidents) {
-      if (!selectedIncidents || selectedIncidents.length === 0) {
-        return;
-      }
-
-      try {
-        const confirmMessage = selectedIncidents.length === 1
-            ? this.$t('incidents.deleteConfirm')
-            : this.$t('incidents.deleteMultipleConfirm', { count: selectedIncidents.length });
-
-        // Show confirmation using AppNotification
-        this.confirmationMessage = confirmMessage;
-        this.showConfirmation = true;
-        this.pendingDeleteIncidents = selectedIncidents;
-      } catch (error) {
-        console.error('Error preparing delete:', error);
-        this.showNotificationMessage(error.message || this.$t('incidents.errorDeleting'), 'error');
-      }
     },
 
     async executeDelete() {

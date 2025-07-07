@@ -1,5 +1,6 @@
 import { BaseService } from "../../../core/services/base.service.js";
 import { Personnel } from '../models/personnel.entity.js';
+import http from "../../../core/services/http.service.js";
 
 export class PersonnelApiService extends BaseService {
     constructor() {
@@ -27,92 +28,49 @@ export class PersonnelApiService extends BaseService {
         }
     }
 
-    async getByProject(projectId) {
-        if (!projectId) {
-            console.warn('ProjectId not provided in getByProject');
-            return [];
-        }
+    async getByProject(projectId, includeAttendance = false, year = null, month = null) {
+        if (!projectId) return [];
 
         try {
-            let personnel = [];
-            try {
-                const response = await super.getAll({ projectId });
-                personnel = Personnel.fromJsonArray(response.data || []);
-                personnel = Personnel.filterByProject(personnel, projectId);
-            } catch (filterError) {
-                const allPersonnel = await this.getAll();
-                personnel = Personnel.filterByProject(allPersonnel, projectId);
+            const params = { projectId };
+
+            if (includeAttendance && year && month) {
+                params.year = year;
+                params.month = month;
+                params.includeAttendance = true;
             }
 
-            console.log(`Found ${personnel.length} personnel for project ${projectId}`);
-            return personnel;
-
+            const response = await super.getAll(params);
+            return Personnel.fromJsonArray(response.data || []);
         } catch (error) {
-            console.error(`Error fetching project personnel ${projectId}:`, error);
+            console.error(`Error getting personnel for project ${projectId}:`, error);
             return [];
         }
     }
 
     async getCurrentProjectId() {
         try {
-            const route = this.$route || window.$router?.currentRoute?.value;
-            if (route && route.params && route.params.projectId) {
-                return route.params.projectId;
-            }
+            const route = window.$router?.currentRoute?.value;
+            if (route?.params?.projectId) return route.params.projectId;
 
             const pathMatch = window.location.pathname.match(/\/proyecto\/(\d+)|\/supervisor\/(\d+)/);
-            if (pathMatch) {
-                const projectId = pathMatch[1] || pathMatch[2];
-                return projectId;
-            }
+            if (pathMatch) return pathMatch[1] || pathMatch[2];
 
-            const storedProjectId = localStorage.getItem('currentProjectId');
-            if (storedProjectId) {
-                return storedProjectId;
-            }
-
-            console.warn('No projectId found in context');
-            return null;
+            return localStorage.getItem('currentProjectId');
         } catch (error) {
             console.error('Error getting projectId:', error);
             return null;
         }
     }
 
-    getCurrentProjectIdSync() {
-        try {
-            const app = window.Vue?.getCurrentInstance?.()?.appContext?.app;
-            const route = app?.config?.globalProperties?.$route;
-
-            if (route?.params?.projectId) {
-                return route.params.projectId;
-            }
-
-            const pathMatch = window.location.pathname.match(/\/proyecto\/(\d+)|\/supervisor\/(\d+)/);
-            if (pathMatch) {
-                return pathMatch[1] || pathMatch[2];
-            }
-
-            return null;
-        } catch (error) {
-            console.error('Error getting projectId sync:', error);
-            return null;
-        }
-    }
-
     async create(personnelData) {
         try {
-            let personnel = personnelData instanceof Personnel
-                ? personnelData
-                : new Personnel(personnelData);
+            let personnel = personnelData instanceof Personnel ? personnelData : new Personnel(personnelData);
 
             if (!personnel.projectId) {
                 const currentProjectId = await this.getCurrentProjectId();
-                if (currentProjectId) {
-                    personnel.projectId = currentProjectId;
-                } else {
-                    throw new Error('Could not determine current project');
-                }
+                if (!currentProjectId) throw new Error('Could not determine current project');
+                personnel.projectId = currentProjectId;
             }
 
             const validation = personnel.validate();
@@ -120,39 +78,160 @@ export class PersonnelApiService extends BaseService {
                 throw new Error(`Invalid data: ${validation.errors.join(', ')}`);
             }
 
-            const cleanData = personnel.toCreateJson();
-            const response = await super.create(cleanData);
+            const formData = this.createFormData(personnel);
+
+            // Usar http directamente como UserService
+            const response = await http.post('/personnel', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+
             return Personnel.fromAPI(response.data);
         } catch (error) {
-            console.error('Error creating employee:', error);
+            console.error('Error creating personnel:', error);
             throw error;
         }
     }
 
     async update(id, personnelData) {
         try {
-            let personnel = personnelData instanceof Personnel
-                ? personnelData
-                : new Personnel(personnelData);
+            console.log('🔄 UPDATE - ID:', id);
+            console.log('🔄 UPDATE - Data:', personnelData);
 
-            if (!personnel.projectId) {
-                const currentProjectId = await this.getCurrentProjectId();
-                if (currentProjectId) {
-                    personnel.projectId = currentProjectId;
-                }
-            }
+            let personnel = personnelData instanceof Personnel ? personnelData : new Personnel(personnelData);
 
             const validation = personnel.validate();
             if (!validation.isValid) {
+                console.error('❌ Validation failed:', validation.errors);
                 throw new Error(`Invalid data: ${validation.errors.join(', ')}`);
             }
 
-            const updateData = personnel.toUpdateJson();
-            const response = await super.update(id, updateData);
+            const formData = this.createFormData(personnel, true);
+
+            console.log('📋 UPDATE FormData contents:');
+            for (let [key, value] of formData.entries()) {
+                console.log(`  ${key}: ${value}`);
+            }
+
+            // Usar http directamente como UserService
+            const response = await http.put(`/personnel/${id}`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+
             return Personnel.fromAPI(response.data);
         } catch (error) {
-            console.error(`Error updating employee ${id}:`, error);
+            console.error('❌ UPDATE Error details:', {
+                status: error.response?.status,
+                statusText: error.response?.statusText,
+                data: error.response?.data,
+                message: error.message
+            });
             throw error;
+        }
+    }
+
+    createFormData(personnel, isUpdate = false) {
+
+        const formData = new FormData();
+
+        // Required fields for creation only
+        if (!isUpdate) {
+            formData.append('ProjectId', personnel.projectId);
+            formData.append('DocumentNumber', personnel.documentNumber);
+        }
+
+        // Always required fields
+        formData.append('Name', personnel.name);
+        formData.append('Lastname', personnel.lastname);
+        formData.append('Position', personnel.position);
+        formData.append('Department', personnel.department);
+        formData.append('PersonnelType', personnel.personnelType);
+        formData.append('Status', personnel.status);
+        if (personnel.monthlyAmount !== null && personnel.monthlyAmount !== undefined && personnel.monthlyAmount !== '') {
+            formData.append('MonthlyAmount', personnel.monthlyAmount);
+        }
+        if (personnel.discount !== null && personnel.discount !== undefined && personnel.discount !== '') {
+            formData.append('Discount', personnel.discount);
+        }
+        if (personnel.bank && personnel.bank.trim()) {
+            formData.append('Bank', personnel.bank);
+        }
+        if (personnel.accountNumber && personnel.accountNumber.trim()) {
+            formData.append('AccountNumber', personnel.accountNumber);
+        }
+        if (personnel.startDate) {
+            const startDate = this.formatDateForAPI(personnel.startDate);
+            if (startDate) {
+                formData.append('StartDate', startDate);
+            }
+        }
+        if (personnel.endDate) {
+            const endDate = this.formatDateForAPI(personnel.endDate);
+            if (endDate) {
+                formData.append('EndDate', endDate);
+            }
+        }
+        if (personnel.phone && personnel.phone.trim()) {
+            formData.append('Phone', personnel.phone);
+        }
+        if (personnel.email && personnel.email.trim()) {
+            formData.append('Email', personnel.email);
+        }
+        if (isUpdate) {
+            // Handle image file if provided
+            if (personnel.imageFile && personnel.imageFile instanceof File) {
+                formData.append('ImageFile', personnel.imageFile);
+                console.log('📸 Adding image file:', personnel.imageFile.name);
+            }
+            if (personnel.removeImage === true) {
+                formData.append('RemoveImage', 'true');
+                console.log('🗑️ Marking image for removal');
+            } else {
+                formData.append('RemoveImage', 'false');
+            }
+        } else {
+            if (personnel.imageFile && personnel.imageFile instanceof File) {
+                formData.append('ImageFile', personnel.imageFile);
+                console.log('📸 Adding image file for creation:', personnel.imageFile.name);
+            }
+        }
+
+        return formData;
+    }
+
+
+    formatDateForAPI(date) {
+        if (!date) return null;
+
+        try {
+            // If it's already a string in the correct format, return it
+            if (typeof date === 'string' && date.match(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)) {
+                return date;
+            }
+
+            // If it's a simple date string (YYYY-MM-DD), convert to datetime
+            if (typeof date === 'string' && date.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                return `${date}T00:00:00Z`;
+            }
+
+            // If it's a Date object, convert to ISO string
+            if (date instanceof Date) {
+                return date.toISOString();
+            }
+
+            // Try to parse as Date
+            const parsedDate = new Date(date);
+            if (!isNaN(parsedDate.getTime())) {
+                return parsedDate.toISOString();
+            }
+
+            return null;
+        } catch (error) {
+            console.error('Error formatting date:', error);
+            return null;
         }
     }
 
@@ -161,7 +240,7 @@ export class PersonnelApiService extends BaseService {
             await super.delete(id);
             return true;
         } catch (error) {
-            console.error(`Error deleting employee ${id}:`, error);
+            console.error(`Error deleting personnel ${id}:`, error);
             throw error;
         }
     }
@@ -172,322 +251,125 @@ export class PersonnelApiService extends BaseService {
             await Promise.all(deletePromises);
             return true;
         } catch (error) {
-            console.error('Error deleting employees:', error);
+            console.error('Error deleting multiple personnel:', error);
             throw error;
         }
     }
 
-    // Validations
     async validateDocumentNumber(documentNumber, projectId, excludeId = null) {
         try {
             const personnel = await this.getByProject(projectId);
-            const exists = personnel.some(p =>
-                p.documentNumber === documentNumber && p.id !== excludeId
-            );
-            return exists;
+            return personnel.some(p => p.documentNumber === documentNumber && p.id !== excludeId);
         } catch (error) {
-            console.error(`Error validating document number ${documentNumber}:`, error);
+            console.error(`Error validating document number:`, error);
             return false;
         }
     }
 
-    async verifyPersonnelOwnership(personnelId, projectId) {
-        if (!personnelId || !projectId) {
-            return false;
-        }
 
-        try {
-            const personnel = await this.getById(personnelId);
-            return personnel && personnel.belongsToProject(projectId);
-        } catch (error) {
-            console.error('Error verifying personnel ownership:', error);
-            return false;
-        }
-    }
-
-    // NEW: Monthly attendance methods
     async updateMonthlyAttendance(personnelId, year, month, attendanceData) {
         try {
-            const personnel = await this.getById(personnelId);
-
-            // Update attendance for each day
-            Object.keys(attendanceData).forEach(day => {
-                const dayNum = parseInt(day);
-                const status = attendanceData[day];
-
-                if (dayNum >= 1 && dayNum <= 31) {
-                    personnel.setDayAttendance(year, month, dayNum, status);
-                }
-            });
-
-            // Save updated personnel
-            return await this.update(personnelId, personnel);
-        } catch (error) {
-            console.error('Error updating monthly attendance:', error);
-            throw error;
-        }
-    }
-
-    async getMonthlyAttendance(projectId, year, month) {
-        try {
-            const personnel = await this.getByProject(projectId);
-            const monthKey = Personnel.getMonthKey(year, month);
-
-            return personnel.map(person => {
-                // Ensure month is initialized
-                person.initializeMonthAttendance(year, month);
-                person.autoMarkSundays(year, month);
-                person.calculateMonthlyTotals(year, month);
-
-                return {
-                    id: person.id,
-                    name: person.getDisplayName(),
-                    documentNumber: person.documentNumber,
-                    attendanceString: person.monthlyAttendance[monthKey] || '',
-                    totals: {
-                        workedDays: person.workedDays,
-                        compensatoryDays: person.compensatoryDays,
-                        unpaidLeave: person.unpaidLeave,
-                        absences: person.absences,
-                        sundays: person.sundays,
-                        totalDays: person.totalDays,
-                        totalAmount: person.totalAmount
-                    }
-                };
-            });
-        } catch (error) {
-            console.error('Error getting monthly attendance:', error);
-            return [];
-        }
-    }
-
-    async saveMonthlyAttendance(personnelList) {
-        try {
-            const updatePromises = personnelList.map(person =>
-                this.update(person.id, person)
-            );
-
-            await Promise.all(updatePromises);
-            return true;
-        } catch (error) {
-            console.error('Error saving monthly attendance:', error);
-            throw error;
-        }
-    }
-
-    // Image compression
-    async compressImage(file, config = {}) {
-        const defaultConfig = {
-            maxWidth: 300,
-            maxHeight: 300,
-            quality: 0.7,
-            maxSizeKB: 100,
-            format: 'image/webp'
-        };
-
-        const finalConfig = { ...defaultConfig, ...config };
-
-        return new Promise((resolve, reject) => {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            const img = new Image();
-
-            img.onload = () => {
-                try {
-                    let { width, height } = img;
-
-                    if (width > height) {
-                        if (width > finalConfig.maxWidth) {
-                            height = (height * finalConfig.maxWidth) / width;
-                            width = finalConfig.maxWidth;
-                        }
-                    } else {
-                        if (height > finalConfig.maxHeight) {
-                            width = (width * finalConfig.maxHeight) / height;
-                            height = finalConfig.maxHeight;
-                        }
-                    }
-
-                    const size = Math.min(width, height, 200);
-                    canvas.width = size;
-                    canvas.height = size;
-
-                    ctx.imageSmoothingEnabled = true;
-                    ctx.imageSmoothingQuality = 'high';
-
-                    const offsetX = (width - size) / 2;
-                    const offsetY = (height - size) / 2;
-
-                    ctx.drawImage(img, -offsetX, -offsetY, width, height);
-
-                    const qualities = [0.8, 0.6, 0.4, 0.3, 0.2, 0.1];
-                    let bestResult = null;
-
-                    for (const quality of qualities) {
-                        const compressed = canvas.toDataURL('image/webp', quality);
-                        const sizeKB = Math.round(compressed.length * 0.75 / 1024);
-
-                        if (sizeKB <= finalConfig.maxSizeKB) {
-                            bestResult = compressed;
-                            break;
-                        }
-                    }
-
-                    if (!bestResult) {
-                        bestResult = canvas.toDataURL('image/webp', 0.1);
-                    }
-
-                    resolve(bestResult);
-                } catch (error) {
-                    reject(new Error('Error processing image'));
-                }
+            const payload = {
+                personnelAttendances: [{
+                    personnelId: parseInt(personnelId),
+                    year: parseInt(year),
+                    month: parseInt(month),
+                    dailyAttendance: attendanceData
+                }]
             };
 
-            img.onerror = () => {
-                reject(new Error('Error loading image'));
-            };
-
-            img.src = URL.createObjectURL(file);
-        });
-    }
-
-    async uploadAvatar(file, projectId = null) {
-        if (!file) {
-            throw new Error('Image file is required');
-        }
-
-        try {
-            if (!file.type.startsWith('image/')) {
-                throw new Error('File must be an image (JPG, PNG, WEBP, etc.)');
-            }
-
-            const maxSize = 5 * 1024 * 1024;
-            if (file.size > maxSize) {
-                throw new Error('Image is too large. Maximum 5MB allowed.');
-            }
-
-            const compressedAvatar = await this.compressImage(file, {
-                maxWidth: 200,
-                maxHeight: 200,
-                maxSizeKB: 50
-            });
-
-            return compressedAvatar;
+            const response = await http.put('/personnel/attendance', payload);
+            return response.data;
         } catch (error) {
-            console.error('Error processing avatar:', error);
+            console.error('❌ Error updating attendance:', error);
             throw error;
         }
     }
 
-    // Export
-    async exportToExcel(personnelData, fileName = 'personal') {
+// En PersonnelApiService - REEMPLAZAR el método exportToExcel
+
+    async exportToExcel(projectId, fileName = 'personal', filters = {}) {
         try {
-            const exportData = personnelData.map(person => ({
-                'Nombre': person.name,
-                'Apellido': person.lastname,
-                'Documento': person.documentNumber,
-                'Cargo': person.position,
-                'Departamento': person.department,
-                'Tipo Personal': person.getPersonnelTypeLabel(),
-                'Monto Mensual': person.monthlyAmount,
-                'Estado': person.status,
-                'Fecha Inicio': Personnel.formatPeruDate(person.startDate),
-                'Teléfono': person.phone,
-                'Email': person.email,
-                'Banco': person.bank,
-                'Cuenta': person.accountNumber,
+            if (!projectId) throw new Error('Project ID required for export');
 
-                // ✅ NUEVAS COLUMNAS DE ASISTENCIA
-                'Días Trabajados': person.workedDays || 0,
-                'Días Compensatorios': person.compensatoryDays || 0,
-                'Permisos con Descuento': person.unpaidLeave || 0,
-                'Faltas': person.absences || 0,
-                'Domingos': person.sundays || 0,
-                'Total Días': person.totalDays || 0,
-                'Monto Total': person.totalAmount || 0
-            }));
+            // Usar el nuevo endpoint universal
+            const params = new URLSearchParams({
+                projectId: projectId.toString(),
+                format: 'excel'
+            });
 
-            // Crear workbook y worksheet
-            const wb = XLSX.utils.book_new();
-            const ws = XLSX.utils.json_to_sheet(exportData);
+            // Agregar filtros si existen
+            if (filters && Object.keys(filters).length > 0) {
+                Object.keys(filters).forEach(key => {
+                    params.append(`filters[${key}]`, filters[key]);
+                });
+            }
 
-            // Añadir worksheet al workbook
-            XLSX.utils.book_append_sheet(wb, ws, 'Personal');
+            // Llamar al endpoint universal - CAMBIO AQUÍ
+            const response = await http.get(`/exports/personnel?${params.toString()}`, {
+                responseType: 'blob'
+            });
 
-            // Generar y descargar archivo
-            const finalFileName = `${fileName}_${new Date().toISOString().split('T')[0]}.xlsx`;
-            XLSX.writeFile(wb, finalFileName);
+            const blob = new Blob([response.data], {
+                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            });
+
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `${fileName}_${new Date().toISOString().split('T')[0]}.xlsx`;
+
+            document.body.appendChild(link);
+            link.click();
+
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(link);
 
             return true;
         } catch (error) {
-            console.error('Error exporting to Excel:', error);
+            console.error('Error exporting:', error);
             throw error;
         }
     }
 
-    // Statistics
-    async getProjectStats(projectId) {
-        if (!projectId) {
-            throw new Error('Project ID is required');
-        }
-
+// AGREGAR también método para exportar asistencia
+    async exportAttendanceToExcel(projectId, year, month, fileName = 'asistencia') {
         try {
-            const personnel = await this.getByProject(projectId);
+            if (!projectId) throw new Error('Project ID required for export');
 
-            const stats = {
-                totalPersonnel: personnel.length,
-                activePersonnel: personnel.filter(p => p.isActive()).length,
-                inactivePersonnel: personnel.filter(p => !p.isActive()).length,
-                recentPersonnel: personnel.filter(p => {
-                    const createdDate = new Date(p.createdAt);
-                    const weekAgo = new Date();
-                    weekAgo.setDate(weekAgo.getDate() - 7);
-                    return createdDate >= weekAgo;
-                }).length,
-                departmentBreakdown: this.getDepartmentBreakdown(personnel),
-                typeBreakdown: this.getTypeBreakdown(personnel),
-                averageSalary: this.getAverageSalary(personnel)
-            };
+            const params = new URLSearchParams({
+                projectId: projectId.toString(),
+                format: 'excel',
+                'filters[year]': year.toString(),
+                'filters[month]': month.toString(),
+                'filters[includeAttendance]': 'true'
+            });
 
-            return stats;
+            const response = await http.get(`/exports/personnel?${params.toString()}`, {
+                responseType: 'blob'
+            });
+
+            const blob = new Blob([response.data], {
+                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            });
+
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `${fileName}_${year}_${month.toString().padStart(2, '0')}.xlsx`;
+
+            document.body.appendChild(link);
+            link.click();
+
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(link);
+
+            return true;
         } catch (error) {
-            console.error(`Error getting project stats ${projectId}:`, error);
+            console.error('Error exporting attendance:', error);
             throw error;
         }
     }
-
-    getDepartmentBreakdown(personnel) {
-        const departments = {};
-        personnel.forEach(p => {
-            if (p.department) {
-                departments[p.department] = (departments[p.department] || 0) + 1;
-            }
-        });
-        return departments;
-    }
-
-    getTypeBreakdown(personnel) {
-        const types = {};
-        personnel.forEach(p => {
-            if (p.personnelType) {
-                const label = p.getPersonnelTypeLabel();
-                types[label] = (types[label] || 0) + 1;
-            }
-        });
-        return types;
-    }
-
-    getAverageSalary(personnel) {
-        const activeSalaries = personnel
-            .filter(p => p.isActive() && p.monthlyAmount > 0)
-            .map(p => p.monthlyAmount);
-
-        if (activeSalaries.length === 0) return 0;
-
-        const total = activeSalaries.reduce((sum, salary) => sum + salary, 0);
-        return total / activeSalaries.length;
-    }
-
     // Auxiliary data
     getBanks() {
         return [
@@ -508,12 +390,8 @@ export class PersonnelApiService extends BaseService {
 
     async getDepartments(projectId = null) {
         try {
-            const personnel = projectId ?
-                await this.getByProject(projectId) :
-                await this.getAll();
-
-            const usedDepartments = [...new Set(personnel.map(p => p.department).filter(Boolean))];
-            return usedDepartments.sort();
+            const personnel = projectId ? await this.getByProject(projectId) : await this.getAll();
+            return [...new Set(personnel.map(p => p.department).filter(Boolean))].sort();
         } catch (error) {
             console.error('Error getting departments:', error);
             return [];
@@ -522,19 +400,16 @@ export class PersonnelApiService extends BaseService {
 
     async addDepartmentToProject(projectId, departmentName) {
         try {
-            if (!departmentName || !departmentName.trim()) {
-                return false;
-            }
+            if (!departmentName?.trim()) return false;
 
-            const cleanDepartment = departmentName.trim();
             const storageKey = `departments_project_${projectId}`;
-            const storedDepartments = JSON.parse(localStorage.getItem(storageKey) || '[]');
+            const stored = JSON.parse(localStorage.getItem(storageKey) || '[]');
+            const clean = departmentName.trim();
 
-            if (!storedDepartments.includes(cleanDepartment)) {
-                storedDepartments.push(cleanDepartment);
-                localStorage.setItem(storageKey, JSON.stringify(storedDepartments));
+            if (!stored.includes(clean)) {
+                stored.push(clean);
+                localStorage.setItem(storageKey, JSON.stringify(stored));
             }
-
             return true;
         } catch (error) {
             console.error('Error adding department:', error);
@@ -544,53 +419,13 @@ export class PersonnelApiService extends BaseService {
 
     async getDepartmentsWithStored(projectId) {
         try {
-            const usedDepartments = await this.getDepartments(projectId);
+            const used = await this.getDepartments(projectId);
             const storageKey = `departments_project_${projectId}`;
-            const storedDepartments = JSON.parse(localStorage.getItem(storageKey) || '[]');
-            const allDepartments = [...new Set([...usedDepartments, ...storedDepartments])];
-            return allDepartments.sort();
+            const stored = JSON.parse(localStorage.getItem(storageKey) || '[]');
+            return [...new Set([...used, ...stored])].sort();
         } catch (error) {
             console.error('Error getting departments:', error);
             return [];
-        }
-    }
-
-    filterPersonnelByDateRange(personnel, startDate, endDate) {
-        if (!startDate && !endDate) {
-            return personnel;
-        }
-
-        return personnel.filter(person => {
-            const personDate = new Date(person.startDate || person.createdAt);
-            const start = startDate ? new Date(startDate) : new Date('1900-01-01');
-            const end = endDate ? new Date(endDate) : new Date('2100-12-31');
-
-            return personDate >= start && personDate <= end;
-        });
-    }
-
-    async deleteByProjectId(projectId) {
-        if (!projectId) {
-            throw new Error('Project ID is required');
-        }
-
-        try {
-            const personnel = await this.getByProject(projectId);
-            let deletedCount = 0;
-
-            for (const person of personnel) {
-                try {
-                    await this.delete(person.id);
-                    deletedCount++;
-                } catch (error) {
-                    console.error(`Error deleting personnel ${person.id}:`, error);
-                }
-            }
-
-            return deletedCount;
-        } catch (error) {
-            console.error(`Error deleting project personnel ${projectId}:`, error);
-            throw error;
         }
     }
 }

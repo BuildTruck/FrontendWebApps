@@ -10,6 +10,7 @@
     "api": "json-server -p 3500 server/db.json"
   },
   "dependencies": {
+    "@microsoft/signalr": "^8.0.7",
     "@primevue/core": "^4.3.4",
     "@primevue/themes": "^4.3.4",
     "axios": "^1.9.0",

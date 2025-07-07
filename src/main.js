@@ -9,7 +9,7 @@ import router from './router'
 import { jsPDF } from 'jspdf'
 import * as XLSX from 'xlsx';
 import { createPinia } from 'pinia'
-
+import {notificationSoundService} from "./core/notifications/services/notification-sound.service.js";
 // PrimeVue Styles
 import 'primeicons/primeicons.css';
 import 'primeflex/primeflex.css';

@@ -55,7 +55,7 @@ export default {
     };
   },
   computed: {
-    // Tipos de maquinaria disponibles
+    // Tipos de maquinaria disponibles :333
     availableTypes() {
       const types = new Set();
       this.allMachinery.forEach(machine => {

@@ -1373,7 +1373,7 @@ export default {
   display: block;
   font-size: 1.125rem;
   font-weight: 600;
-  color: #302f2f;
+  color: #423d3d;
   cursor: pointer;
   position: relative;
   transition: all 0.2s ease;

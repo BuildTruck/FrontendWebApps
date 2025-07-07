@@ -254,6 +254,8 @@
   "comprobante": "Comprobante",
   "comprobanteNumber": "Número de Comprobante",
   "customType": "Tipo Personalizado",
+  "customTypeName": "Nombre del Tipo Personalizado",
+  "enterCustomType": "Ingresa el nombre del tipo",
   "units": {
     "kg": "Kilogramo",
     "m": "Metro",
@@ -299,10 +301,10 @@
   },
   "statuses": {
     "pending": "Pendiente",
-    "received": "Recibido",
-    "canceled": "Cancelado",
-    "approved": "Aprobado",
-    "rejected": "Rechazado"
+    "confirmed": "Confirmado",
+    "cancelled": "Cancelado",
+    "inProcess": "En Proceso",
+    "completed": "Completado"
   }
 
   },

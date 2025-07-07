@@ -1,12 +1,12 @@
 <script>
 import AppTable from '../../../core/components/AppTable.vue'
-import { materialsApiService } from '../services/materials-api.service.js'
+import {materialsApiService} from '../services/materials-api.service.js'
 import 'primeicons/primeicons.css'
 
 
 export default {
   name: 'ManagerMaterials',
-  components: { AppTable },
+  components: {AppTable},
   data() {
     return {
       selectedTab: 'inventory',
@@ -22,9 +22,9 @@ export default {
   computed: {
     tabs() {
       return [
-        { key: 'inventory', label: this.$t('inventory.inventory'), icon: 'pi pi-box' },
-        { key: 'entries', label: this.$t('inventory.entries'), icon: 'pi pi-download' },
-        { key: 'usages', label: this.$t('inventory.usages'), icon: 'pi pi-upload' }
+        {key: 'inventory', label: this.$t('inventory.inventory'), icon: 'pi pi-box'},
+        {key: 'entries', label: this.$t('inventory.entries'), icon: 'pi pi-download'},
+        {key: 'usages', label: this.$t('inventory.usages'), icon: 'pi pi-upload'}
       ];
     }
   },
@@ -37,20 +37,22 @@ export default {
     async loadAll() {
       this.loading = true
       const projectId = materialsApiService.getCurrentProjectIdSync()
+
+      // ✅ CAMBIAR: Ahora SÍ usar getInventorySummary (ya funciona)
       this.materials = await materialsApiService.getByProject(projectId)
-      this.inventory = await materialsApiService.getInventorySummary(projectId)
+      this.inventory = await materialsApiService.getInventorySummary(projectId) // ✅ AHORA FUNCIONA
 
       const rawEntries = await materialsApiService.getEntriesByProject(projectId)
       const rawUsages = await materialsApiService.getUsagesByProject(projectId)
 
       this.entries = rawEntries.map(e => {
         const mat = this.materials.find(m => m.id === e.materialId)
-        return { ...e, materialName: mat?.name || 'Desconocido' }
+        return {...e, materialName: mat?.name || 'Desconocido'}
       })
 
       this.usages = rawUsages.map(u => {
         const mat = this.materials.find(m => m.id === u.materialId)
-        return { ...u, materialName: mat?.name || 'Desconocido' }
+        return {...u, materialName: mat?.name || 'Desconocido'}
       })
 
       this.loading = false
@@ -59,33 +61,33 @@ export default {
     getColumns(type) {
       if (type === 'inventory') {
         return [
-          { field: 'name', header: this.$t('inventory.name') },
-          { field: 'type', header: this.$t('inventory.type') },
-          { field: 'unit', header: this.$t('inventory.unit') },
-          { field: 'minimumStock', header: this.$t('inventory.minimumStock') },
-          { field: 'stockActual', header: this.$t('inventory.currentStock') },
-          { field: 'price', header: this.$t('inventory.unitPrice') },
-          { field: 'total', header: this.$t('inventory.total') }
+          {field: 'name', header: this.$t('inventory.name')},
+          {field: 'type', header: this.$t('inventory.type')},
+          {field: 'unit', header: this.$t('inventory.unit')},
+          {field: 'minimumStock', header: this.$t('inventory.minimumStock')},
+          {field: 'stockActual', header: this.$t('inventory.currentStock')},
+          {field: 'price', header: this.$t('inventory.unitPrice')},
+          {field: 'total', header: this.$t('inventory.total')}
         ]
       }
       if (type === 'entries') {
         return [
-          { field: 'date', header: this.$t('inventory.date') },
-          { field: 'materialName', header: this.$t('inventory.material') },
-          { field: 'quantity', header: this.$t('inventory.quantity') },
-          { field: 'provider', header: this.$t('inventory.provider') },
-          { field: 'comprobante', header: this.$t('inventory.documentType') },
-          { field: 'payment', header: this.$t('inventory.paymentMethod') }
+          {field: 'date', header: this.$t('inventory.date')},
+          {field: 'materialName', header: this.$t('inventory.material')},
+          {field: 'quantity', header: this.$t('inventory.quantity')},
+          {field: 'provider', header: this.$t('inventory.provider')},
+          {field: 'comprobante', header: this.$t('inventory.documentType')},
+          {field: 'payment', header: this.$t('inventory.paymentMethod')}
         ]
       }
       if (type === 'usages') {
         return [
-          { field: 'date', header: this.$t('inventory.date') },
-          { field: 'materialName', header: this.$t('inventory.material') },
-          { field: 'quantity', header: this.$t('inventory.usedQuantity') },
-          { field: 'area', header: this.$t('inventory.usageArea') },
-          { field: 'usageType', header: this.$t('inventory.usageType') },
-          { field: 'observations', header: this.$t('inventory.observations') }
+          {field: 'date', header: this.$t('inventory.date')},
+          {field: 'materialName', header: this.$t('inventory.material')},
+          {field: 'quantity', header: this.$t('inventory.usedQuantity')},
+          {field: 'area', header: this.$t('inventory.usageArea')},
+          {field: 'usageType', header: this.$t('inventory.usageType')},
+          {field: 'observations', header: this.$t('inventory.observations')}
         ]
       }
     },
@@ -197,6 +199,7 @@ export default {
   background: #f8f8f8;
   border-radius: 8px;
 }
+
 .tab-button {
   display: flex;
   align-items: center;
@@ -211,16 +214,19 @@ export default {
   cursor: pointer;
   transition: all 0.3s ease;
 }
+
 .tab-button:hover {
   background-color: #ffe3d1;
   color: #FF5F01;
 }
+
 .tab-button.active {
   background-color: #FF5F01;
   color: white;
   border: 2px solid #FF5F01;
   box-shadow: 0 4px 10px rgba(255, 95, 1, 0.25);
 }
+
 .tab-button i {
   font-size: 1rem;
 }

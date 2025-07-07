@@ -44,24 +44,26 @@ export class MaterialUsageEntity {
 
     static get USAGE_TYPES() {
         return [
-            { value: 'CONSTRUCCION', label: 'construccion' },
-            { value: 'MANTENIMIENTO', label: 'mantenimiento' },
-            { value: 'REPARACION', label: 'reparacion' },
-            { value: 'INSTALACION', label: 'instalacion' },
-            { value: 'ACABADOS', label: 'acabados' },
-            { value: 'ESTRUCTURAL', label: 'estructural' },
-            { value: 'SANITARIO', label: 'sanitario' },
-            { value: 'ELECTRICO', label: 'electrico' },
-            { value: 'HERRAMIENTAS', label: 'herramientas' },
-            { value: 'LIMPIEZA', label: 'limpieza' }
+            { value: 'CONSTRUCCION', label: 'Construccion' },
+            { value: 'MANTENIMIENTO', label: 'Mantenimiento' },
+            { value: 'REPARACION', label: 'Reparacion' },
+            { value: 'INSTALACION', label: 'Instalacion' },
+            { value: 'ACABADOS', label: 'Acabados' },
+            { value: 'ESTRUCTURAL', label: 'Estructural' },
+            { value: 'SANITARIO', label: 'Sanitario' },
+            { value: 'ELECTRICO', label: 'Electrico' },
+            { value: 'HERRAMIENTAS', label: 'Herramientas' },
+            { value: 'LIMPIEZA', label: 'Limpieza' }
         ];
     }
 
     static get STATUSES() {
         return [
             { value: 'PENDING', label: 'pending' },
-            { value: 'APPROVED', label: 'approved' },
-            { value: 'REJECTED', label: 'rejected' }
+            { value: 'CONFIRMED', label: 'confirmed' },
+            { value: 'CANCELLED', label: 'cancelled' },
+            { value: 'IN_PROCESS', label: 'inProcess' },
+            { value: 'COMPLETED', label: 'completed' }
         ];
     }
 }

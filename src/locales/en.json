@@ -255,6 +255,8 @@
     "comprobante": "Receipt",
     "comprobanteNumber": "Receipt Number",
     "customType": "Custom Type",
+    "customTypeName": "Custom Type Name",
+    "enterCustomType": "Enter custom type name",
     "units": {
       "kg": "Kilogram",
       "m": "Meter",
@@ -300,10 +302,10 @@
     },
     "statuses": {
       "pending": "Pending",
-      "received": "Received",
-      "canceled": "Canceled",
-      "approved": "Approved",
-      "rejected": "Rejected"
+      "confirmed": "Confirmed",
+      "cancelled": "Cancelled",
+      "inProcess": "In Process",
+      "completed": "Completed"
     }
   },
   "projects": {

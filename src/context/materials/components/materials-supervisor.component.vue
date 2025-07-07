@@ -6,6 +6,7 @@ import MaterialsForm from './materials-form.vue'
 import MaterialsSupervisorEntries from './materials-supervisor-entries.vue'
 import MaterialsSupervisorUsages from './materials-supervisor-usages.vue'
 import { materialsApiService } from '../services/materials-api.service.js'
+import { MaterialEntity } from '../models/materials.entity.js'
 
 export default {
   name: 'MaterialsSupervisor',
@@ -31,25 +32,41 @@ export default {
       notificationMessage: ''
     }
   },
+
   computed: {
     columns() {
-      const base = [
+      return [
         { field: 'name', header: this.$t('inventory.name') },
         { field: 'type', header: this.$t('inventory.type') },
         { field: 'unit', header: this.$t('inventory.unit') },
         { field: 'minimumStock', header: this.$t('inventory.minimumStock') },
-        { field: 'provider', header: this.$t('inventory.provider') }
-      ]
+        { field: 'provider', header: this.$t('inventory.provider') },
 
-      const extra = [
-        { field: 'totalEntries', header: this.$t('inventory.totalEntries') },
-        { field: 'totalUsages', header: this.$t('inventory.totalUsages') },
-        { field: 'stockActual', header: this.$t('inventory.currentStock') },
         {
-          field: 'price',
+          field: 'totalEntries',
+          header: this.$t('inventory.entries'), // 'Entradas'
+
+          body: row => row.totalEntries || 0
+        },
+
+        {
+          field: 'totalUsages',
+          header: this.$t('inventory.usages'),
+
+          body: row => row.totalUsages || 0
+        },
+
+        {
+          field: 'stockActual',
+          header: this.$t('inventory.currentStock'),
+
+          body: row => row.stockActual || 0
+        },
+        {
+          field: 'unitPrice',
           header: this.$t('inventory.unitPrice'),
           dataType: 'numeric',
-          body: row => row.price && row.price > 0 ? `S/ ${row.price.toFixed(2)}` : '-'
+          body: row => row.unitPrice && row.unitPrice > 0 ? `S/ ${row.unitPrice.toFixed(2)}` : '-'
         },
         {
           field: 'total',
@@ -57,15 +74,14 @@ export default {
           dataType: 'numeric',
           body: row => row.total && row.total > 0 ? `S/ ${row.total.toFixed(2)}` : '-'
         }
-      ]
-
-      const hasData = this.inventory.some(mat => mat.totalEntries > 0 || mat.totalUsages > 0)
-      return hasData ? [...base, ...extra] : base
+      ];
     }
   },
+
   async created() {
     await this.loadInventory()
   },
+
   methods: {
     async loadInventory() {
       try {
@@ -73,15 +89,44 @@ export default {
         const projectId = materialsApiService.getCurrentProjectIdSync()
         if (!projectId) throw new Error('No projectId')
 
-        const allData =  await materialsApiService.getInventorySummary()
-        this.inventory = allData.filter(item => item.projectId === projectId)
+        const rawInventory = await materialsApiService.getInventorySummary(projectId)
+
+        console.log('📥 Inventario RAW del backend:', rawInventory)
+
+        // ✅ MAPEAR LOS VALORES A LABELS BONITOS
+        this.inventory = rawInventory.map(item => {
+          // ✅ BUSCAR LOS LABELS CORRESPONDIENTES
+          const typeObj = MaterialEntity.TYPES.find(t => t.value === item.type);
+          const typeLabel = typeObj ? typeObj.label : item.type?.toLowerCase() || '';
+
+          const unitObj = MaterialEntity.UNITS.find(u => u.value === item.unit);
+          const unitLabel = unitObj ? unitObj.label : item.unit?.toLowerCase() || '';
+
+          console.log('🔄 Mapeando inventario:', {
+            id: item.materialId,
+            name: item.name,
+            typeOriginal: item.type,
+            typeLabel: typeLabel,
+            unitOriginal: item.unit,
+            unitLabel: unitLabel
+          });
+
+          return {
+            ...item,
+            // ✅ USAR LOS LABELS PARA LA TABLA
+            type: typeLabel,
+            unit: unitLabel
+          };
+        });
+
+        console.log('📋 Inventario cargado:', this.inventory.length, 'materiales')
+        console.log('🔍 Primer elemento mapeado:', this.inventory[0])
       } catch (error) {
         console.error('Error al cargar inventario:', error)
       } finally {
         this.loading = false
       }
     },
-
 
     async handleUpdated(message = '') {
       await this.loadInventory()
@@ -130,10 +175,24 @@ export default {
     },
 
     handleRowClick({ data }) {
-      this.selectedMaterial = { ...data }
-      this.showForm = true
-      this.isReadonly = true
-      this.isEditing = false
+      console.log('🖱️ Click en inventario - datos:', data);
+
+      // ✅ CONVERTIR LOS LABELS DE VUELTA A VALUES PARA EL FORMULARIO
+      const typeValue = MaterialEntity.TYPES.find(t => t.label === data.type)?.value || data.type;
+      const unitValue = MaterialEntity.UNITS.find(u => u.label === data.unit)?.value || data.unit;
+
+      this.selectedMaterial = {
+        ...data,
+        // ✅ USAR VALUES ORIGINALES PARA EL FORMULARIO
+        type: typeValue,
+        unit: unitValue
+      };
+
+      console.log('📝 Material preparado para formulario:', this.selectedMaterial);
+
+      this.showForm = true;
+      this.isReadonly = true;
+      this.isEditing = false;
     },
 
     handleEdit() {

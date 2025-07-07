@@ -43,28 +43,29 @@ export class MaterialEntity {
         return this._stock;
     }
 
+    // ✅ ACTUALIZAR MaterialEntity con labels bonitos
     static get UNITS() {
         return [
-            { value: 'KG', label: 'kg' },
-            { value: 'M', label: 'm' },
-            { value: 'L', label: 'l' },
-            { value: 'UND', label: 'und' },
-            { value: 'SACO', label: 'saco' },
-            { value: 'CAJA', label: 'caja' },
-            { value: 'ROLLO', label: 'rollo' },
-            { value: 'GAL', label: 'gal' },
-            { value: 'TON', label: 'ton' }
+            { value: 'KG', label: 'Kilogramos' },
+            { value: 'M', label: 'Metros' },
+            { value: 'L', label: 'Litros' },
+            { value: 'UND', label: 'Unidades' },
+            { value: 'SACO', label: 'Sacos' },
+            { value: 'CAJA', label: 'Cajas' },
+            { value: 'ROLLO', label: 'Rollos' },
+            { value: 'GAL', label: 'Galones' },
+            { value: 'TON', label: 'Toneladas' }
         ];
     }
 
     static get TYPES() {
         return [
-            { value: 'CEMENTO', label: 'cemento' },
-            { value: 'ACERO', label: 'acero' },
-            { value: 'PINTURA', label: 'pintura' },
-            { value: 'HERRAMIENTA', label: 'herramienta' },
-            { value: 'LIMPIEZA', label: 'limpieza' },
-            { value: 'OTRO', label: 'otro' }
+            { value: 'CEMENTO', label: 'Cemento' },
+            { value: 'ACERO', label: 'Acero' },
+            { value: 'PINTURA', label: 'Pintura' },
+            { value: 'HERRAMIENTA', label: 'Herramienta' },
+            { value: 'LIMPIEZA', label: 'Limpieza' },
+            { value: 'OTRO', label: 'Otro' }
         ];
     }
 }

@@ -1,65 +1,15 @@
 import { BaseService } from '../../../core/services/base.service.js';
 import { MaterialEntity } from '../models/materials.entity';
-import { MaterialEntryEntity } from '../models/material-entries.entity';
-import { MaterialUsageEntity } from '../models/material-usages.entity';
+import { materialEntriesApiService } from './material-entries-api.service.js';
+import { materialUsagesApiService } from './material-usages-api.service.js';
+import http from '../../../core/services/http.service.js';
 
-// 📁 Subservicios para entradas y usos
-class MaterialEntriesService extends BaseService {
-    constructor() {
-        super('/material-entries');
-    }
-
-    async getAllFiltered(projectId) {
-        const res = await this.getAll();
-        return (res.data || [])
-            .filter(e => e.projectId === projectId)
-            .map(e => new MaterialEntryEntity(e));
-    }
-
-    async createEntry(data) {
-        const entity = new MaterialEntryEntity(data);
-        const res = await this.create(entity);
-        return new MaterialEntryEntity(res.data);
-    }
-
-    async updateEntry(id, data) {
-        const entity = new MaterialEntryEntity(data);
-        const res = await this.update(id, entity);
-        return new MaterialEntryEntity(res.data);
-    }
-}
-
-class MaterialUsagesService extends BaseService {
-    constructor() {
-        super('/material-usages');
-    }
-
-    async getAllFiltered(projectId) {
-        const res = await this.getAll();
-        return (res.data || [])
-            .filter(u => u.projectId === projectId)
-            .map(u => new MaterialUsageEntity(u));
-    }
-
-    async createUsage(data) {
-        const entity = new MaterialUsageEntity(data);
-        const res = await this.create(entity);
-        return new MaterialUsageEntity(res.data);
-    }
-
-    async updateUsage(id, data) {
-        const entity = new MaterialUsageEntity(data);
-        const res = await this.update(id, entity);
-        return new MaterialUsageEntity(res.data);
-    }
-}
-
-// 📦 Servicio principal de materiales
+// 📦 Servicio principal de materiales - Solo coordina y maneja materiales básicos
 class MaterialsApiService extends BaseService {
     constructor() {
         super('/materials');
-        this.entriesService = new MaterialEntriesService();
-        this.usagesService = new MaterialUsagesService();
+        this.entriesService = materialEntriesApiService;
+        this.usagesService = materialUsagesApiService;
     }
 
     getCurrentProjectIdSync() {
@@ -76,54 +26,201 @@ class MaterialsApiService extends BaseService {
         return null;
     }
 
+    // 📋 MATERIALES BÁSICOS
     async getByProject(projectId = null) {
         if (!projectId) projectId = this.getCurrentProjectIdSync();
-        const res = await this.getAll();
-        return (res.data || [])
-            .filter(m => m.projectId === projectId)
-            .map(m => new MaterialEntity(m));
+
+        try {
+            console.log(`🔍 Obteniendo materiales para proyecto: ${projectId}`);
+            const response = await http.get(`${this.resourceEndpoint}/project/${projectId}`);
+            console.log('✅ Respuesta del backend:', response.data);
+
+            return (response.data || []).map(material => {
+                return new MaterialEntity({
+                    id: material.id,
+                    projectId: material.projectId,
+                    name: material.name,
+                    type: this.mapTypeFromBackend(material.type),
+                    unit: this.mapUnitFromBackend(material.unit),
+                    minimumStock: material.minimumStock,
+                    provider: material.provider,
+                    price: material.price || 0,
+                    stock: material.stock || 0,
+                    total: material.total || 0
+                });
+            });
+        } catch (error) {
+            console.error(`❌ Error obteniendo materiales para proyecto ${projectId}:`, error);
+            return [];
+        }
     }
 
     async createMaterial(data) {
-        const material = new MaterialEntity(data);
-        if (!material.projectId) {
-            material.projectId = this.getCurrentProjectIdSync();
+        try {
+            const material = new MaterialEntity(data);
+            if (!material.projectId) {
+                material.projectId = this.getCurrentProjectIdSync();
+            }
+
+            const payload = {
+                projectId: parseInt(material.projectId),
+                name: material.name,
+                type: this.mapTypeToBackend(material.type),
+                unit: this.mapUnitToBackend(material.unit),
+                minimumStock: parseFloat(material.minimumStock),
+                provider: material.provider
+            };
+
+            const response = await http.post(this.resourceEndpoint, payload);
+
+            return new MaterialEntity({
+                id: response.data.id,
+                projectId: response.data.projectId,
+                name: response.data.name,
+                type: this.mapTypeFromBackend(response.data.type),
+                unit: this.mapUnitFromBackend(response.data.unit),
+                minimumStock: response.data.minimumStock,
+                provider: response.data.provider,
+                price: response.data.price || 0,
+                stock: response.data.stock || 0,
+                total: response.data.total || 0
+            });
+        } catch (error) {
+            console.error('❌ Error creando material:', error);
+            throw error;
         }
-        const res = await this.create(material);
-        return new MaterialEntity(res.data);
     }
 
     async updateMaterial(id, data) {
-        const material = new MaterialEntity(data);
-        const res = await this.update(id, material);
-        return new MaterialEntity(res.data);
+        try {
+            const material = new MaterialEntity(data);
+            material.id = id;
+
+            const payload = {
+                id: parseInt(id),
+                projectId: parseInt(material.projectId),
+                name: material.name,
+                type: material.type,
+                unit: material.unit,
+                minimumStock: parseFloat(material.minimumStock),
+                provider: material.provider
+            };
+
+            console.log('📤 Payload de actualización:', payload);
+
+            // ✅ CAMBIO: Usar POST en lugar de PUT
+            const response = await http.post(this.resourceEndpoint, payload);
+
+            return new MaterialEntity({
+                id: response.data.id,
+                projectId: response.data.projectId,
+                name: response.data.name,
+                type: response.data.type,
+                unit: response.data.unit,
+                minimumStock: response.data.minimumStock,
+                provider: response.data.provider,
+                price: response.data.price || 0,
+                stock: response.data.stock || 0,
+                total: response.data.total || 0
+            });
+        } catch (error) {
+            console.error(`❌ Error actualizando material ${id}:`, error);
+            throw error;
+        }
     }
 
-    // 📥 ENTRADAS delegadas
-    getEntriesByProject(projectId) {
-        return this.entriesService.getAllFiltered(projectId);
+    // 📥 ENTRADAS - Delegadas al servicio específico
+    async getEntriesByProject(projectId) {
+        return this.entriesService.getByProject(projectId);
     }
 
-    createEntry(data) {
-        return this.entriesService.createEntry(data);
+    async createEntry(data) {
+        return this.entriesService.createOrUpdate(data);
     }
 
-    updateEntry(id, data) {
-        return this.entriesService.updateEntry(id, data);
+    async updateEntry(id, data) {
+        data.id = id;
+        return this.entriesService.createOrUpdate(data);
     }
 
-    // 📤 USOS delegadas
-    getUsagesByProject(projectId) {
-        return this.usagesService.getAllFiltered(projectId);
+    // 📤 USOS - Delegadas al servicio específico
+    async getUsagesByProject(projectId) {
+        return this.usagesService.getByProject(projectId);
     }
 
-    createUsage(data) {
-        return this.usagesService.createUsage(data);
+    async createUsage(data) {
+        return this.usagesService.createOrUpdate(data);
     }
 
-    updateUsage(id, data) {
-        return this.usagesService.updateUsage(id, data);
+    async updateUsage(id, data) {
+        data.id = id;
+        return this.usagesService.createOrUpdate(data);
     }
+
+    // ✅ MÉTODO UNIFICADO para crear/actualizar usos
+    async createOrUpdate(data) {
+        return this.usagesService.createOrUpdate(data);
+    }
+
+    // 📊 INVENTARIO - Por implementar con endpoint del backend
+    async getInventorySummary(projectId = null) {
+        if (!projectId) projectId = this.getCurrentProjectIdSync();
+
+        try {
+            console.log(`📊 Obteniendo inventario para proyecto: ${projectId}`);
+
+            // Llamar al endpoint del inventario
+            const response = await http.get(`${this.resourceEndpoint}/inventory/${projectId}`);
+            console.log('✅ Respuesta inventario del backend:', response.data);
+
+            // Si el backend no devuelve totalEntries y totalUsages, los calculamos
+            const inventory = response.data || [];
+
+            // Obtener entradas y usos para calcular totales si no vienen del backend
+            const [entries, usages] = await Promise.all([
+                this.getEntriesByProject(projectId),
+                this.getUsagesByProject(projectId)
+            ]);
+
+            return inventory.map(item => {
+                // Calcular totales de entradas y usos por material
+                const materialEntries = entries.filter(e => e.materialId === item.materialId);
+                const materialUsages = usages.filter(u => u.materialId === item.materialId);
+
+                const totalEntries = materialEntries.reduce((sum, e) => sum + (e.quantity || 0), 0);
+                const totalUsages = materialUsages.reduce((sum, u) => sum + (u.quantity || 0), 0);
+
+                console.log(`📊 Material ${item.name}: Entradas=${totalEntries}, Usos=${totalUsages}`);
+
+                return {
+                    // Campos del backend
+                    id: item.materialId,
+                    materialId: item.materialId,
+                    name: item.name,
+                    type: item.type,
+                    unit: item.unit,
+                    minimumStock: item.minimumStock,
+                    provider: item.provider,
+                    stockActual: item.stockActual,
+                    unitPrice: item.unitPrice,
+                    total: item.total,
+
+                    // ✅ AGREGAR: Campos calculados de entradas y usos
+                    totalEntries: totalEntries,
+                    totalUsages: totalUsages,
+
+                    // Campos adicionales
+                    projectId: parseInt(projectId)
+                };
+            });
+
+        } catch (error) {
+            console.error(`❌ Error obteniendo inventario para proyecto ${projectId}:`, error);
+            return [];
+        }
+    }
+
+    // 📄 EXPORTACIÓN
     async exportInventoryToExcel(inventoryData, fileName = 'inventario') {
         try {
             const exportData = inventoryData.map(item => ({
@@ -144,6 +241,7 @@ class MaterialsApiService extends BaseService {
             console.error('❌ Error exportando inventario:', error);
         }
     }
+
     async exportEntriesToExcel(entriesData, fileName = 'entradas') {
         try {
             const exportData = entriesData.map(entry => ({
@@ -168,6 +266,7 @@ class MaterialsApiService extends BaseService {
             console.error('❌ Error exportando entradas:', error);
         }
     }
+
     async exportUsagesToExcel(usagesData, fileName = 'usos') {
         try {
             const exportData = usagesData.map(usage => ({
@@ -177,8 +276,8 @@ class MaterialsApiService extends BaseService {
                 'Área': usage.area,
                 'Tipo de Uso': usage.usageType,
                 'Trabajador': usage.worker,
-                'Observaciones': usage.observations,
-                'Estado': usage.status
+                'Observaciones': usage.observations
+                // ❌ ELIMINAR: 'Estado': usage.status (ya no existe)
             }));
 
             const wb = XLSX.utils.book_new();
@@ -189,53 +288,73 @@ class MaterialsApiService extends BaseService {
             console.error('❌ Error exportando usos:', error);
         }
     }
+
     getToday() {
         return new Date().toISOString().split('T')[0];
     }
 
-
-
-
-
-
-    // 📊 INVENTARIO corregido
-    async getInventorySummary(projectId = null) {
-        if (!projectId) projectId = this.getCurrentProjectIdSync();
-
-        const [materialsRes, entriesRes, usagesRes] = await Promise.all([
-            this.getAll(),
-            this.entriesService.getAll(),
-            this.usagesService.getAll()
-        ]);
-
-        const materials = (materialsRes.data || []).filter(m => m.projectId === projectId).map(m => new MaterialEntity(m));
-        const entries = (entriesRes.data || []).filter(e => e.projectId === projectId).map(e => new MaterialEntryEntity(e));
-        const usages = (usagesRes.data || []).filter(u => u.projectId === projectId).map(u => new MaterialUsageEntity(u));
-
-        return materials.map(material => {
-            const matId = material.id;
-            const entriesForMaterial = entries.filter(e => e.materialId === matId);
-            const usagesForMaterial = usages.filter(u => u.materialId === matId);
-
-            const totalEntries = entriesForMaterial.reduce((sum, e) => sum + e.quantity, 0);
-            const totalUsages = usagesForMaterial.reduce((sum, u) => sum + u.quantity, 0);
-            const totalCost = entriesForMaterial.reduce((sum, e) => sum + (e.quantity * e.unitCost), 0);
-
-            const stock = totalEntries - totalUsages;
-            const unitPrice = totalEntries > 0 ? totalCost / totalEntries : 0;
-            const total = +(unitPrice * stock).toFixed(2);
-
-            return {
-                ...material,
-                totalEntries,
-                totalUsages,
-                stockActual: stock,
-                price: +unitPrice.toFixed(2),
-                total
-            };
-        });
+    // 🔄 MAPEOS DE TIPOS
+    mapTypeFromBackend(type) {
+        const typeMap = {
+            'CEMENTO': 'CEMENTO',
+            'ACERO': 'ACERO',
+            'PINTURA': 'PINTURA',
+            'HERRAMIENTA': 'HERRAMIENTA',
+            'LIMPIEZA': 'LIMPIEZA',
+            'OTRO': 'OTRO'
+        };
+        // ✅ ARREGLO: Si no está en el map, devolver el valor original (para tipos personalizados)
+        return typeMap[type] || type;
     }
 
+    mapTypeToBackend(type) {
+        const typeMap = {
+            'CEMENTO': 'CEMENTO',
+            'ACERO': 'ACERO',
+            'PINTURA': 'PINTURA',
+            'HERRAMIENTA': 'HERRAMIENTA',
+            'LIMPIEZA': 'LIMPIEZA',
+            'OTRO': 'OTRO'
+        };
+        // ✅ ARREGLO: Si no está en el map, devolver el valor original (para tipos personalizados)
+        return typeMap[type] || type;
+    }
+
+    // 🔄 MAPEOS DE UNIDADES
+    mapUnitFromBackend(unit) {
+        const unitMap = {
+            'KG': 'KG',
+            'M': 'M',
+            'L': 'L',
+            'UND': 'UND',
+            'SACO': 'SACO',
+            'CAJA': 'CAJA',
+            'ROLLO': 'ROLLO',
+            'GAL': 'GAL',
+            'TON': 'TON'
+        };
+        // ✅ ARREGLO: Mantener valores consistentes
+        return unitMap[unit] || unit;
+    }
+
+    mapUnitToBackend(unit) {
+        const unitMap = {
+            'KG': 'KG',
+            'M': 'M',
+            'L': 'L',
+            'UND': 'UND',
+            'SACO': 'SACO',
+            'CAJA': 'CAJA',
+            'ROLLO': 'ROLLO',
+            'GAL': 'GAL',
+            'TON': 'TON'
+        };
+        // ✅ ARREGLO: Mantener valores consistentes
+        return unitMap[unit] || unit;
+    }
 }
 
 export const materialsApiService = new MaterialsApiService();
+
+// Solo para testing - remover después
+window.materialsApiService = materialsApiService;

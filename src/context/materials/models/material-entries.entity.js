@@ -9,12 +9,12 @@ export class MaterialEntryEntity {
         this.unit = data.unit || '';
         this.provider = data.provider || '';
         this.ruc = data.ruc || '';
-        this.payment = data.payment || data.paymentType || '';
-        this.comprobante = data.comprobante || '';
+        this.payment = data.payment || 'CASH';
+        this.comprobante = data.comprobante || 'RECEIPT';
         this.comprobanteNumber = data.comprobanteNumber || '';
         this.unitCost = Number(data.unitCost || data.price) || 0;
         this.totalCost = Number(data.totalCost) || +(this.quantity * this.unitCost).toFixed(2);
-        this.status = data.status || 'Pendiente';
+        this.status = data.status || 'PENDING';
         this.observations = data.observations || '';
     }
 
@@ -50,29 +50,32 @@ export class MaterialEntryEntity {
         };
     }
 
+
     static get PAYMENT_METHODS() {
         return [
-            { value: 'CASH', label: 'cash' },
-            { value: 'CREDIT', label: 'credit' },
-            { value: 'TRANSFER', label: 'transfer' },
-            { value: 'CHECK', label: 'check' }
+            { value: 'CASH', label: 'Efectivo' },
+            { value: 'CREDIT', label: 'Credito' },
+            { value: 'TRANSFER', label: 'Transferencia' },
+            { value: 'CHECK', label: 'Cheque' }
         ];
     }
 
     static get COMPROBANTE_TYPES() {
         return [
-            { value: 'INVOICE', label: 'invoice' },
-            { value: 'RECEIPT', label: 'receipt' },
-            { value: 'GUIDE', label: 'guide' },
-            { value: 'ORDER_NOTE', label: 'orderNote' }
+            { value: 'INVOICE', label: 'Factura' },
+            { value: 'RECEIPT', label: 'Boleta' },
+            { value: 'GUIDE', label: 'Guia' },
+            { value: 'ORDER_NOTE', label: 'Nota de pedido' }
         ];
     }
 
     static get STATUSES() {
         return [
-            { value: 'PENDING', label: 'pending' },
-            { value: 'RECEIVED', label: 'received' },
-            { value: 'REJECTED', label: 'rejected' }
+            { value: 'PENDING', label: 'Pendiente' },
+            { value: 'CONFIRMED', label: 'Confirmado' },
+            { value: 'CANCELLED', label: 'Cancelado' },
+            { value: 'IN_PROCESS', label: 'En proceso' },
+            { value: 'COMPLETED', label: 'Completado' }
         ];
     }
 }

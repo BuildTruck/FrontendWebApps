@@ -6,7 +6,6 @@ import { MaterialEntryEntity } from '../models/material-entries.entity.js'
 import {MaterialEntity} from "../models/materials.entity.js";
 import {MaterialUsageEntity} from "../models/material-usages.entity.js";
 
-
 const MATERIAL_TYPES_KEY = 'materialTypes'
 
 export default {
@@ -15,7 +14,7 @@ export default {
   props: {
     material: { type: Object, default: () => ({}) },
     readonly: { type: Boolean, default: false },
-    mode: { type: String, default: 'material' }, // 'material' | 'entry' | 'usage'
+    mode: { type: String, default: 'material' },
     materialsList: { type: Array, default: () => [] },
     workersList: { type: Array, default: () => [] }
   },
@@ -25,7 +24,7 @@ export default {
       localMaterial: {
         id: null, projectId: null, name: '', type: '', customType: '',
         unit: '', quantity: 0, stock: 0, price: 0, total: 0, provider: '',
-        ruc: '', date: '', status: 'Pendiente', payment: '', comprobante: '',
+        ruc: '', date: '', status: 'PENDING', payment: 'CASH', comprobante: 'RECEIPT',
         comprobanteNumber: '', description: '', minimumStock: 0,
         area: '', usageType: '', worker: ''
       },
@@ -33,63 +32,53 @@ export default {
     }
   },
   computed: {
-    MaterialUsageEntity() {
-      return MaterialUsageEntity
-    },
-    MaterialEntity() {
-      return MaterialEntity
-    },
-    MaterialEntryEntity() {
-      return MaterialEntryEntity
-    },
     typeOptions() {
       return [
-        { label: this.$t('inventory.material'), value: 'MAT' },
-        { label: this.$t('inventory.fuel'), value: 'COMBUST.' },
+        ...MaterialEntity.TYPES,
         ...this.materialTypes.map(type => ({ label: type, value: type })),
-        { label: this.$t('inventory.other'), value: 'Otro' }
+        { label: this.$t('inventory.other'), value: 'CUSTOM_TYPE' }
       ]
     },
-    // Nuevas computed properties para las opciones i18n
+
     unitOptions() {
-      return MaterialEntity.UNITS.map(u => ({
-        value: u.value,
-        label: this.$t('inventory.units.' + u.value.toLowerCase())
-      }))
+      return MaterialEntity.UNITS;
     },
+
     comprobanteOptions() {
-      return MaterialEntryEntity.COMPROBANTE_TYPES.map(c => ({
-        value: c.value,
-        label: this.$t('inventory.documentTypes.' + c.value.toLowerCase())
-      }))
+      return MaterialEntryEntity.COMPROBANTE_TYPES;
     },
+
     statusOptions() {
-      return MaterialEntryEntity.STATUSES.map(s => ({
-        value: s.value,
-        label: this.$t('inventory.statuses.' + s.value.toLowerCase())
-      }))
+      return MaterialEntryEntity.STATUSES;
     },
+
     paymentOptions() {
-      return MaterialEntryEntity.PAYMENT_METHODS.map(p => ({
-        value: p.value,
-        label: this.$t('inventory.paymentMethods.' + p.value.toLowerCase())
-      }))
+      return MaterialEntryEntity.PAYMENT_METHODS;
     },
+
     usageTypeOptions() {
-      return MaterialUsageEntity.USAGE_TYPES.map(u => ({
-        value: u.value,
-        label: this.$t('inventory.usageTypes.' + u.value.toLowerCase())
-      }))
+      return MaterialUsageEntity.USAGE_TYPES;
     }
   },
+
+  watch: {
+    material: {
+      handler(newVal) {
+        if (newVal && newVal.status) {
+          this.$nextTick(() => {
+            this.localMaterial.status = newVal.status;
+          });
+        }
+      },
+      deep: true,
+      immediate: true
+    }
+  },
+
   created() {
     this.loadTypes()
     if (this.material && Object.keys(this.material).length > 0) {
       this.localMaterial = { ...this.material }
-      if (!['MAT', 'COMBUST.'].includes(this.material.type)) {
-        this.localMaterial.customType = this.material.type
-        this.localMaterial.type = this.material.type
-      }
     }
 
     const user = JSON.parse(sessionStorage.getItem('user'))
@@ -97,6 +86,7 @@ export default {
       this.localMaterial.projectId = user.projectId
     }
   },
+
   methods: {
     loadTypes() {
       try {
@@ -106,6 +96,7 @@ export default {
         this.materialTypes = []
       }
     },
+
     saveCustomType(newType) {
       const trimmedType = newType.trim();
       if (!trimmedType) return;
@@ -118,9 +109,15 @@ export default {
     },
 
     confirm() {
-      if (this.localMaterial.type === 'Otro' && this.localMaterial.customType) {
-        this.localMaterial.type = this.localMaterial.customType
-        this.saveCustomType(this.localMaterial.customType)
+      if (this.localMaterial.type === 'CUSTOM_TYPE' && this.localMaterial.customType) {
+        const customType = this.localMaterial.customType.trim();
+        if (customType) {
+          this.localMaterial.type = customType;
+          this.saveCustomType(customType);
+        } else {
+          alert('Por favor ingresa un nombre para el tipo personalizado');
+          return;
+        }
       }
 
       if (this.mode === 'entry') {
@@ -151,9 +148,13 @@ export default {
           status: this.localMaterial.status
         })
       } else {
-        this.$emit('confirm', { ...this.localMaterial })
+        this.$emit('confirm', {
+          ...this.localMaterial,
+          customType: undefined
+        })
       }
     },
+
     cancel() {
       this.$emit('cancel')
     }
@@ -170,7 +171,7 @@ export default {
 
       <AppInput v-if="mode === 'material'" v-model="localMaterial.type" :disabled="readonly" :label="$t('inventory.materialType')" type="select" :options="typeOptions" />
 
-      <AppInput v-if="mode === 'material' && localMaterial.type === 'Otro'" v-model="localMaterial.customType" :disabled="readonly" :label="$t('inventory.otherMaterial')" :placeholder="$t('inventory.otherMaterialPlaceholder')" />
+      <AppInput v-if="mode === 'material' && localMaterial.type === 'CUSTOM_TYPE'" v-model="localMaterial.customType" :disabled="readonly" :label="$t('inventory.customTypeName')" :placeholder="$t('inventory.enterCustomType')" :required="true" />
 
       <!-- Usando la computed property unitOptions -->
       <AppInput

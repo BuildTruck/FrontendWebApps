@@ -1,12 +1,15 @@
 <script>
 import AppTable from '../../../core/components/AppTable.vue'
-import {materialsApiService} from '../services/materials-api.service.js'
+import { materialsApiService } from '../services/materials-api.service.js'
+import { MaterialEntity } from '../models/materials.entity.js'
+import { MaterialEntryEntity } from '../models/material-entries.entity.js'
+import { MaterialUsageEntity } from '../models/material-usages.entity.js'
+import { personnelService } from '../../personnel/services/personnel-api.service.js'
 import 'primeicons/primeicons.css'
 
-
 export default {
-  name: 'ManagerMaterials',
-  components: {AppTable},
+  name: 'MaterialsBusinessman',
+  components: { AppTable },
   data() {
     return {
       selectedTab: 'inventory',
@@ -22,9 +25,9 @@ export default {
   computed: {
     tabs() {
       return [
-        {key: 'inventory', label: this.$t('inventory.inventory'), icon: 'pi pi-box'},
-        {key: 'entries', label: this.$t('inventory.entries'), icon: 'pi pi-download'},
-        {key: 'usages', label: this.$t('inventory.usages'), icon: 'pi pi-upload'}
+        { key: 'inventory', label: this.$t('inventory.inventory'), icon: 'pi pi-box' },
+        { key: 'entries', label: this.$t('inventory.entries'), icon: 'pi pi-download' },
+        { key: 'usages', label: this.$t('inventory.usages'), icon: 'pi pi-upload' }
       ];
     }
   },
@@ -35,59 +38,162 @@ export default {
 
   methods: {
     async loadAll() {
-      this.loading = true
-      const projectId = materialsApiService.getCurrentProjectIdSync()
+      try {
+        this.loading = true
+        const projectId = materialsApiService.getCurrentProjectIdSync()
 
-      // ✅ CAMBIAR: Ahora SÍ usar getInventorySummary (ya funciona)
-      this.materials = await materialsApiService.getByProject(projectId)
-      this.inventory = await materialsApiService.getInventorySummary(projectId) // ✅ AHORA FUNCIONA
+        // ✅ Cargar materiales y workers
+        this.materials = await materialsApiService.getByProject(projectId)
+        this.workers = await personnelService.getByProject(projectId)
 
-      const rawEntries = await materialsApiService.getEntriesByProject(projectId)
-      const rawUsages = await materialsApiService.getUsagesByProject(projectId)
+        // ✅ Cargar inventario con mapeo de labels
+        const rawInventory = await materialsApiService.getInventorySummary(projectId)
+        this.inventory = rawInventory.map(item => {
+          const typeObj = MaterialEntity.TYPES.find(t => t.value === item.type);
+          const typeLabel = typeObj ? typeObj.label : item.type?.toLowerCase() || '';
 
-      this.entries = rawEntries.map(e => {
-        const mat = this.materials.find(m => m.id === e.materialId)
-        return {...e, materialName: mat?.name || 'Desconocido'}
-      })
+          const unitObj = MaterialEntity.UNITS.find(u => u.value === item.unit);
+          const unitLabel = unitObj ? unitObj.label : item.unit?.toLowerCase() || '';
 
-      this.usages = rawUsages.map(u => {
-        const mat = this.materials.find(m => m.id === u.materialId)
-        return {...u, materialName: mat?.name || 'Desconocido'}
-      })
+          return {
+            ...item,
+            type: typeLabel,
+            unit: unitLabel
+          };
+        });
 
-      this.loading = false
+        // ✅ Cargar entradas con mapeo de labels
+        const rawEntries = await materialsApiService.getEntriesByProject(projectId)
+        this.entries = rawEntries.map(entry => {
+          const material = this.materials.find(m => m.id === entry.materialId);
+
+          const paymentObj = MaterialEntryEntity.PAYMENT_METHODS.find(p => p.value === entry.payment);
+          const paymentLabel = paymentObj ? paymentObj.label : entry.payment?.toLowerCase() || '';
+
+          const comprobanteObj = MaterialEntryEntity.COMPROBANTE_TYPES.find(c => c.value === entry.comprobante);
+          const comprobanteLabel = comprobanteObj ? comprobanteObj.label : entry.comprobante?.toLowerCase() || '';
+
+          const statusObj = MaterialEntryEntity.STATUSES.find(s => s.value === entry.status);
+          const statusLabel = statusObj ? statusObj.label : entry.status?.toLowerCase() || '';
+
+          return {
+            ...entry,
+            materialName: material?.name || 'Desconocido',
+            payment: paymentLabel,
+            comprobante: comprobanteLabel,
+            status: statusLabel
+          };
+        });
+
+        // ✅ Cargar usos con mapeo de labels
+        const rawUsages = await materialsApiService.getUsagesByProject(projectId)
+        this.usages = rawUsages.map(usage => {
+          const material = this.materials.find(m => m.id === usage.materialId);
+
+          let workerName = 'No asignado';
+          if (usage.worker && usage.worker.trim() !== '') {
+            const worker = Array.isArray(this.workers)
+                ? this.workers.find(w => `${w.name} ${w.lastname}`.trim() === usage.worker.trim())
+                : null;
+
+            if (worker) {
+              workerName = `${worker.name} ${worker.lastname}`;
+            } else {
+              workerName = usage.worker;
+            }
+          }
+
+          const usageTypeObj = MaterialUsageEntity.USAGE_TYPES.find(type => type.value === usage.usageType);
+          const usageTypeLabel = usageTypeObj ? usageTypeObj.label : usage.usageType?.toLowerCase() || '';
+
+          return {
+            ...usage,
+            materialName: material?.name || 'Desconocido',
+            workerName: workerName,
+            usageType: usageTypeLabel,
+            area: usage.area?.toLowerCase() || ''
+          };
+        });
+
+      } catch (error) {
+        console.error('Error al cargar datos:', error);
+      } finally {
+        this.loading = false
+      }
     },
 
     getColumns(type) {
       if (type === 'inventory') {
         return [
-          {field: 'name', header: this.$t('inventory.name')},
-          {field: 'type', header: this.$t('inventory.type')},
-          {field: 'unit', header: this.$t('inventory.unit')},
-          {field: 'minimumStock', header: this.$t('inventory.minimumStock')},
-          {field: 'stockActual', header: this.$t('inventory.currentStock')},
-          {field: 'price', header: this.$t('inventory.unitPrice')},
-          {field: 'total', header: this.$t('inventory.total')}
+          { field: 'name', header: this.$t('inventory.name') },
+          { field: 'type', header: this.$t('inventory.type') },
+          { field: 'unit', header: this.$t('inventory.unit') },
+          { field: 'minimumStock', header: this.$t('inventory.minimumStock') },
+          { field: 'provider', header: this.$t('inventory.provider') },
+          {
+            field: 'totalEntries',
+            header: this.$t('inventory.entries'),
+            body: row => row.totalEntries || 0
+          },
+          {
+            field: 'totalUsages',
+            header: this.$t('inventory.usages'),
+            body: row => row.totalUsages || 0
+          },
+          {
+            field: 'stockActual',
+            header: this.$t('inventory.currentStock'),
+            body: row => row.stockActual || 0
+          },
+          {
+            field: 'unitPrice',
+            header: this.$t('inventory.unitPrice'),
+            dataType: 'numeric',
+            body: row => row.unitPrice && row.unitPrice > 0 ? `S/ ${row.unitPrice.toFixed(2)}` : '-'
+          },
+          {
+            field: 'total',
+            header: this.$t('inventory.total'),
+            dataType: 'numeric',
+            body: row => row.total && row.total > 0 ? `S/ ${row.total.toFixed(2)}` : '-'
+          }
         ]
       }
       if (type === 'entries') {
         return [
-          {field: 'date', header: this.$t('inventory.date')},
-          {field: 'materialName', header: this.$t('inventory.material')},
-          {field: 'quantity', header: this.$t('inventory.quantity')},
-          {field: 'provider', header: this.$t('inventory.provider')},
-          {field: 'comprobante', header: this.$t('inventory.documentType')},
-          {field: 'payment', header: this.$t('inventory.paymentMethod')}
+          { field: 'date', header: this.$t('inventory.date') },
+          { field: 'materialName', header: this.$t('inventory.material') },
+          { field: 'quantity', header: this.$t('inventory.quantity') },
+          {
+            field: 'unitCost',
+            header: this.$t('inventory.unitPrice'),
+            dataType: 'numeric',
+            body: row => row.unitCost ? `S/ ${row.unitCost.toFixed(2)}` : '-'
+          },
+          { field: 'provider', header: this.$t('inventory.provider') },
+          { field: 'comprobante', header: this.$t('inventory.documentType') },
+          { field: 'comprobanteNumber', header: this.$t('inventory.documentNumber') },
+          {
+            field: 'status',
+            header: this.$t('inventory.status'),
+            body: row => `<div class="status-container-custom">
+            <span class="status-badge status-${row.status?.toLowerCase().replace(/\s+/g, '-')}">${row.status}</span>
+            </div>`
+          },
+          { field: 'ruc', header: this.$t('inventory.ruc') },
+          { field: 'payment', header: this.$t('inventory.paymentMethod') },
+          { field: 'observations', header: this.$t('inventory.observations') }
         ]
       }
       if (type === 'usages') {
         return [
-          {field: 'date', header: this.$t('inventory.date')},
-          {field: 'materialName', header: this.$t('inventory.material')},
-          {field: 'quantity', header: this.$t('inventory.usedQuantity')},
-          {field: 'area', header: this.$t('inventory.usageArea')},
-          {field: 'usageType', header: this.$t('inventory.usageType')},
-          {field: 'observations', header: this.$t('inventory.observations')}
+          { field: 'date', header: this.$t('inventory.date') },
+          { field: 'materialName', header: this.$t('inventory.material') },
+          { field: 'quantity', header: this.$t('inventory.usedQuantity') },
+          { field: 'area', header: this.$t('inventory.area') },
+          { field: 'workerName', header: this.$t('inventory.worker') },
+          { field: 'usageType', header: this.$t('inventory.usageType') },
+          { field: 'observations', header: this.$t('inventory.observations') }
         ]
       }
     },
@@ -109,14 +215,20 @@ export default {
     },
 
     async exportInventoryToExcel(data, fileName = 'Inventario') {
+      // ✅ Importar dinámicamente para evitar errores
+      const XLSX = await import('xlsx');
+
       const exportData = data.map(item => ({
         'Nombre': item.name,
         'Tipo': item.type,
         'Unidad': item.unit,
         'Stock Mínimo': item.minimumStock,
+        'Proveedor': item.provider,
+        'Entradas': item.totalEntries || 0,
+        'Usos': item.totalUsages || 0,
         'Stock Actual': item.stockActual,
-        'Precio Unitario (S/)': item.price,
-        'Total (S/)': item.total
+        'Precio Unitario (S/)': item.unitPrice || 0,
+        'Total (S/)': item.total || 0
       }));
 
       const wb = XLSX.utils.book_new();
@@ -126,13 +238,20 @@ export default {
     },
 
     async exportEntriesToExcel(data, fileName = 'Entradas') {
+      const XLSX = await import('xlsx');
+
       const exportData = data.map(entry => ({
         'Fecha': entry.date,
         'Material': entry.materialName,
         'Cantidad': entry.quantity,
+        'Precio Unitario (S/)': entry.unitCost || 0,
         'Proveedor': entry.provider,
         'Comprobante': entry.comprobante,
-        'Método de Pago': entry.payment
+        'N° Comprobante': entry.comprobanteNumber,
+        'Estado': entry.status,
+        'RUC': entry.ruc,
+        'Método de Pago': entry.payment,
+        'Observaciones': entry.observations
       }));
 
       const wb = XLSX.utils.book_new();
@@ -142,11 +261,14 @@ export default {
     },
 
     async exportUsagesToExcel(data, fileName = 'Usos') {
+      const XLSX = await import('xlsx');
+
       const exportData = data.map(usage => ({
         'Fecha': usage.date,
         'Material': usage.materialName,
         'Cantidad Usada': usage.quantity,
         'Área': usage.area,
+        'Trabajador': usage.workerName,
         'Tipo de Uso': usage.usageType,
         'Observaciones': usage.observations
       }));
@@ -161,7 +283,7 @@ export default {
 </script>
 
 <template>
-  <div class="inventory-manager-tabs">
+  <div class="inventory-businessman-tabs">
     <!-- Tabs de navegación -->
     <nav class="tabs-navigation">
       <button
@@ -176,7 +298,7 @@ export default {
       </button>
     </nav>
 
-    <!-- Tabla de datos -->
+    <!-- Tabla de datos - SOLO LECTURA -->
     <AppTable
         :columns="getColumns(selectedTab)"
         :data="selectedTab === 'inventory' ? inventory : selectedTab === 'entries' ? entries : usages"
@@ -185,6 +307,8 @@ export default {
         :rows="10"
         :show-export-button="true"
         :show-filter-button="true"
+        :show-add-button="false"
+        :selectable="false"
         @export="exportCurrentTable"
     />
   </div>
@@ -229,5 +353,68 @@ export default {
 
 .tab-button i {
   font-size: 1rem;
+}
+
+/* ========================================
+   STATUS BADGES - ESTADOS PINTADOS
+   ======================================== */
+
+.status-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: capitalize;
+  text-align: center;
+  min-width: 80px;
+}
+
+/* Pendiente - Amarillo */
+.status-badge.status-pendiente,
+.status-badge.status-pending {
+  background-color: #fef3c7 !important;
+  color: #92400e !important;
+  border: 1px solid #fbbf24 !important;
+}
+
+/* Confirmado - Verde */
+.status-badge.status-confirmado,
+.status-badge.status-confirmed {
+  background-color: #d1fae5 !important;
+  color: #065f46 !important;
+  border: 1px solid #10b981 !important;
+}
+
+/* Cancelado - Rojo */
+.status-badge.status-cancelado,
+.status-badge.status-cancelled {
+  background-color: #fee2e2 !important;
+  color: #991b1b !important;
+  border: 1px solid #ef4444 !important;
+}
+
+/* En Proceso - Azul */
+.status-badge.status-en-proceso,
+.status-badge.status-in-process,
+.status-badge.status-inprocess {
+  background-color: #dbeafe !important;
+  color: #1d4ed8 !important;
+  border: 1px solid #3b82f6 !important;
+}
+
+/* Completado - Morado */
+.status-badge.status-completado,
+.status-badge.status-completed {
+  background-color: #f3e8ff !important;
+  color: #6b21a8 !important;
+  border: 1px solid #8b5cf6 !important;
+}
+
+/* Estado desconocido - Gris */
+.status-badge.status-unknown {
+  background-color: #f3f4f6 !important;
+  color: #374151 !important;
+  border: 1px solid #9ca3af !important;
 }
 </style>

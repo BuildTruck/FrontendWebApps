@@ -3,26 +3,30 @@ import {ref, reactive, computed, onMounted, onUnmounted, nextTick, watch} from '
 import { useRouter } from 'vue-router';
 import { AuthService} from "../../../auth/services/auth-api.service.js";
 import { notificationApiService } from '../services/notification-api.service.js';
-import { notificationWebSocketService } from '../services/notification-websocket.service.js';
 import { NotificationSummary} from "../models/notification-summary.entity.js";
 import NotificationPreferences from './NotificationPreferences.vue';
+import { notificationSoundService } from '../services/notification-sound.service.js';
 
 export default {
   name: 'NotificationBell',
   components: {
-     NotificationPreferences
+    NotificationPreferences
   },
   setup() {
     const router = useRouter();
 
     // Reactive state
     const showDropdown = ref(false);
-
     const showFilters = ref(false);
     const loading = ref(false);
     const hasMore = ref(true);
     const currentPage = ref(1);
     const pageSize = 10;
+
+    // POLLING VARIABLES
+    const pollingInterval = ref(null);
+    const isPolling = ref(false);
+    const lastCheckTime = ref(new Date());
 
     // Data
     const notifications = ref([]);
@@ -50,7 +54,90 @@ export default {
       }
     });
 
-    // Methods
+    const filteredNotifications = computed(() => {
+      const now = new Date();
+      const eightHoursAgo = new Date(now.getTime() - (8 * 60 * 60 * 1000));
+
+      return notifications.value.filter(notification => {
+        const notificationDate = new Date(notification.createdAt);
+
+        // Solo mostrar notificaciones de las últimas 8 horas
+        return notificationDate >= eightHoursAgo;
+      });
+    });
+
+    const checkForNewNotifications = async () => {
+      if (isPolling.value) return;
+
+      try {
+        isPolling.value = true;
+
+        const newSummary = await notificationApiService.getSummary();
+        const oldCount = summary.value.unreadCount;
+        const newCount = newSummary.unreadCount;
+
+        // Si hay nuevas notificaciones
+        if (newCount > oldCount) {
+          const diff = newCount - oldCount;
+
+          // Obtener las notificaciones más recientes para ver la prioridad
+          const recentNotifications = await notificationApiService.getNotifications(1, 5, { unread: true });
+
+          // Encontrar la prioridad más alta de las nuevas
+          let highestPriority = 'NORMAL';
+          const priorities = ['LOW', 'NORMAL', 'HIGH', 'CRITICAL'];
+
+          recentNotifications.notifications.forEach(notification => {
+            const currentPriorityIndex = priorities.indexOf(notification.priority);
+            const highestPriorityIndex = priorities.indexOf(highestPriority);
+
+            if (currentPriorityIndex > highestPriorityIndex) {
+              highestPriority = notification.priority;
+            }
+          });
+
+
+          // Actualizar summary
+          summary.value = newSummary;
+
+          // Reproducir sonido según la prioridad más alta
+          await notificationSoundService.playNotificationSound(highestPriority);
+
+          // Si el dropdown está abierto, recargar la lista
+          if (showDropdown.value) {
+            await loadNotifications(true);
+          }
+        } else {
+          // Solo actualizar el summary sin sonido
+          summary.value = newSummary;
+        }
+
+        lastCheckTime.value = new Date();
+
+      } catch (error) {
+        console.error('❌ Error verificando notificaciones:', error);
+      } finally {
+        isPolling.value = false;
+      }
+    };
+
+    const startPolling = () => {
+
+      checkForNewNotifications();
+
+      pollingInterval.value = setInterval(() => {
+        checkForNewNotifications();
+      }, 5000); // 5 segundos
+    };
+
+    const stopPolling = () => {
+      if (pollingInterval.value) {
+        console.log('⏹️ Deteniendo polling...');
+        clearInterval(pollingInterval.value);
+        pollingInterval.value = null;
+      }
+    };
+
     const toggleDropdown = () => {
       console.log('ANTES - showDropdown:', showDropdown.value);
       showDropdown.value = !showDropdown.value;
@@ -75,21 +162,37 @@ export default {
       closeDropdown();
 
       try {
-        const currentPath = router.currentRoute.value.path;
+        const role = user.value?.role?.toLowerCase();
+        console.log(' Rol:', role);
+        let settingsRoute;
+        switch (role) {
+          case 'admin':
+            settingsRoute = '/admin/configuraciones';
+            break;
 
-        // Buscar el prefijo del rol en el path
-        const rolePrefix = currentPath.match(/^\/(admin|manager|supervisor)\//)?.[1];
+          case 'manager':
+            settingsRoute = '/configuracion'; // ← Sin prefijo de rol
+            break;
 
-        const settingsRoute = rolePrefix
-            ? `/${rolePrefix}/configuraciones`
-            : '/configuraciones';
+          case 'supervisor':
+            // Para supervisor necesitamos el ID del proyecto
+            const currentPath = router.currentRoute.value.path;
+            const projectIdMatch = currentPath.match(/\/supervisor\/(\d+)/);
+            const projectId = projectIdMatch ? projectIdMatch[1] : '1'; // fallback a 1
+            settingsRoute = `/supervisor/${projectId}/configuraciones`;
+            console.log('🏗️ Proyecto ID encontrado:', projectId);
+            break;
 
-        console.log(`Path actual: ${currentPath} → Configuraciones: ${settingsRoute}`);
+          default:
+            console.error('❌ Rol no reconocido:', role);
+            settingsRoute = '/login';
+        }
+
         router.push(settingsRoute);
 
       } catch (error) {
-        console.error('Error al navegar a configuraciones:', error);
-        router.push('/configuraciones');
+        console.error('❌ Error navegando:', error);
+        router.push('/login');
       }
     };
 
@@ -153,8 +256,8 @@ export default {
           summary.value.markAsRead(notification);
         }
 
-        // Notify WebSocket
-        await notificationWebSocketService.markNotificationAsRead(notificationId);
+        // Verificar inmediatamente después de marcar como leída
+        setTimeout(() => checkForNewNotifications(), 500);
 
       } catch (error) {
         console.error('Error marking notification as read:', error);
@@ -174,6 +277,9 @@ export default {
         });
 
         summary.value.markAllAsRead();
+
+        // Verificar inmediatamente después de marcar todas como leídas
+        setTimeout(() => checkForNewNotifications(), 500);
 
       } catch (error) {
         console.error('Error marking all as read:', error);
@@ -224,63 +330,47 @@ export default {
       }
     };
 
+    // Test de simulación (mantener para testing)
+    const simulateNotification = () => {
+      const priorities = ['CRITICAL', 'HIGH', 'NORMAL', 'LOW'];
+      const randomPriority = priorities[Math.floor(Math.random() * priorities.length)];
 
-    // WebSocket event handlers
-    const handleNewNotification = (notification) => {
-      // Add to beginning of list if it matches current filters
-      const matchesFilters = (!selectedContext.value || notification.context === selectedContext.value) &&
-          (!selectedPriority.value || notification.priority === selectedPriority.value) &&
-          (!showUnreadOnly.value || notification.isUnread);
+      console.log('🧪 Simulando incremento de contador...');
+      summary.value.unreadCount++;
 
-      if (matchesFilters) {
-        notifications.value.unshift(notification);
-      }
-
-      // Update summary
-      summary.value.addNotification(notification);
+      // Reproducir sonido
+      notificationSoundService.playNotificationSound(randomPriority);
     };
-
-    const handleUnreadCountUpdate = (count) => {
-      summary.value.unreadCount = count;
-    };
-
-    const handleNotificationRead = (notificationId) => {
-      const notification = notifications.value.find(n => n.id === notificationId);
-      if (notification) {
-        notification.markAsRead();
-        summary.value.markAsRead(notification);
-      }
-    };
-
 
     // Lifecycle
     onMounted(async () => {
-      // Initialize WebSocket
-      try {
-        await notificationWebSocketService.initialize();
+      console.log('🚀 Montando NotificationBell con Polling...');
 
-        // Setup WebSocket listeners
-        notificationWebSocketService.on('newNotification', handleNewNotification);
-        notificationWebSocketService.on('unreadCountUpdate', handleUnreadCountUpdate);
-        notificationWebSocketService.on('notificationRead', handleNotificationRead);
-
-      } catch (error) {
-        console.error('Error initializing WebSocket:', error);
-      }
+      // Unlock audio
+      const unlockAudio = () => {
+        try {
+          const audio = new Audio();
+          audio.play().catch(() => {});
+        } catch (e) {}
+      };
+      document.addEventListener('click', unlockAudio, { once: true });
 
       // Load initial data
       await loadSummary();
+
+      // INICIAR POLLING EN LUGAR DE WEBSOCKET
+      startPolling();
     });
 
     onUnmounted(() => {
-      // Cleanup WebSocket listeners
-      notificationWebSocketService.off('newNotification', handleNewNotification);
-      notificationWebSocketService.off('unreadCountUpdate', handleUnreadCountUpdate);
-      notificationWebSocketService.off('notificationRead', handleNotificationRead);
+      console.log('🧹 Desmontando NotificationBell...');
+      // Detener polling
+      stopPolling();
     });
 
-    watch(showDropdown, (newVal) => {
-      console.log('showDropdown cambió a:', newVal);
+    // Watch para detectar cambios en el summary
+    watch(() => summary.value.unreadCount, (newCount, oldCount) => {
+      console.log(`👀 Contador cambió: ${oldCount} → ${newCount}`);
     });
 
     return {
@@ -296,8 +386,12 @@ export default {
       showUnreadOnly,
       availableContexts,
 
-      goToSettings,
+      // Polling state
+      isPolling,
+      lastCheckTime,
+
       // Methods
+      filteredNotifications,
       toggleDropdown,
       closeDropdown,
       toggleFilters,
@@ -308,8 +402,15 @@ export default {
       handleActionClick,
       onFilterChange,
       onScroll,
+      goToSettings,
 
+      // Test methods
+      simulateNotification,
+      checkForNewNotifications,
 
+      // Polling methods
+      startPolling,
+      stopPolling
     };
   },
 
@@ -363,15 +464,6 @@ export default {
         <h3>{{ $t('notifications.title') }}</h3>
         <div class="notification-actions">
           <button
-              v-if="summary.hasUnread"
-              @click="markAllAsRead"
-              class="btn-mark-all"
-              :disabled="loading"
-          >
-            <i class="pi pi-check"></i>
-            {{ $t('notifications.markAllRead') }}
-          </button>
-          <button
               @click="toggleFilters"
               class="btn-filters"
               :class="{ active: showFilters }"
@@ -416,19 +508,25 @@ export default {
 
       <!-- Notifications List -->
       <div class="notifications-list" ref="notificationsList" @scroll="onScroll">
-        <div v-if="loading && notifications.length === 0" class="loading-state">
+        <div v-if="loading && filteredNotifications.length === 0" class="loading-state">
           <i class="pi pi-spin pi-spinner"></i>
           {{ $t('notifications.loading') }}
         </div>
 
-        <div v-else-if="notifications.length === 0" class="empty-state">
+        <div v-else-if="filteredNotifications.length === 0 && notifications.length === 0" class="empty-state">
           <i class="pi pi-inbox"></i>
           <p>{{ $t('notifications.empty') }}</p>
         </div>
 
+        <div v-else-if="filteredNotifications.length === 0 && notifications.length > 0" class="empty-state">
+          <i class="pi pi-clock"></i>
+          <p>No hay notificaciones recientes</p>
+          <p>Las notificaciones se ocultan después de 8 horas</p>
+        </div>
+
         <div v-else>
           <div
-              v-for="notification in notifications"
+              v-for="notification in filteredNotifications"
               :key="notification.id"
               class="notification-item"
               :class="{
@@ -479,13 +577,13 @@ export default {
           </div>
 
           <!-- Load More Indicator -->
-          <div v-if="loading && notifications.length > 0" class="loading-more">
+          <div v-if="loading && filteredNotifications.length > 0" class="loading-more">
             <i class="pi pi-spin pi-spinner"></i>
             {{ $t('notifications.loadingMore') }}
           </div>
 
           <!-- No More Items -->
-          <div v-if="!hasMore && notifications.length > 0" class="no-more-items">
+          <div v-if="!hasMore && filteredNotifications.length > 0" class="no-more-items">
             {{ $t('notifications.noMoreItems') }}
           </div>
         </div>

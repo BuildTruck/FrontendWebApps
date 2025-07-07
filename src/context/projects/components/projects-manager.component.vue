@@ -329,6 +329,7 @@ export default {
               variant="primary"
               size="large"
               @click="openModal"
+              data-tutorial="createNewProject"
           />
         </div>
 
@@ -340,12 +341,13 @@ export default {
             <p class="empty-note">{{ $t('projects.createFirstProject') }}</p>
 
             <!-- Botón adicional para crear proyecto -->
-            <div class="empty-actions">
+            <div class="empty-actions" >
               <AppButton
                   :label="$t('projects.createNewProject')"
                   variant="primary"
                   @click="openModal"
                   icon="pi pi-plus"
+                  data-tutorial="createNewProject"
               />
             </div>
           </div>

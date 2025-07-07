@@ -49,6 +49,15 @@
     "networkError": "Network error. Please check your connection."
   },
   "settings": {
+    "tutorials": "Tutorials",
+    "tutorialsDescription": "Reactivate tutorials to view them again",
+    "restartManagerTutorial": "Panel Tutorial",
+    "restartProjectTutorial": "Project Tutorial",
+    "restartAllTutorials": "Reset All",
+    "tutorialReactivated": "Tutorial reactivated. Redirecting...",
+    "projectTutorialReactivated": "Project tutorial reactivated",
+    "allTutorialsReset": "All tutorials have been reactivated",
+    "general": "General",
     "appearance": "Appearance",
     "appearanceDescription": "Customize the application appearance according to your preferences",
     "subscription": "Subscription",
@@ -1246,6 +1255,8 @@
       "resultsCount": "{count} notification found | {count} notifications found"
     },
     "preferences": {
+      "volume": "Volume",
+      "testSound": "Test sound",
       "title": "Notification Settings",
       "loading": "Loading preferences...",
       "saving": "Saving...",

@@ -4,7 +4,9 @@ export class Notification {
         this.userId = data.userId || 0;
         this.type = data.type || '';
         this.context = data.context || '';
-        this.priority = data.priority || 'NORMAL';
+        this.priority = typeof data.priority === 'object' && data.priority?.value
+            ? data.priority.value
+            : data.priority || 'NORMAL';
         this.title = data.title || '';
         this.message = data.message || '';
         this.actionUrl = data.actionUrl || null;
@@ -33,7 +35,13 @@ export class Notification {
 
     get priorityLevel() {
         const levels = { 'LOW': 1, 'NORMAL': 2, 'HIGH': 3, 'CRITICAL': 4 };
-        return levels[this.priority] || 2;
+
+        // Si priority es un objeto, usar su Value property
+        const priorityValue = typeof this.priority === 'object'
+            ? this.priority.value
+            : this.priority;
+
+        return levels[priorityValue] || 2;
     }
 
     get isHighPriority() {

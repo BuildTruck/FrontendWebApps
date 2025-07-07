@@ -108,20 +108,12 @@ export default {
 
     async handleConfirm(machinery) {
       try {
-        if (!this.currentProjectId) {
-          throw new Error('No projectId available');
-        }
+        console.log('🎯 handleConfirm called with:', machinery);
 
-        machinery.projectId = this.currentProjectId;
-
-        let savedMachinery;
-        if (machinery.id) {
-          savedMachinery = await this.machineryService.update(machinery.id, machinery);
-          this.notificationMessage = this.$t('machinery.machineryUpdated');
-        } else {
-          savedMachinery = await this.machineryService.create(machinery);
-          this.notificationMessage = this.$t('machinery.machineryCreated');
-        }
+        // ✅ SOLO manejar la respuesta, no llamar al service otra vez
+        this.notificationMessage = machinery.id
+            ? this.$t('machinery.machineryUpdated')
+            : this.$t('machinery.machineryCreated');
 
         this.showNotification = true;
         this.showForm = false;
@@ -129,9 +121,9 @@ export default {
         this.selectedMachine = null;
         await this.loadMachinery();
 
-        console.log('Machinery saved:', savedMachinery);
+        console.log('✅ Machinery operation completed:', machinery);
       } catch (error) {
-        console.error('Error saving machinery:', error);
+        console.error('❌ Error in handleConfirm:', error);
         this.notificationMessage = error.message || this.$t('machinery.errorSaving');
         this.showNotification = true;
       }
@@ -169,7 +161,7 @@ export default {
             ? this.$t('machinery.deleteConfirm')
             : this.$t('machinery.deleteMultipleConfirm', { count: selectedMachinery.length });
 
-        // Mostrar confirmación usando AppNotification
+        // Mostrar confirmación
         this.confirmationMessage = confirmMessage;
         this.showConfirmation = true;
         this.pendingDeleteMachinery = selectedMachinery;
@@ -178,7 +170,53 @@ export default {
         this.showNotificationMessage(error.message || this.$t('machinery.errorDeleting'), 'error');
       }
     },
+    async confirmDelete() {
+      if (!this.pendingDeleteMachinery || this.pendingDeleteMachinery.length === 0) {
+        return;
+      }
 
+      this.loading = true;
+
+      try {
+        console.log('🗑️ Deleting machinery:', this.pendingDeleteMachinery);
+
+        if (this.pendingDeleteMachinery.length === 1) {
+          // Eliminar una sola maquinaria
+          await this.machineryService.delete(this.pendingDeleteMachinery[0].id);
+          this.showNotificationMessage(this.$t('machinery.machineryDeleted'), 'success');
+        } else {
+          // Eliminar múltiples maquinarias
+          const ids = this.pendingDeleteMachinery.map(m => m.id);
+          await this.machineryService.deleteMultiple(ids);
+          this.showNotificationMessage(
+              this.$t('machinery.machineryMultipleDeleted', { count: ids.length }),
+              'success'
+          );
+        }
+
+        // ✅ Recargar la lista
+        await this.loadMachinery();
+
+        // ✅ Limpiar confirmación
+        this.cancelDelete();
+
+      } catch (error) {
+        console.error('Error deleting machinery:', error);
+
+        let errorMessage = this.$t('machinery.errorDeleting');
+
+        // Manejar errores específicos
+        if (error.response?.status === 404) {
+          errorMessage = this.$t('machinery.machineryNotFound');
+        } else if (error.response?.status === 409) {
+          errorMessage = this.$t('machinery.machineryInUse');
+        }
+
+        this.showNotificationMessage(errorMessage, 'error');
+      } finally {
+        this.loading = false;
+      }
+    },
     async executeDelete() {
       try {
         this.loading = true;
@@ -204,6 +242,7 @@ export default {
 
     cancelDelete() {
       this.showConfirmation = false;
+      this.confirmationMessage = '';
       this.pendingDeleteMachinery = [];
     },
 
@@ -231,16 +270,23 @@ export default {
         this.showNotification = true;
       }
     },
-
+    convertStatusFromBackend(statusNumber) {
+      const statusMap = {
+        0: 'ACTIVE',
+        1: 'MAINTENANCE'
+      };
+      return statusMap[statusNumber] || 'ACTIVE';
+    },
     getStatusDisplay(status) {
+      // ✅ AGREGAR conversión de números del backend
+      const normalizedStatus = typeof status === 'number' ? this.convertStatusFromBackend(status) : status;
+
       const statusMap = {
         'ACTIVE': { label: this.$t('machinery.statusActive'), class: 'status-success' },
-        'INACTIVE': { label: this.$t('machinery.statusInactive'), class: 'status-info' },
-        'DAMAGED': { label: this.$t('machinery.statusDamaged'), class: 'status-danger' },
         'MAINTENANCE': { label: this.$t('machinery.statusMaintenance'), class: 'status-warning' }
       };
 
-      return statusMap[status] || { label: status, class: 'status-default' };
+      return statusMap[normalizedStatus] || { label: normalizedStatus, class: 'status-default' };
     },
 
     getMachineryTypeDisplay(type) {
@@ -338,26 +384,14 @@ export default {
       </div>
     </div>
 
-    <!-- NOTIFICACIÓN -->
     <AppNotification
         v-model="showNotification"
         :message="notificationMessage"
-        type="success"
-        :autoClose="true"
+        :type="warning"
+        :auto-close="true"
         :duration="3000"
     />
-    
-    <AppNotification
-        v-model="showConfirmation"
-        :message="confirmationMessage"
-        type="warning"
-        :auto-close="false"
-        :show-buttons="true"
-        confirm-label="Eliminar"
-        cancel-label="Cancelar"
-        @confirm="executeDelete"
-        @cancel="cancelDelete"
-    />
+
   </div>
 </template>
 

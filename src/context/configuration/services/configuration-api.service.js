@@ -1,71 +1,63 @@
-import { BaseService } from '../../../core/services/base.service.js';
 import { AuthService } from '../../../auth/services/auth-api.service.js';
 import { Configuration } from '../models/configuration.entity.js';
+import http from '../../../core/services/http.service.js';
 
-class ConfigurationService extends BaseService {
+class ConfigurationService {
     constructor() {
-        // CAMBIO 1: Solo cambiar el endpoint
-        super('/configurations');
+        this.baseEndpoint = '/configuration-settings';
     }
 
+    // GET /api/v1/configuration-settings/user/{userId}
     async getByUserId(userId) {
-        if (!userId) {
-            throw new Error('User ID is required');
-        }
-
         try {
-            // CAMBIO 2: Para la API real, hacer GET directo (sin parámetros user_id)
-            // La API real maneja automáticamente el usuario autenticado
-            const response = await this.getAll();
-            return response.data || null;
+            const response = await http.get(`${this.baseEndpoint}/user/${userId}`);
+            return response.data;
         } catch (error) {
-            if (error.response && error.response.status === 404) {
-                return null;
+            if (error.response?.status === 404) {
+                return null; // No settings found
             }
             console.error(`Error getting user settings for user ${userId}:`, error);
             throw error;
         }
     }
 
+    // POST /api/v1/configuration-settings (crear nuevo)
+    async create(configData) {
+        try {
+            const response = await http.post(this.baseEndpoint, configData);
+            return response.data;
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    // PUT /api/v1/configuration-settings/{id} (actualizar existente)
+    async update(id, configData) {
+        try {
+            const response = await http.put(`${this.baseEndpoint}/${id}`, configData);
+            return response.data;
+        } catch (error) {
+            console.error(`Error updating configuration ${id}:`, error);
+            throw error;
+        }
+    }
+
+    // Método principal para guardar (crea o actualiza automáticamente)
     async saveOrUpdate(userId, configData) {
-        if (!userId) {
-            throw new Error('User ID is required');
-        }
-        if (!configData) {
-            throw new Error('Configuration data is required');
-        }
-
         try {
-            // CAMBIO 3: Para la API real, usar PUT directo (sin verificar si existe)
-            // La API real maneja create/update automáticamente
-            return await this.updateViaAPI(configData);
-        } catch (error) {
-            console.error(`Error saving or updating settings for user ${userId}:`, error);
-            console.error('🔍 Backend error details:', error.response?.data); // ⭐ AGREGAR ESTA LÍNEA
-            throw error;
-        }
-    }
-
-    // NUEVO MÉTODO: Para hacer PUT directo sin ID
-    async updateViaAPI(configData) {
-        console.log('🚀 Datos enviando a API:', configData);
-
-        // DEBUG: Verificar el token
-        const token = sessionStorage.getItem('token');
-        console.log('🔑 Token:', token ? 'Existe' : 'No existe');
-
-        // DEBUG: Verificar el header Authorization
-        const http = await import('../../../core/services/http.service.js');
-
-        const response = await http.default.put(this.resourceEndpoint, configData);
-        return response;
-    }
-    async updateSettings(userId, settings) {
-        try {
-            return await this.saveOrUpdate(userId, settings);
-        } catch (error) {
-            console.error(`Error updating settings for user ${userId}:`, error);
-            throw error;
+            return await this.create(configData);
+        } catch (createError) {
+            if (createError.response?.status === 400) {
+                try {
+                    const existing = await this.getByUserId(userId);
+                    if (existing && existing.id) {
+                        return await this.update(existing.id, configData);
+                    }
+                } catch (getError) {
+                    console.error('Error getting existing configuration:', getError);
+                }
+            }
+            throw createError;
         }
     }
 
@@ -79,37 +71,39 @@ class ConfigurationService extends BaseService {
             const user = AuthService.getCurrentUser();
 
             if (!user) {
-                console.log('No user logged in, using default configuration');
                 return new Configuration();
             }
 
             const userId = this.getCurrentUserId();
 
             if (!userId) {
-                console.log('Could not get user ID, using default configuration');
                 return new Configuration();
             }
 
-            if (user?.settings) {
-                console.log('Loading settings from sessionStorage');
+            // Si ya tiene settings en sessionStorage, usarlos
+            if (user?.settings && Object.keys(user.settings).length > 0) {
                 return new Configuration(user.settings);
             }
 
-            console.log('Loading settings from API');
-            const settingsFromAPI = await this.getByUserId(userId);
+            // Cargar desde API
+            try {
+                const settingsFromAPI = await this.getByUserId(userId);
 
-            if (settingsFromAPI) {
-                const updatedUser = {
-                    ...user,
-                    settings: settingsFromAPI
-                };
-                sessionStorage.setItem("user", JSON.stringify(updatedUser));
-                console.log('SessionStorage updated with API settings');
+                if (settingsFromAPI) {
+                    const configuration = Configuration.fromAPI(settingsFromAPI);
 
-                return new Configuration(settingsFromAPI);
-            } else {
-                console.log('No settings found in API, using defaults');
-                return new Configuration();
+                    // Actualizar sessionStorage
+                    const updatedUser = { ...user, settings: configuration.toJSON() };
+                    sessionStorage.setItem("user", JSON.stringify(updatedUser));
+                    return configuration;
+                } else {
+                    return new Configuration();
+                }
+            } catch (apiError) {
+                if (apiError.response?.status === 404) {
+                    return new Configuration();
+                }
+                throw apiError;
             }
 
         } catch (error) {
@@ -119,34 +113,33 @@ class ConfigurationService extends BaseService {
     }
 
     async saveCurrentUserSettings(configuration) {
-        const user = AuthService.getCurrentUser();
+        try {
+            const user = AuthService.getCurrentUser();
 
-        if (!user) {
-            throw new Error('No user logged in');
+            if (!user) {
+                throw new Error('No user logged in');
+            }
+
+            const userId = this.getCurrentUserId();
+
+            if (!userId) {
+                throw new Error('Could not get user ID');
+            }
+
+            const apiData = configuration.toAPIFormat();
+            apiData.userId = userId;
+
+            const response = await this.saveOrUpdate(userId, apiData);
+
+            // Actualizar sessionStorage
+            const updatedUser = { ...user, settings: apiData };
+            sessionStorage.setItem("user", JSON.stringify(updatedUser));
+
+            return response;
+        } catch (error) {
+            console.error('Error saving user settings:', error);
+            throw error;
         }
-
-        const userId = this.getCurrentUserId();
-
-        if (!userId) {
-            throw new Error('Could not get user ID');
-        }
-
-        const apiData = configuration.toAPIFormat();
-        // CAMBIO 4: No necesitas enviar user_id, la API lo maneja automáticamente
-        // apiData.user_id = userId; // Comentado
-
-        console.log('Saving settings to API');
-
-        const response = await this.updateSettings(userId, apiData);
-
-        const updatedUser = {
-            ...user,
-            settings: apiData
-        };
-        sessionStorage.setItem("user", JSON.stringify(updatedUser));
-        console.log('SessionStorage updated');
-
-        return response;
     }
 
     clearUserSettings() {

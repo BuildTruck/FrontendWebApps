@@ -49,6 +49,15 @@
     "networkError": "Error de red. Compruebe su conexión."
   },
   "settings": {
+    "tutorials": "Tutoriales",
+    "tutorialsDescription": "Reactiva los tutoriales para verlos nuevamente",
+    "restartManagerTutorial": "Tutorial del Panel",
+    "restartProjectTutorial": "Tutorial de Proyecto",
+    "restartAllTutorials": "Resetear Todos",
+    "tutorialReactivated": "Tutorial reactivado. Redirigiendo...",
+    "projectTutorialReactivated": "Tutorial de proyecto reactivado",
+    "allTutorialsReset": "Todos los tutoriales han sido reactivados",
+    "general": "General",
     "appearance": "Apariencia",
     "appearanceDescription": "Personaliza la apariencia de la aplicación según tus preferencias",
     "subscription": "Suscripción",
@@ -64,7 +73,7 @@
 
     "theme": "Tema",
     "plan": "Plan",
-    "notifications": "Habilitar Notificaciones",
+    "notifications": "Notificaciones",
     "emailNotifications": "Notificaciones por Email",
     "adminNotifications": "Notificaciones de Administrador",
     "systemAlerts": "Alertas del Sistema",
@@ -1259,6 +1268,8 @@
     },
 
     "preferences": {
+      "volume": "Volumen",
+      "testSound": "Prueba de volumen",
       "title": "Configuración de Notificaciones",
       "loading": "Cargando preferencias...",
       "saving": "Guardando...",

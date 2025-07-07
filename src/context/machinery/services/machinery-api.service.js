@@ -1,32 +1,12 @@
-import { BaseService } from "../../../core/services/base.service.js";
 import { MachineryEntity } from '../models/machinery.entity.js';
+import http from "../../../core/services/http.service.js";
 
-export class MachineryApiService extends BaseService {
+export class MachineryApiService {
     constructor() {
-        super('/machinery');
+        this.baseURL = '/machinery';
     }
 
-    // Basic CRUD methods
-    async getAll(params = {}) {
-        try {
-            const response = await super.getAll(params);
-            return MachineryEntity.fromJsonArray(response.data || []);
-        } catch (error) {
-            console.error('Error fetching machinery:', error);
-            return [];
-        }
-    }
-
-    async getById(id) {
-        try {
-            const response = await super.getById(id);
-            return MachineryEntity.fromAPI(response.data);
-        } catch (error) {
-            console.error(`Error fetching machinery ${id}:`, error);
-            throw error;
-        }
-    }
-
+    // ✅ MÉTODO PRINCIPAL: Obtener maquinaria por proyecto
     async getByProject(projectId) {
         if (!projectId) {
             console.warn('ProjectId not provided in getByProject');
@@ -34,116 +14,148 @@ export class MachineryApiService extends BaseService {
         }
 
         try {
-            let machinery = [];
-            try {
-                const response = await super.getAll({ projectId });
-                machinery = MachineryEntity.fromJsonArray(response.data || []);
-                machinery = MachineryEntity.filterByProject(machinery, projectId);
-            } catch (filterError) {
-                const allMachinery = await this.getAll();
-                machinery = MachineryEntity.filterByProject(allMachinery, projectId);
-            }
+            console.log(`🔍 Getting machinery for project ${projectId}`);
 
+            // ✅ USAR EL ENDPOINT CORRECTO
+            const response = await http.get(`${this.baseURL}/project/${projectId}`);
+            console.log('🔍 RAW response from backend:', response);
+
+            // ✅ Extraer datos de la respuesta
+            const data = response.data || [];
+            console.log('🔍 Extracted data:', data);
+
+            // ✅ Convertir a entidades de maquinaria
+            const machinery = MachineryEntity.fromJsonArray(data);
             console.log(`Found ${machinery.length} machinery for project ${projectId}`);
-            return machinery;
 
+            return machinery;
         } catch (error) {
             console.error(`Error fetching project machinery ${projectId}:`, error);
-            return [];
+
+            // Si es 404, simplemente devolver array vacío (no hay maquinaria aún)
+            if (error.response?.status === 404) {
+                console.log(`No machinery found for project ${projectId} (404)`);
+                return [];
+            }
+
+            throw error;
         }
     }
 
-    async getCurrentProjectId() {
+    // ✅ Obtener maquinaria por ID
+    async getById(id) {
         try {
-            const route = this.$route || window.$router?.currentRoute?.value;
-            if (route && route.params && route.params.projectId) {
-                return route.params.projectId;
-            }
+            const response = await http.get(`${this.baseURL}/${id}`);
+            console.log('🔍 getById response:', response);
 
-            const pathMatch = window.location.pathname.match(/\/proyecto\/(\d+)|\/supervisor\/(\d+)/);
-            if (pathMatch) {
-                const projectId = pathMatch[1] || pathMatch[2];
-                return projectId;
-            }
-
-            const storedProjectId = localStorage.getItem('currentProjectId');
-            if (storedProjectId) {
-                return storedProjectId;
-            }
-
-            // Try session storage as fallback
-            const user = JSON.parse(sessionStorage.getItem('user') || '{}');
-            if (user.projectId) {
-                return user.projectId;
-            }
-
-            console.warn('No projectId found in context');
-            return null;
+            const data = response.data;
+            return MachineryEntity.fromAPI(data);
         } catch (error) {
-            console.error('Error getting projectId:', error);
-            return null;
+            console.error(`Error fetching machinery ${id}:`, error);
+            throw error;
         }
     }
 
+    // ✅ Crear nueva maquinaria
     async create(machineryData) {
         try {
-            let machinery = machineryData instanceof MachineryEntity
-                ? machineryData
-                : new MachineryEntity(machineryData);
+            let machinery = machineryData instanceof MachineryEntity ? machineryData : new MachineryEntity(machineryData);
 
+            console.log('🔍 CREATE - Input machinery data:', machineryData);
+            console.log('🔍 CREATE - Machinery entity:', machinery);
+
+            // ✅ Asegurar que tiene projectId
             if (!machinery.projectId) {
                 const currentProjectId = await this.getCurrentProjectId();
-                if (currentProjectId) {
-                    machinery.projectId = currentProjectId;
-                } else {
-                    throw new Error('Could not determine current project');
-                }
+                if (!currentProjectId) throw new Error('Could not determine current project');
+                machinery.projectId = currentProjectId;
             }
 
+            console.log('🔍 CREATE - Final projectId:', machinery.projectId);
+
+            // ✅ Validar datos
             const validation = machinery.validate();
             if (!validation.isValid) {
+                console.error('❌ CREATE - Validation failed:', validation.errors);
                 throw new Error(`Invalid data: ${validation.errors.join(', ')}`);
             }
 
-            const cleanData = machinery.toCreateJson();
-            const response = await super.create(cleanData);
+            console.log('✅ CREATE - Validation passed');
+
+            // ✅ Crear FormData
+            const formData = this.createFormData(machinery);
+
+            console.log('📋 CREATE - FormData contents:');
+            for (let [key, value] of formData.entries()) {
+                console.log(`  ${key}: ${value}`);
+            }
+
+            console.log('🚀 CREATE - Sending POST request to:', this.baseURL);
+
+            const response = await http.post(this.baseURL, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+
+            console.log('✅ CREATE - Success response:', response);
+
             return MachineryEntity.fromAPI(response.data);
         } catch (error) {
-            console.error('Error creating machinery:', error);
+            console.error('❌ CREATE - Error details:', {
+                message: error.message,
+                status: error.response?.status,
+                statusText: error.response?.statusText,
+                data: error.response?.data,
+                url: error.config?.url
+            });
             throw error;
         }
     }
 
+    // ✅ Actualizar maquinaria
     async update(id, machineryData) {
         try {
-            let machinery = machineryData instanceof MachineryEntity
-                ? machineryData
-                : new MachineryEntity(machineryData);
+            console.log('🔄 UPDATE MACHINERY - ID:', id);
+            console.log('🔄 UPDATE MACHINERY - Data:', machineryData);
 
-            if (!machinery.projectId) {
-                const currentProjectId = await this.getCurrentProjectId();
-                if (currentProjectId) {
-                    machinery.projectId = currentProjectId;
-                }
-            }
+            let machinery = machineryData instanceof MachineryEntity ? machineryData : new MachineryEntity(machineryData);
 
             const validation = machinery.validate();
             if (!validation.isValid) {
+                console.error('❌ Validation failed:', validation.errors);
                 throw new Error(`Invalid data: ${validation.errors.join(', ')}`);
             }
 
-            const updateData = machinery.toUpdateJson();
-            const response = await super.update(id, updateData);
+            const formData = this.createFormData(machinery, true);
+
+            console.log('📋 UPDATE MACHINERY FormData contents:');
+            for (let [key, value] of formData.entries()) {
+                console.log(`  ${key}: ${value}`);
+            }
+
+            const response = await http.put(`${this.baseURL}/${id}`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+
             return MachineryEntity.fromAPI(response.data);
         } catch (error) {
-            console.error(`Error updating machinery ${id}:`, error);
+            console.error('❌ UPDATE MACHINERY Error details:', {
+                status: error.response?.status,
+                statusText: error.response?.statusText,
+                data: error.response?.data,
+                message: error.message
+            });
             throw error;
         }
     }
 
+    // ✅ Eliminar maquinaria
     async delete(id) {
         try {
-            await super.delete(id);
+            await http.delete(`${this.baseURL}/${id}`);
             return true;
         } catch (error) {
             console.error(`Error deleting machinery ${id}:`, error);
@@ -151,31 +163,133 @@ export class MachineryApiService extends BaseService {
         }
     }
 
+    // ✅ Eliminar múltiples maquinarias
     async deleteMultiple(ids) {
         try {
             const deletePromises = ids.map(id => this.delete(id));
             await Promise.all(deletePromises);
             return true;
         } catch (error) {
-            console.error('Error deleting machinery:', error);
+            console.error('Error deleting multiple machinery:', error);
             throw error;
         }
     }
 
-    // Validations
+    // ✅ Crear FormData para envío
+    createFormData(machinery, isUpdate = false) {
+        const formData = new FormData();
+
+        // Required fields for creation only
+        if (!isUpdate) {
+            formData.append('ProjectId', machinery.projectId);
+            formData.append('RegisterDate', this.formatDateForAPI(machinery.registerDate || new Date()));
+        }
+
+        // Always required fields
+        formData.append('ProjectId', machinery.projectId); // También en update según el backend
+        formData.append('Name', machinery.name);
+        formData.append('LicensePlate', machinery.licensePlate);
+        formData.append('MachineryType', machinery.machineryType);
+
+        // Status como número (enum)
+        const statusValue = this.getStatusEnumValue(machinery.status);
+        formData.append('Status', statusValue);
+
+        if (machinery.provider && machinery.provider.trim()) {
+            formData.append('Provider', machinery.provider);
+        }
+        if (machinery.description && machinery.description.trim()) {
+            formData.append('Description', machinery.description);
+        }
+        if (machinery.personnelId !== null && machinery.personnelId !== undefined) {
+            formData.append('PersonnelId', machinery.personnelId);
+        }
+
+        // Handle image file
+        if (machinery.imageFile && machinery.imageFile instanceof File) {
+            formData.append('ImageFile', machinery.imageFile);
+            console.log('📸 Adding image file:', machinery.imageFile.name);
+        }
+
+        // Handle image removal (mantenemos por si acaso)
+        if (isUpdate) {
+            if (machinery.removeImage === true) {
+                formData.append('RemoveImage', 'true');
+                console.log('🗑️ Marking image for removal');
+            } else {
+                formData.append('RemoveImage', 'false');
+            }
+        }
+
+        return formData;
+    }
+
+    // ✅ Mapear status a enum
+    getStatusEnumValue(status) {
+        const statusMap = {
+            'ACTIVE': 0,
+            'MAINTENANCE': 1
+        };
+        return statusMap[status] || 0; // Default a ACTIVE
+    }
+
+    // ✅ Formatear fecha para API
+    formatDateForAPI(date) {
+        if (!date) return null;
+
+        try {
+            if (typeof date === 'string' && date.match(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/)) {
+                return date;
+            }
+
+            if (typeof date === 'string' && date.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                return `${date}T00:00:00.000Z`;
+            }
+
+            if (date instanceof Date) {
+                return date.toISOString();
+            }
+
+            const parsedDate = new Date(date);
+            if (!isNaN(parsedDate.getTime())) {
+                return parsedDate.toISOString();
+            }
+
+            return null;
+        } catch (error) {
+            console.error('Error formatting date:', error);
+            return null;
+        }
+    }
+
+    // ✅ Obtener proyecto actual
+    async getCurrentProjectId() {
+        try {
+            const route = window.$router?.currentRoute?.value;
+            if (route?.params?.projectId) return route.params.projectId;
+
+            const pathMatch = window.location.pathname.match(/\/proyecto\/(\d+)|\/supervisor\/(\d+)/);
+            if (pathMatch) return pathMatch[1] || pathMatch[2];
+
+            return localStorage.getItem('currentProjectId');
+        } catch (error) {
+            console.error('Error getting projectId:', error);
+            return null;
+        }
+    }
+
+    // ✅ Validar placa única
     async validateLicensePlate(licensePlate, projectId, excludeId = null) {
         try {
             const machinery = await this.getByProject(projectId);
-            const exists = machinery.some(m =>
-                m.licensePlate === licensePlate && m.id !== excludeId
-            );
-            return exists;
+            return machinery.some(m => m.licensePlate === licensePlate && m.id !== excludeId);
         } catch (error) {
-            console.error(`Error validating license plate ${licensePlate}:`, error);
+            console.error(`Error validating license plate:`, error);
             return false;
         }
     }
 
+    // ✅ Verificar propiedad de maquinaria
     async verifyMachineryOwnership(machineryId, projectId) {
         if (!machineryId || !projectId) {
             return false;
@@ -190,10 +304,9 @@ export class MachineryApiService extends BaseService {
         }
     }
 
-    // Personnel assignment methods
+    // ✅ Obtener operadores disponibles
     async getAvailableOperators(projectId) {
         try {
-            // Import personnel service dynamically to avoid circular dependencies
             const { PersonnelApiService } = await import('../../personnel/services/personnel-api.service.js');
             const personnelService = new PersonnelApiService();
 
@@ -208,6 +321,7 @@ export class MachineryApiService extends BaseService {
         }
     }
 
+    // ✅ Asignar operador
     async assignOperator(machineryId, personnelId) {
         try {
             const machinery = await this.getById(machineryId);
@@ -219,6 +333,7 @@ export class MachineryApiService extends BaseService {
         }
     }
 
+    // ✅ Desasignar operador
     async unassignOperator(machineryId) {
         try {
             const machinery = await this.getById(machineryId);
@@ -230,7 +345,7 @@ export class MachineryApiService extends BaseService {
         }
     }
 
-    // Machinery types management
+    // ✅ Obtener tipos de maquinaria
     async getMachineryTypes(projectId = null) {
         try {
             const defaultTypes = MachineryEntity.MACHINERY_TYPES.map(type => type.value);
@@ -249,6 +364,7 @@ export class MachineryApiService extends BaseService {
         }
     }
 
+    // ✅ Agregar tipo de maquinaria al proyecto
     async addMachineryTypeToProject(projectId, typeName) {
         try {
             if (!typeName || !typeName.trim()) {
@@ -271,6 +387,7 @@ export class MachineryApiService extends BaseService {
         }
     }
 
+    // ✅ Obtener tipos con etiquetas
     async getMachineryTypesWithStored(projectId) {
         try {
             const defaultTypes = MachineryEntity.MACHINERY_TYPES;
@@ -282,7 +399,6 @@ export class MachineryApiService extends BaseService {
             const storageKey = `machinery_types_project_${projectId}`;
             const storedTypes = JSON.parse(localStorage.getItem(storageKey) || '[]');
 
-            // Combine default types with stored custom types
             const customTypes = storedTypes.map(type => ({
                 value: type,
                 label: this.formatTypeLabel(type)
@@ -296,116 +412,14 @@ export class MachineryApiService extends BaseService {
         }
     }
 
+    // ✅ Formatear etiqueta de tipo
     formatTypeLabel(type) {
         return type.split('_').map(word =>
             word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
         ).join(' ');
     }
 
-    async compressImage(file, config = {}) {
-        const defaultConfig = {
-            maxWidth: 300,
-            maxHeight: 300,
-            quality: 0.7,
-            maxSizeKB: 100,  // Más comprimido que antes (era 150)
-            format: 'image/webp'
-        };
-
-        const finalConfig = { ...defaultConfig, ...config };
-
-        return new Promise((resolve, reject) => {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            const img = new Image();
-
-            img.onload = () => {
-                try {
-                    let { width, height } = img;
-
-                    if (width > height) {
-                        if (width > finalConfig.maxWidth) {
-                            height = (height * finalConfig.maxWidth) / width;
-                            width = finalConfig.maxWidth;
-                        }
-                    } else {
-                        if (height > finalConfig.maxHeight) {
-                            width = (width * finalConfig.maxHeight) / height;
-                            height = finalConfig.maxHeight;
-                        }
-                    }
-
-                    const size = Math.min(width, height, 200);  // Tamaño cuadrado como Personnel
-                    canvas.width = size;
-                    canvas.height = size;
-
-                    ctx.imageSmoothingEnabled = true;
-                    ctx.imageSmoothingQuality = 'high';
-
-                    const offsetX = (width - size) / 2;
-                    const offsetY = (height - size) / 2;
-
-                    ctx.drawImage(img, -offsetX, -offsetY, width, height);
-
-                    const qualities = [0.8, 0.6, 0.4, 0.3, 0.2, 0.1];
-                    let bestResult = null;
-
-                    for (const quality of qualities) {
-                        const compressed = canvas.toDataURL('image/webp', quality);
-                        const sizeKB = Math.round(compressed.length * 0.75 / 1024);
-
-                        if (sizeKB <= finalConfig.maxSizeKB) {
-                            bestResult = compressed;
-                            break;
-                        }
-                    }
-
-                    if (!bestResult) {
-                        bestResult = canvas.toDataURL('image/webp', 0.1);
-                    }
-
-                    resolve(bestResult);
-                } catch (error) {
-                    reject(new Error('Error processing image'));
-                }
-            };
-
-            img.onerror = () => {
-                reject(new Error('Error loading image'));
-            };
-
-            img.src = URL.createObjectURL(file);
-        });
-    }
-
-    async uploadMachineryImage(file, projectId = null) {
-        if (!file) {
-            throw new Error('Image file is required');
-        }
-
-        try {
-            if (!file.type.startsWith('image/')) {
-                throw new Error('File must be an image (JPG, PNG, WEBP, etc.)');
-            }
-
-            const maxSize = 5 * 1024 * 1024;
-            if (file.size > maxSize) {
-                throw new Error('Image is too large. Maximum 5MB allowed.');
-            }
-
-            const compressedImage = await this.compressImage(file, {
-                maxWidth: 200,     // Más pequeño
-                maxHeight: 200,    // Más pequeño
-                maxSizeKB: 50      // Muy comprimido como Personnel
-            });
-
-            return compressedImage;
-        } catch (error) {
-            console.error('Error processing machinery image:', error);
-            throw error;
-        }
-    }
-
-    // Statistics
+    // ✅ Estadísticas del proyecto
     async getProjectStats(projectId) {
         if (!projectId) {
             throw new Error('Project ID is required');
@@ -436,6 +450,7 @@ export class MachineryApiService extends BaseService {
         }
     }
 
+    // ✅ Desglose de status
     getStatusBreakdown(machinery) {
         const statuses = {};
         machinery.forEach(m => {
@@ -446,6 +461,7 @@ export class MachineryApiService extends BaseService {
         return statuses;
     }
 
+    // ✅ Desglose de tipos
     getTypeBreakdown(machinery) {
         const types = {};
         machinery.forEach(m => {
@@ -457,7 +473,7 @@ export class MachineryApiService extends BaseService {
         return types;
     }
 
-    // Inventory summary (for compatibility with existing component)
+    // ✅ Resumen de inventario (compatibilidad)
     async getInventorySummary(projectId) {
         try {
             const machinery = await this.getByProject(projectId);
@@ -468,7 +484,7 @@ export class MachineryApiService extends BaseService {
         }
     }
 
-    // Utility methods
+    // ✅ Filtrar por rango de fechas
     filterMachineryByDateRange(machinery, startDate, endDate) {
         if (!startDate && !endDate) {
             return machinery;
@@ -483,6 +499,7 @@ export class MachineryApiService extends BaseService {
         });
     }
 
+    // ✅ Eliminar por proyecto
     async deleteByProjectId(projectId) {
         if (!projectId) {
             throw new Error('Project ID is required');
@@ -508,7 +525,7 @@ export class MachineryApiService extends BaseService {
         }
     }
 
-    // Get machinery without operators
+    // ✅ Obtener maquinaria sin operadores
     async getUnassignedMachinery(projectId) {
         try {
             const machinery = await this.getByProject(projectId);
@@ -519,7 +536,7 @@ export class MachineryApiService extends BaseService {
         }
     }
 
-    // Get machinery by operator
+    // ✅ Obtener maquinaria por operador
     async getMachineryByOperator(personnelId, projectId) {
         try {
             const machinery = await this.getByProject(projectId);
@@ -527,41 +544,6 @@ export class MachineryApiService extends BaseService {
         } catch (error) {
             console.error('Error getting machinery by operator:', error);
             return [];
-        }
-    }
-
-    async uploadImage(file, projectId = null) {
-        return await this.uploadMachineryImage(file, projectId);
-    }
-
-    // Export functionality usando XLSX como PersonnelApiService
-    async exportToExcel(machineryData, fileName = 'maquinaria') {
-        try {
-            const exportData = machineryData.map(machine => ({
-                'Nombre': machine.name || '',
-                'Placa/Código': machine.licensePlate || '',
-                'Tipo': machine.getMachineryTypeLabel() || machine.machineryType || '',
-                'Estado': machine.getStatusLabel() || machine.status || '',
-                'Proveedor': machine.provider || '',
-                'Descripción': machine.description || '',
-                'Operador Asignado': machine.personnelId ? 'Operador Asignado' : 'Sin asignar', // Cambiar aquí
-                'Disponible': machine.isAvailable() ? 'Sí' : 'No',
-                'Fecha Registro': MachineryEntity.formatPeruDate(machine.registerDate),
-                'Fecha Creación': MachineryEntity.formatPeruDate(machine.createdAt),
-                'Última Actualización': MachineryEntity.formatPeruDate(machine.updatedAt)
-            }));
-
-            const wb = XLSX.utils.book_new();
-            const ws = XLSX.utils.json_to_sheet(exportData);
-            XLSX.utils.book_append_sheet(wb, ws, 'Maquinaria');
-
-            const finalFileName = `${fileName}_${new Date().toISOString().split('T')[0]}.xlsx`;
-            XLSX.writeFile(wb, finalFileName);
-
-            return true;
-        } catch (error) {
-            console.error('Error exporting to Excel:', error);
-            throw error;
         }
     }
 }

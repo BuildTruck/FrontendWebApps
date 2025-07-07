@@ -37,6 +37,17 @@ export const AuthService = {
             sessionStorage.setItem('token', authData.token || authData);
             sessionStorage.setItem('user', JSON.stringify(authData.user || {email}));
 
+            // NUEVO: Inicializar tema después del login
+            try {
+                const { useThemeStore } = await import('../../core/stores/theme.js');
+                const themeStore = useThemeStore();
+                await themeStore.initializeFromLogin();
+                console.log('✅ Tema inicializado después del login');
+            } catch (themeError) {
+                console.error('Error inicializando tema:', themeError);
+                // No bloquear el login si falla el tema
+            }
+
             return authData.user || {email};
         } catch (error) {
             console.error('Error en login:', error);
@@ -109,6 +120,16 @@ export const AuthService = {
      */
     logout() {
         this.clearAllStorages();
+
+        // NUEVO: Reset del tema al hacer logout
+        try {
+            const { useThemeStore } = require('../../core/stores/theme.js');
+            const themeStore = useThemeStore();
+            themeStore.reset();
+        } catch (error) {
+            console.error('Error resetting theme:', error);
+        }
+
         window.location.href = '/login';
     },
 

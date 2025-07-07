@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { AuthService } from "../../auth/services/auth-api.service.js"
-import { configurationService} from "../../context/configuration/services/configuration-api.service.js";
+import { configurationService } from "../../context/configuration/services/configuration-api.service.js";
 
 export const useThemeStore = defineStore('theme', {
     state: () => ({
@@ -75,13 +75,22 @@ export const useThemeStore = defineStore('theme', {
             this.detectSystemTheme()
 
             const user = AuthService.getCurrentUser()
+
+            // Primero intentar usar settings del sessionStorage
             if (user?.settings?.theme) {
                 this.currentTheme = user.settings.theme
-            } else if (user) {
+                this.applyThemeToBody()
+                this.isInitialized = true
+                return
+            }
+
+            // Solo cargar desde API si no hay usuario o settings
+            if (user) {
                 try {
                     const configuration = await configurationService.loadCurrentUserSettings()
                     this.currentTheme = configuration?.theme || 'auto'
                 } catch (error) {
+                    console.error('Error loading theme from API:', error)
                     this.currentTheme = 'auto'
                 }
             } else {
@@ -101,15 +110,33 @@ export const useThemeStore = defineStore('theme', {
             this.currentTheme = theme
             this.applyThemeToBody()
 
-            try {
-                const user = AuthService.getCurrentUser()
-                if (user) {
-                    const configuration = await configurationService.loadCurrentUserSettings()
-                    configuration.theme = theme
-                    await configurationService.saveCurrentUserSettings(configuration)
+            // Guardar en sessionStorage inmediatamente
+            const user = AuthService.getCurrentUser()
+            if (user) {
+                const updatedUser = {
+                    ...user,
+                    settings: {
+                        ...user.settings,
+                        theme: theme
+                    }
                 }
+                sessionStorage.setItem('user', JSON.stringify(updatedUser))
+
+                // Guardar en API en background (sin bloquear UI)
+                this.saveThemeToAPI(theme).catch(error => {
+                    console.error('Error guardando tema en API:', error)
+                })
+            }
+        },
+
+        async saveThemeToAPI(theme) {
+            try {
+                const configuration = await configurationService.loadCurrentUserSettings()
+                configuration.theme = theme
+                await configurationService.saveCurrentUserSettings(configuration)
             } catch (error) {
-                console.error('Error guardando tema:', error)
+                console.error('Error saving theme to API:', error)
+                throw error
             }
         },
 

@@ -38,10 +38,11 @@ export class NotificationWebSocketService {
             }
 
             this.currentUserId = user.id;
+            console.log(`🔗 Conectando usuario ID: ${this.currentUserId}`);
 
             // Crear conexión SignalR
             this.connection = new signalR.HubConnectionBuilder()
-                .withUrl(`${import.meta.env.VITE_API_BASE_URL}/hubs/notifications`, {
+                .withUrl(`${import.meta.env.VITE_API_SOCKET_URL}/hubs/notifications`, {
                     accessTokenFactory: () => token,
                     transport: signalR.HttpTransportType.WebSockets | signalR.HttpTransportType.LongPolling
                 })
@@ -86,38 +87,57 @@ export class NotificationWebSocketService {
     _setupEventHandlers() {
         if (!this.connection) return;
 
-        // Evento de nueva notificación
+        console.log('🔧 Configurando event handlers...');
+
+        // Listener universal para debugging (solo en desarrollo)
+        if (import.meta.env.DEV) {
+            this.connection.onmessage = (message) => {
+                console.log('📨 Raw WebSocket message:', message);
+            };
+        }
+
+        // Evento principal de nueva notificación
         this.connection.on('NewNotification', (notificationData) => {
-            console.log('🔔 Nueva notificación recibida:', notificationData);
-            const notification = Notification.fromApiResponse(notificationData);
-            this._emitEvent('newNotification', notification);
+            console.log('🔔 NewNotification recibida:', notificationData);
+            this.handleNotificationReceived(notificationData);
+        });
+
+        // Eventos alternativos (por si el backend usa nombres diferentes)
+        this.connection.on('NotificationCreated', (notificationData) => {
+            console.log('🆕 NotificationCreated recibida:', notificationData);
+            this.handleNotificationReceived(notificationData);
+        });
+
+        this.connection.on('UserNotification', (notificationData) => {
+            console.log('👤 UserNotification recibida:', notificationData);
+            this.handleNotificationReceived(notificationData);
         });
 
         // Evento de actualización de contador no leídas
         this.connection.on('UnreadCountUpdate', (data) => {
-            console.log('📊 Actualización contador no leídas:', data);
+            console.log('📊 UnreadCountUpdate:', data);
             this._emitEvent('unreadCountUpdate', data.unreadCount);
         });
 
         // Evento de notificación marcada como leída
         this.connection.on('NotificationRead', (data) => {
-            console.log('✅ Notificación marcada como leída:', data);
+            console.log('✅ NotificationRead:', data);
             this._emitEvent('notificationRead', data.notificationId);
         });
 
         // Eventos de conexión
         this.connection.on('Connected', (data) => {
-            console.log('🔗 Conectado a NotificationHub:', data);
+            console.log('🔗 Connected event:', data);
             this._emitEvent('connected', data);
         });
 
         this.connection.on('JoinedUserGroup', (data) => {
-            console.log('👥 Unido al grupo de usuario:', data);
+            console.log('👥 JoinedUserGroup event:', data);
             this._emitEvent('joinedUserGroup', data);
         });
 
         this.connection.on('JoinedProjectGroup', (data) => {
-            console.log('🏗️ Unido al grupo de proyecto:', data);
+            console.log('🏗️ JoinedProjectGroup event:', data);
             this._emitEvent('joinedProjectGroup', data);
         });
 
@@ -154,16 +174,42 @@ export class NotificationWebSocketService {
     }
 
     /**
+     * Procesar notificación recibida y mapear datos
+     */
+    handleNotificationReceived(data) {
+        console.log('🔥 Procesando notificación recibida:', data);
+
+        // Mapear los Value Objects a strings
+        const mappedData = {
+            ...data,
+            priority: data.priority?.value || data.priority || 'NORMAL',
+            context: data.context?.value || data.context || 'SYSTEM',
+            type: data.type?.value || data.type || 'INFO'
+        };
+
+        console.log('🔥 Datos mapeados:', mappedData);
+        const notification = Notification.fromApiResponse(mappedData);
+        console.log('🔥 Notification entity creada:', notification);
+
+        this._emitEvent('newNotification', notification);
+        console.log('🔥 Evento newNotification emitido');
+    }
+
+    /**
      * Unirse al grupo del usuario
      */
     async joinUserGroup() {
-        if (!this.isConnected || !this.connection) return;
+        if (!this.isConnected || !this.connection) {
+            console.log('⚠️ No se puede unir al grupo: no conectado');
+            return;
+        }
 
         try {
+            console.log(`👥 Uniéndose al grupo de usuario ID: ${this.currentUserId}`);
             await this.connection.invoke('JoinUserGroup');
-            console.log('👥 Unido al grupo de usuario');
+            console.log('👥 ✅ Unido al grupo de usuario exitosamente');
         } catch (error) {
-            console.error('Error uniéndose al grupo de usuario:', error);
+            console.error('❌ Error uniéndose al grupo de usuario:', error);
         }
     }
 
@@ -279,6 +325,7 @@ export class NotificationWebSocketService {
             this.listeners.set(event, []);
         }
         this.listeners.get(event).push(callback);
+        console.log(`📝 Listener registrado para evento: ${event}`);
     }
 
     /**
@@ -298,14 +345,21 @@ export class NotificationWebSocketService {
      * Emitir evento a listeners
      */
     _emitEvent(event, data) {
+        console.log(`🚀 Emitiendo evento: ${event}`, data);
+
         if (this.listeners.has(event)) {
-            this.listeners.get(event).forEach(callback => {
+            const callbacks = this.listeners.get(event);
+            console.log(`📞 Llamando ${callbacks.length} listeners para ${event}`);
+
+            callbacks.forEach(callback => {
                 try {
                     callback(data);
                 } catch (error) {
-                    console.error(`Error en listener de ${event}:`, error);
+                    console.error(`❌ Error en listener de ${event}:`, error);
                 }
             });
+        } else {
+            console.log(`⚠️ No hay listeners registrados para el evento: ${event}`);
         }
     }
 

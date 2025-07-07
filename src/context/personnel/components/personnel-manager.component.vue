@@ -823,6 +823,7 @@ export default {
   align-items: center;
   gap: 0.75rem;
   text-align: center;
+  background-color: transparent;
 }
 
 .summary-item .label {

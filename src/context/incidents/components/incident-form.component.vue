@@ -3,8 +3,8 @@ import AppButton from '../../../core/components/AppButton.vue';
 import AppInput from '../../../core/components/AppInput.vue';
 import AppNotification from '../../../core/components/AppNotification.vue';
 import { Incident } from '../models/incident.entity.js';
-import { IncidentApiService } from '../services/incident-api.service.js';
-import { PersonnelApiService } from '../../personnel/services/personnel-api.service.js';
+import { incidentApiService } from '../services/incident-api.service.js';
+import { personnelService } from '../../personnel/services/personnel-api.service.js';
 
 export default {
   name: 'IncidentForm',
@@ -29,10 +29,6 @@ export default {
       loading: false,
       localIncident: new Incident(),
       personnel: [],
-      incidentTypes: [],
-      currentProjectId: null,
-      showCustomTypeInput: false,
-      customTypeValue: '',
 
       // Notifications
       showNotification: false,
@@ -40,11 +36,7 @@ export default {
       notificationType: 'success',
 
       // Validations
-      errors: {},
-
-      // Services
-      incidentService: new IncidentApiService(),
-      personnelService: new PersonnelApiService()
+      errors: {}
     };
   },
   computed: {
@@ -53,36 +45,24 @@ export default {
     },
 
     severityOptions() {
-      return [
-        { value: 'BAJO', label: this.$t('incidents.severityLow') },
-        { value: 'MEDIO', label: this.$t('incidents.severityMedium') },
-        { value: 'ALTO', label: this.$t('incidents.severityHigh') },
-        { value: 'CRITICO', label: this.$t('incidents.severityCritical') }
-      ];
+      return Incident.SEVERITIES.map(s => ({
+        value: s.value,
+        label: s.label
+      }));
     },
 
     statusOptions() {
-      return [
-        { value: 'REPORTADO', label: this.$t('incidents.statusReported') },
-        { value: 'EN_PROGRESO', label: this.$t('incidents.statusInProgress') },
-        { value: 'RESUELTO', label: this.$t('incidents.statusResolved') },
-        { value: 'CERRADO', label: this.$t('incidents.statusClosed') }
-      ];
+      return Incident.STATUSES.map(s => ({
+        value: s.value,
+        label: s.label
+      }));
     },
 
     incidentTypeOptions() {
-      const options = this.incidentTypes.map(type => ({
-        value: type.value,
-        label: type.label
+      return Incident.INCIDENT_TYPES.map(t => ({
+        value: t.value,
+        label: t.label
       }));
-
-      // Add option for custom type
-      options.push({
-        value: '__custom__',
-        label: '+ ' + this.$t('incidents.addNewType')
-      });
-
-      return options;
     },
 
     personnelOptions() {
@@ -93,7 +73,7 @@ export default {
 
       options.unshift({
         value: null,
-        label: this.$t('incidents.noPersonnel')
+        label: 'Sin asignar'
       });
 
       return options;
@@ -101,74 +81,40 @@ export default {
   },
   watch: {
     incident: {
-      handler(newData) {
+      handler() {
         this.initializeForm();
       },
-      immediate: true,
-      deep: true
+      immediate: true
     }
   },
   async mounted() {
-    await this.initializeForm();
+    await this.loadPersonnel();
   },
   methods: {
-    async getCurrentProjectId() {
-      if (this.projectId) {
-        return this.projectId;
-      }
-
-      const projectId = await this.incidentService.getCurrentProjectId();
-      if (projectId) {
-        return projectId;
-      }
-
-      throw new Error('ProjectId is required');
-    },
-
     async initializeForm() {
       this.errors = {};
 
-      try {
-        this.currentProjectId = await this.getCurrentProjectId();
-
-        if (this.isEditing && this.incident) {
-          this.localIncident = new Incident({ ...this.incident });
-          this.localIncident.projectId = this.currentProjectId;
-
-          // Ensure image is copied correctly
-          if (this.incident.image) {
-            this.localIncident.image = this.incident.image;
-          }
-        } else {
-          this.localIncident = new Incident({
-            projectId: this.currentProjectId
-          });
-        }
-
-        await this.loadFormData();
-      } catch (error) {
-        console.error('Error initializing form:', error);
-        this.showNotificationMessage(error.message, 'error');
+      if (this.isEditing && this.incident) {
+        this.localIncident = new Incident({
+          ...this.incident,
+          projectId: this.projectId
+        });
+      } else {
+        this.localIncident = new Incident({
+          projectId: this.projectId
+        });
       }
     },
 
-    async loadFormData() {
+    async loadPersonnel() {
       try {
-        // Load incident types
-        this.incidentTypes = await this.incidentService.getIncidentTypesWithStored(this.currentProjectId);
-
-        // Load project personnel
-        this.personnel = await this.personnelService.getByProject(this.currentProjectId);
+        this.personnel = await personnelService.getByProject(this.projectId);
       } catch (error) {
-        console.error('Error loading form data:', error);
+        console.error('Error loading personnel:', error);
       }
     },
 
-    async validateForm() {
-      if (!this.localIncident.projectId) {
-        this.localIncident.projectId = this.currentProjectId;
-      }
-
+    validateForm() {
       const validation = this.localIncident.validate();
       this.errors = {};
 
@@ -178,8 +124,6 @@ export default {
           else if (error.includes('Title')) this.errors.title = error;
           else if (error.includes('Description')) this.errors.description = error;
           else if (error.includes('Incident type')) this.errors.incidentType = error;
-          else if (error.includes('Severity')) this.errors.severity = error;
-          else if (error.includes('Status')) this.errors.status = error;
           else if (error.includes('Location')) this.errors.location = error;
           else if (error.includes('Occurrence')) this.errors.occurredAt = error;
         });
@@ -189,16 +133,14 @@ export default {
     },
 
     async processImage() {
-      if (this.localIncident.image && this.localIncident.image instanceof File) {
+      if (this.localIncident.imageFile && this.localIncident.imageFile instanceof File) {
         try {
-          const compressedImage = await this.incidentService.uploadImage(
-              this.localIncident.image,
-              this.currentProjectId
-          );
-          this.localIncident.image = compressedImage;
+          const validatedFile = await incidentApiService.processImage(this.localIncident.imageFile);
+          this.localIncident.imageFile = validatedFile;
+          return true;
         } catch (error) {
-          console.error('Error processing image:', error);
-          this.showNotificationMessage('Error processing image: ' + error.message, 'error');
+          console.error('Error validating image:', error);
+          this.showNotificationMessage('Error validating image: ' + error.message, 'error');
           return false;
         }
       }
@@ -210,45 +152,29 @@ export default {
 
       try {
         const imageProcessed = await this.processImage();
-        if (!imageProcessed) {
-          return;
-        }
+        if (!imageProcessed) return;
 
-        const isValid = await this.validateForm();
-
+        const isValid = this.validateForm();
         if (!isValid) {
-          this.showNotificationMessage(this.$t('incidents.validationErrors'), 'error');
+          this.showNotificationMessage('Por favor corrige los errores', 'error');
           return;
         }
 
         let savedIncident;
 
         if (this.isEditing) {
-          savedIncident = await this.incidentService.update(this.localIncident.id, this.localIncident);
-          this.showNotificationMessage(this.$t('incidents.incidentUpdated'), 'success');
+          savedIncident = await incidentApiService.update(this.localIncident.id, this.localIncident);
+          this.showNotificationMessage('Incidente actualizado correctamente', 'success');
         } else {
-          savedIncident = await this.incidentService.create(this.localIncident);
-          this.showNotificationMessage(this.$t('incidents.incidentCreated'), 'success');
-        }
-
-        // Save custom incident type if needed
-        if (this.localIncident.incidentType && this.localIncident.incidentType.trim()) {
-          await this.incidentService.addIncidentTypeToProject(this.currentProjectId, this.localIncident.incidentType.trim());
+          savedIncident = await incidentApiService.create(this.localIncident);
+          this.showNotificationMessage('Incidente creado correctamente', 'success');
         }
 
         this.$emit('save', savedIncident);
 
       } catch (error) {
         console.error('Error saving incident:', error);
-
-        if (error.response?.status === 409) {
-          this.showNotificationMessage(this.$t('incidents.titleExists'), 'error');
-        } else {
-          this.showNotificationMessage(
-              error.message || this.$t('incidents.errorSaving'),
-              'error'
-          );
-        }
+        this.showNotificationMessage(error.message || 'Error al guardar el incidente', 'error');
       } finally {
         this.loading = false;
       }
@@ -265,26 +191,9 @@ export default {
       this.showNotification = true;
     },
 
-    onIncidentTypeChange(value) {
-      if (value === '__custom__') {
-        this.showCustomTypeInput = true;
-        this.customTypeValue = '';
-        this.localIncident.incidentType = '';
-      } else {
-        this.showCustomTypeInput = false;
-        this.localIncident.incidentType = value;
-      }
-    },
-
-    onCustomTypeInput(value) {
-      this.customTypeValue = value;
-      this.localIncident.incidentType = value;
-    },
-
-    onCustomTypeBlur() {
-      if (this.customTypeValue && this.customTypeValue.trim()) {
-        this.localIncident.incidentType = this.customTypeValue.trim();
-        this.showCustomTypeInput = false;
+    onImageChange(file) {
+      if (file) {
+        this.localIncident.setImageFile(file);
       }
     }
   }
@@ -304,22 +213,22 @@ export default {
             :disabled="loading"
         />
         <div class="header-title">
-          <h1>{{ isEditing ? $t('incidents.editIncident') : $t('incidents.addNew') }}</h1>
+          <h1>{{ isEditing ? 'Editar Incidente' : 'Nuevo Incidente' }}</h1>
           <p class="header-subtitle">
-            {{ isEditing ? $t('incidents.basicInfo') : $t('incidents.incidentDetails') }}
+            {{ isEditing ? 'Información básica' : 'Detalles del incidente' }}
           </p>
         </div>
       </div>
 
       <div class="header-actions">
         <AppButton
-            :label="$t('general.cancel')"
+            label="Cancelar"
             variant="secondary"
             @click="handleCancel"
             :disabled="loading"
         />
         <AppButton
-            :label="isEditing ? $t('incidents.confirmChanges') : $t('incidents.create')"
+            :label="isEditing ? 'Guardar Cambios' : 'Crear Incidente'"
             variant="primary"
             :loading="loading"
             @click="handleSave"
@@ -332,12 +241,12 @@ export default {
       <div class="form-container">
         <!-- Basic Information -->
         <div class="form-section">
-          <h2 class="form-section-title">{{ $t('incidents.basicInfo') }}</h2>
+          <h2 class="form-section-title">Información Básica</h2>
           <div class="form-grid">
             <AppInput
                 v-model="localIncident.title"
-                :label="$t('incidents.title')"
-                :placeholder="$t('incidents.titlePlaceholder')"
+                label="Título"
+                placeholder="Ingrese el título del incidente"
                 :error="errors.title"
                 :disabled="loading"
                 required
@@ -345,49 +254,29 @@ export default {
 
             <AppInput
                 v-model="localIncident.location"
-                :label="$t('incidents.location')"
-                :placeholder="$t('incidents.locationPlaceholder')"
+                label="Ubicación"
+                placeholder="Ingrese la ubicación"
                 :error="errors.location"
                 :disabled="loading"
                 required
             />
 
-            <!-- Incident Type field -->
-            <div v-if="!showCustomTypeInput">
-              <AppInput
-                  v-model="localIncident.incidentType"
-                  :label="$t('incidents.incidentType')"
-                  type="select"
-                  :placeholder="$t('incidents.selectType')"
-                  :options="incidentTypeOptions"
-                  :error="errors.incidentType"
-                  :disabled="loading"
-                  @update:modelValue="onIncidentTypeChange"
-                  required
-              />
-            </div>
-
-            <div v-else>
-              <AppInput
-                  v-model="customTypeValue"
-                  :label="$t('incidents.incidentType')"
-                  type="text"
-                  :placeholder="$t('incidents.customTypePlaceholder')"
-                  :error="errors.incidentType"
-                  :disabled="loading"
-                  @input="onCustomTypeInput"
-                  @blur="onCustomTypeBlur"
-                  @keyup.enter="onCustomTypeBlur"
-                  required
-                  autofocus
-              />
-            </div>
+            <AppInput
+                v-model="localIncident.incidentType"
+                label="Tipo de Incidente"
+                type="select"
+                placeholder="Seleccione el tipo"
+                :options="incidentTypeOptions"
+                :error="errors.incidentType"
+                :disabled="loading"
+                required
+            />
 
             <AppInput
                 v-model="localIncident.severity"
-                :label="$t('incidents.severity')"
+                label="Severidad"
                 type="select"
-                :placeholder="$t('incidents.selectSeverity')"
+                placeholder="Seleccione la severidad"
                 :options="severityOptions"
                 :error="errors.severity"
                 :disabled="loading"
@@ -396,9 +285,9 @@ export default {
 
             <AppInput
                 v-model="localIncident.status"
-                :label="$t('incidents.status')"
+                label="Estado"
                 type="select"
-                :placeholder="$t('incidents.selectStatus')"
+                placeholder="Seleccione el estado"
                 :options="statusOptions"
                 :error="errors.status"
                 :disabled="loading"
@@ -407,7 +296,7 @@ export default {
 
             <AppInput
                 v-model="localIncident.occurredAt"
-                :label="$t('incidents.occurredAt')"
+                label="Fecha de Ocurrencia"
                 type="datetime-local"
                 :error="errors.occurredAt"
                 :disabled="loading"
@@ -416,9 +305,9 @@ export default {
 
             <AppInput
                 v-model="localIncident.description"
-                :label="$t('incidents.description')"
+                label="Descripción"
                 type="textarea"
-                :placeholder="$t('incidents.descriptionPlaceholder')"
+                placeholder="Describa el incidente"
                 :error="errors.description"
                 :disabled="loading"
                 required
@@ -428,50 +317,47 @@ export default {
 
         <!-- Assignment Information -->
         <div class="form-section">
-          <h2 class="form-section-title">{{ $t('incidents.assignmentInfo') }}</h2>
+          <h2 class="form-section-title">Asignación</h2>
           <div class="form-grid">
             <AppInput
                 v-model="localIncident.reportedBy"
-                :label="$t('incidents.reportedBy')"
+                label="Reportado Por"
                 type="select"
-                :placeholder="$t('incidents.selectReporter')"
+                placeholder="Seleccione quien reporta"
                 :options="personnelOptions"
-                :error="errors.reportedBy"
                 :disabled="loading"
             />
 
             <AppInput
                 v-model="localIncident.assignedTo"
-                :label="$t('incidents.assignedTo')"
+                label="Asignado A"
                 type="select"
-                :placeholder="$t('incidents.selectAssignee')"
+                placeholder="Seleccione a quien asignar"
                 :options="personnelOptions"
-                :error="errors.assignedTo"
                 :disabled="loading"
             />
 
             <AppInput
                 v-model="localIncident.resolvedAt"
-                :label="$t('incidents.resolvedAt')"
+                label="Fecha de Resolución"
                 type="datetime-local"
-                :error="errors.resolvedAt"
                 :disabled="loading || localIncident.status !== 'RESUELTO'"
             />
 
             <AppInput
-                v-model="localIncident.image"
-                :label="$t('incidents.image')"
-                type="photo"
-                :error="errors.image"
+                v-model="localIncident.imageFile"
+                label="Imagen"
+                type="file"
+                accept="image/*"
                 :disabled="loading"
+                @change="onImageChange"
             />
 
             <AppInput
                 v-model="localIncident.notes"
-                :label="$t('incidents.notes')"
+                label="Notas"
                 type="textarea"
-                :placeholder="$t('incidents.notesPlaceholder')"
-                :error="errors.notes"
+                placeholder="Notas adicionales"
                 :disabled="loading"
             />
           </div>

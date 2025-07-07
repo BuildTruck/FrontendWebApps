@@ -1394,6 +1394,7 @@
 
 [data-theme="dark"] .summary-item .label {
     color: var(--text-secondary) !important;
+    background-color: transparent !important;
 }
 
 [data-theme="dark"] .attendance-calendar {
@@ -1496,8 +1497,7 @@
 }
 
 [data-theme="dark"] .supervisor-header {
-    background: linear-gradient(135deg, #FF5F01 0%, #E04E00 100%) !important;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3) !important;
+   background-color: transparent; !important;
 }
 
 [data-theme="dark"] .supervisor-subtitle {
@@ -3880,8 +3880,7 @@
 
 /* Navegación de tabs */
 [data-theme="dark"] .tabs-navigation {
-    background-color: #2c2c2c !important;
-    border: 1px solid #404040 !important;
+    background-color: transparent !important;
 }
 
 /* Botones de tab por defecto */
@@ -5135,3 +5134,272 @@
     outline-offset: 2px !important;
 }
 
+/* ================================================================
+   NOTIFICATION PREFERENCES - DARK MODE
+   ================================================================ */
+
+/* Loading state */
+[data-theme="dark"] .loading-state {
+    background: var(--bg-card) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Secciones principales */
+[data-theme="dark"] .quick-actions,
+[data-theme="dark"] .context-preferences,
+[data-theme="dark"] .advanced-settings,
+[data-theme="dark"] .export-import,
+[data-theme="dark"] .footer-actions {
+    background: var(--bg-card) !important;
+    border-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .quick-actions h5,
+[data-theme="dark"] .context-preferences h5,
+[data-theme="dark"] .advanced-settings h5,
+[data-theme="dark"] .export-import h5 {
+    color: #FF5F01 !important;
+}
+
+/* Botones de acción */
+[data-theme="dark"] .btn-action {
+    background: var(--bg-secondary) !important;
+    border-color: var(--border-color) !important;
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .btn-action:hover {
+    border-color: var(--border-hover) !important;
+}
+
+/* Items de preferencias */
+[data-theme="dark"] .preference-item {
+    border-color: var(--border-color) !important;
+    background: var(--bg-secondary) !important;
+}
+
+[data-theme="dark"] .preference-item.disabled {
+    background: var(--bg-primary) !important;
+    border-color: var(--border-color) !important;
+    opacity: 0.5 !important;
+}
+
+[data-theme="dark"] .preference-item.enabled {
+    border-color: #FF5F01 !important;
+    background: rgba(255, 95, 1, 0.1) !important;
+}
+
+[data-theme="dark"] .preference-header {
+    background: var(--bg-card) !important;
+    border-bottom-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .context-name {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .preference-details {
+    background: var(--bg-card) !important;
+}
+
+/* Toggle switch */
+[data-theme="dark"] .slider {
+    background-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .slider:before {
+    background-color: var(--text-primary) !important;
+}
+
+/* Setting labels */
+[data-theme="dark"] .setting-label {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .setting-label:hover {
+    background-color: rgba(255, 95, 1, 0.1) !important;
+}
+
+[data-theme="dark"] .priority-label {
+    color: var(--text-primary) !important;
+}
+
+/* Select y inputs */
+[data-theme="dark"] .priority-select {
+    background: var(--input-bg) !important;
+    border-color: var(--border-color) !important;
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .priority-select:focus {
+    border-color: #FF5F01 !important;
+    box-shadow: 0 0 0 3px rgba(255, 95, 1, 0.2) !important;
+}
+
+/* Preview */
+[data-theme="dark"] .preference-preview {
+    background: linear-gradient(135deg, var(--bg-secondary), var(--bg-primary)) !important;
+    color: var(--text-secondary) !important;
+    border-left-color: #FF5F01 !important;
+}
+
+/* Digest settings */
+[data-theme="dark"] .digest-settings {
+    background: rgba(255, 95, 1, 0.1) !important;
+    border-left-color: #FF5F01 !important;
+}
+
+/* Botones principales */
+[data-theme="dark"] .btn-secondary {
+    background: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .btn-secondary:hover {
+    background: var(--bg-primary) !important;
+    border-color: var(--border-hover) !important;
+}
+
+/* Mensajes */
+[data-theme="dark"] .success-message {
+    background: linear-gradient(135deg, rgba(40, 167, 69, 0.2), rgba(40, 167, 69, 0.1)) !important;
+    color: #4ade80 !important;
+    border-color: rgba(40, 167, 69, 0.3) !important;
+}
+
+[data-theme="dark"] .error-message {
+    background: linear-gradient(135deg, rgba(220, 53, 69, 0.2), rgba(220, 53, 69, 0.1)) !important;
+    color: #fb7185 !important;
+    border-color: rgba(220, 53, 69, 0.3) !important;
+}
+
+/* ================================================================
+  TUTORIAL OVERLAY - DARK MODE (para esta versión)
+  ================================================================ */
+
+[data-theme="dark"] .tutorial-backdrop {
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.85), rgba(26, 26, 26, 0.9)) !important;
+}
+[data-theme="dark"] .tutorial-highlight-ring {
+    border: 3px solid #ffffff !important;
+    box-shadow:
+            0 0 0 2px rgba(255, 255, 255, 0.9),
+            0 0 30px rgba(255, 255, 255, 0.7),
+            0 0 60px rgba(255, 255, 255, 0.4) !important;
+}
+[data-theme="dark"] .tutorial-tooltip {
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important;
+    box-shadow: var(--shadow-hover) !important;
+}
+[data-theme="dark"] .tooltip-arrow {
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important;
+}
+[data-theme="dark"] .tooltip-header {
+    border-bottom: 1px solid var(--border-color) !important;
+}
+[data-theme="dark"] .tooltip-title {
+    background-color: white !important;
+    color: #ffffff !important;
+}
+[data-theme="dark"] .tooltip-close {
+    color: var(--text-secondary) !important;
+}
+[data-theme="dark"] .tooltip-close:hover {
+    background: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+}
+[data-theme="dark"] .tooltip-description {
+    color: var(--text-secondary) !important;
+}
+[data-theme="dark"] .tooltip-progress {
+    background: var(--bg-secondary) !important;
+    border-top: 1px solid var(--border-color) !important;
+}
+[data-theme="dark"] .progress-bar {
+    background: var(--bg-primary) !important;
+}
+[data-theme="dark"] .progress-fill {
+    background: var(--primary-color, #FF5F01) !important;
+}
+[data-theme="dark"] .progress-text {
+    color: var(--text-secondary) !important;
+}
+[data-theme="dark"] .tooltip-actions {
+    border-top: 1px solid var(--border-color) !important;
+}
+[data-theme="dark"] .btn-primary {
+    background: var(--primary-color, #FF5F01) !important;
+    color: white !important;
+}
+[data-theme="dark"] .btn-primary:hover {
+    background: #e55400 !important;
+}
+[data-theme="dark"] .btn-secondary {
+    background: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border-color) !important;
+}
+[data-theme="dark"] .btn-secondary:hover {
+    background: var(--bg-primary) !important;
+    border-color: var(--border-hover) !important;
+}
+[data-theme="dark"] .btn-ghost {
+    color: var(--text-secondary) !important;
+}
+[data-theme="dark"] .btn-ghost:hover {
+    background: var(--bg-secondary) !important;
+    color: var(--text-primary) !important;
+}
+[data-theme="dark"] .tooltip-hints {
+    border-top: 1px solid var(--border-color) !important;
+    background: var(--bg-secondary) !important;
+    color: var(--text-muted) !important;
+}
+[data-theme="dark"] .tooltip-hints kbd {
+    background: var(--bg-primary) !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--text-secondary) !important;
+}
+[data-theme="dark"] .tutorial-welcome-banner {
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important;
+    box-shadow: var(--shadow-hover) !important;
+}
+
+/* Sombreado blanco más visible en dark mode */
+[data-theme="dark"] .tutorial-highlight-ring {
+    border: 3px solid #ffffff !important;
+    box-shadow:
+            0 0 0 2px rgba(255, 255, 255, 1),
+            0 0 30px rgba(255, 255, 255, 0.8),
+            0 0 60px rgba(255, 255, 255, 0.5),
+            0 0 100px rgba(255, 255, 255, 0.3) !important;
+    animation: pulse-ring-white 2s ease-in-out infinite !important;
+}
+/* Forzar títulos y texto en blanco */
+[data-theme="dark"] .tooltip-title {
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .tooltip-description {
+    color: #ffffff !important;
+}
+
+
+
+[data-theme="dark"] .progress-text {
+    color: #ffffff !important;
+}
+@keyframes pulse-ring-white {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.02);
+        opacity: 0.9;
+    }
+}

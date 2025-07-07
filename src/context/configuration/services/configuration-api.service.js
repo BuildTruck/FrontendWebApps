@@ -69,45 +69,30 @@ class ConfigurationService {
     async loadCurrentUserSettings() {
         try {
             const user = AuthService.getCurrentUser();
+            console.log('🔍 [CONFIG] Usuario actual:', user);
 
             if (!user) {
+                console.log('❌ [CONFIG] No hay usuario');
                 return new Configuration();
             }
 
             const userId = this.getCurrentUserId();
+            console.log('🔍 [CONFIG] User ID:', userId);
 
-            if (!userId) {
-                return new Configuration();
+            // Intentar cargar desde API
+            const settingsFromAPI = await this.getByUserId(userId);
+            console.log('🔍 [CONFIG] Settings desde API:', settingsFromAPI);
+
+            if (settingsFromAPI) {
+                const configuration = Configuration.fromAPI(settingsFromAPI);
+                console.log('🔍 [CONFIG] Configuration creada:', configuration);
+                console.log('🔍 [CONFIG] Tutorials:', configuration.getTutorials());
+                return configuration;
             }
 
-            // Si ya tiene settings en sessionStorage, usarlos
-            if (user?.settings && Object.keys(user.settings).length > 0) {
-                return new Configuration(user.settings);
-            }
-
-            // Cargar desde API
-            try {
-                const settingsFromAPI = await this.getByUserId(userId);
-
-                if (settingsFromAPI) {
-                    const configuration = Configuration.fromAPI(settingsFromAPI);
-
-                    // Actualizar sessionStorage
-                    const updatedUser = { ...user, settings: configuration.toJSON() };
-                    sessionStorage.setItem("user", JSON.stringify(updatedUser));
-                    return configuration;
-                } else {
-                    return new Configuration();
-                }
-            } catch (apiError) {
-                if (apiError.response?.status === 404) {
-                    return new Configuration();
-                }
-                throw apiError;
-            }
-
+            return new Configuration();
         } catch (error) {
-            console.error('Error loading user settings:', error);
+            console.error('❌ [CONFIG] Error:', error);
             return new Configuration();
         }
     }
@@ -148,6 +133,123 @@ class ConfigurationService {
             const updatedUser = { ...user };
             delete updatedUser.settings;
             sessionStorage.setItem("user", JSON.stringify(updatedUser));
+        }
+    }
+
+    // ========== MÉTODOS PARA TUTORIALES ==========
+
+// Obtener progreso de tutoriales del usuario actual
+    async getTutorialProgress() {
+        try {
+            const configuration = await this.loadCurrentUserSettings();
+            return configuration.getTutorials();
+        } catch (error) {
+            console.error('Error getting tutorial progress:', error);
+            return {};
+        }
+    }
+
+// Verificar si un tutorial específico está completado
+    async isTutorialCompleted(tutorialId) {
+        try {
+            const configuration = await this.loadCurrentUserSettings();
+            return configuration.isTutorialCompleted(tutorialId);
+        } catch (error) {
+            console.error('Error checking tutorial completion:', error);
+            return false;
+        }
+    }
+
+// Marcar tutorial como completado
+    async markTutorialCompleted(tutorialId) {
+        try {
+            const configuration = await this.loadCurrentUserSettings();
+
+            // NUEVO: Validar que la configuración sea válida antes de marcar
+            if (!configuration.isValid()) {
+                console.warn('⚠️ Configuración inválida, recreando...');
+                const newConfig = new Configuration({ userId: this.getCurrentUserId() });
+                newConfig.markTutorialCompleted(tutorialId);
+                await this.saveCurrentUserSettings(newConfig);
+            } else {
+                configuration.markTutorialCompleted(tutorialId);
+                await this.saveCurrentUserSettings(configuration);
+            }
+
+            console.log(`✅ Tutorial '${tutorialId}' marcado como completado`);
+            return true;
+        } catch (error) {
+            console.error(`Error marking tutorial '${tutorialId}' as completed:`, error);
+
+            // MEJORADO: Log más detallado del error
+            if (error.response) {
+                console.error('❌ Response status:', error.response.status);
+                console.error('❌ Response data:', error.response.data);
+            }
+
+            throw error;
+        }
+    }
+
+// Resetear tutorial específico
+    async resetTutorial(tutorialId) {
+        try {
+            const configuration = await this.loadCurrentUserSettings();
+            configuration.resetTutorial(tutorialId);
+
+            await this.saveCurrentUserSettings(configuration);
+
+            console.log(`🔄 Tutorial '${tutorialId}' reseteado`);
+            return true;
+        } catch (error) {
+            console.error(`Error resetting tutorial '${tutorialId}':`, error);
+            throw error;
+        }
+    }
+
+// Resetear todos los tutoriales
+    async resetAllTutorials() {
+        try {
+            const configuration = await this.loadCurrentUserSettings();
+            configuration.resetAllTutorials();
+
+            await this.saveCurrentUserSettings(configuration);
+
+            console.log('🔄 Todos los tutoriales reseteados');
+            return true;
+        } catch (error) {
+            console.error('Error resetting all tutorials:', error);
+            throw error;
+        }
+    }
+
+// Obtener lista de tutoriales completados
+    async getCompletedTutorials() {
+        try {
+            const configuration = await this.loadCurrentUserSettings();
+            return configuration.getCompletedTutorials();
+        } catch (error) {
+            console.error('Error getting completed tutorials:', error);
+            return [];
+        }
+    }
+
+
+    async markMultipleTutorialsCompleted(tutorialIds) {
+        try {
+            const configuration = await this.loadCurrentUserSettings();
+
+            tutorialIds.forEach(tutorialId => {
+                configuration.markTutorialCompleted(tutorialId);
+            });
+
+            await this.saveCurrentUserSettings(configuration);
+
+            console.log(`✅ Tutoriales marcados como completados: ${tutorialIds.join(', ')}`);
+            return true;
+        } catch (error) {
+            console.error('Error marking multiple tutorials as completed:', error);
+            throw error;
         }
     }
 }

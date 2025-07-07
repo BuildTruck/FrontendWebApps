@@ -8,6 +8,7 @@ import { configurationService } from "../services/configuration-api.service.js";
 import { Configuration } from "../models/configuration.entity.js";
 import { useThemeStore } from "../../../core/stores/theme.js";
 import NotificationPreferences from "../../../core/notifications/components/NotificationPreferences.vue";
+import { useTutorial } from "../../../core/tutorial/composables/useTutorial.js";
 
 export default {
   name: "AdminConfigurationComponent",
@@ -34,27 +35,41 @@ export default {
   },
   setup() {
     const themeStore = useThemeStore()
-    return { themeStore }
+    const { resetSpecificTutorial, resetUserProgress } = useTutorial()
+    return { themeStore, resetSpecificTutorial, resetUserProgress }
   },
   computed: {
     hasChanges() {
+      if (this.activeTab !== 'general') return false; // Solo validar cambios en general
+
       const current = this.settings.toJSON();
       const original = this.originalSettings.toJSON();
 
       return (
           current.theme !== original.theme ||
           current.notifications_enable !== original.notifications_enable ||
-          current.email_notifications !== original.email_notifications ||
-          current.admin_notifications !== original.admin_notifications ||
-          current.system_alerts !== original.system_alerts
+          current.email_notifications !== original.email_notifications
       );
     }
   },
   mounted() {
-    this.themeStore.initializeTheme();
+    // ❌ QUITADO: this.themeStore.initializeTheme();
     this.loadUserSettings();
   },
   methods: {
+    async reactivarTutorialLayout() {
+      await this.resetSpecificTutorial('admin') // ✅ admin en lugar de admin-layout
+      this.showNotification(this.$t('settings.tutorialReactivated'), 'success')
+      setTimeout(() => {
+        this.$router.push('/dashboard')
+      }, 1000)
+    },
+
+    async resetearTodosLosTutorials() {
+      await this.resetUserProgress()
+      this.showNotification(this.$t('settings.allTutorialsReset'), 'success')
+    },
+
     switchTab(tab) {
       this.activeTab = tab;
     },
@@ -64,15 +79,19 @@ export default {
     },
 
     handleNotificationUpdate() {
-      // Recargar si es necesario
       this.showNotification('Preferencias de notificaciones actualizadas', 'success', true);
     },
+
     async loadUserSettings() {
       try {
         const config = await configurationService.loadCurrentUserSettings();
         this.settings = config;
         this.originalSettings = new Configuration(config.toJSON());
-        this.themeStore.setTheme(config.theme);
+
+        // ✅ Aplicar tema SIN guardarlo
+        this.themeStore.currentTheme = config.theme;
+        this.themeStore.applyThemeToBody();
+
       } catch (error) {
         console.error('Error loading user settings:', error);
         this.showNotification(this.$t("settings.loadError"), "error", false);
@@ -82,10 +101,11 @@ export default {
     async saveConfig() {
       try {
         this.loading = true;
-
-        // AQUÍ sí guardar el tema definitivamente
-        //await this.themeStore.setTheme(this.settings.theme);
         await configurationService.saveCurrentUserSettings(this.settings);
+
+        // Después del guardado exitoso, aplicar el tema
+        this.themeStore.currentTheme = this.settings.theme;
+        this.themeStore.applyThemeToBody();
 
         this.originalSettings = new Configuration(this.settings.toJSON());
         this.showNotification(this.$t("settings.updated"), "success", true);
@@ -99,7 +119,9 @@ export default {
 
     cancelChanges() {
       this.settings = new Configuration(this.originalSettings.toJSON());
-      this.themeStore.setTheme(this.originalSettings.theme);
+      // ✅ Aplicar tema sin guardar
+      this.themeStore.currentTheme = this.originalSettings.theme;
+      this.themeStore.applyThemeToBody();
     },
 
     showNotification(message, type = 'success', autoClose = true) {
@@ -114,9 +136,9 @@ export default {
     onThemeChange(newTheme) {
       console.log(`🎨 Tema cambiado a: ${newTheme}`);
       this.settings.theme = newTheme;
-      this.themeStore.currentTheme = newTheme; // Solo cambiar visualmente
-      this.themeStore.applyThemeToBody(); // Aplicar al DOM
-      // NO llamar a setTheme aquí - solo guardar cuando user haga click en "Guardar"
+      // Solo aplicar visualmente, NO guardar
+      this.themeStore.currentTheme = newTheme;
+      this.themeStore.applyThemeToBody();
     }
   }
 };
@@ -144,6 +166,15 @@ export default {
         <i class="pi pi-bell"></i>
         {{ $t('settings.notifications') || 'Notificaciones' }}
       </button>
+
+      <button
+          @click="switchTab('tutorials')"
+          :class="{ active: activeTab === 'tutorials' }"
+          class="tab-button"
+      >
+        <i class="pi pi-question-circle"></i>
+        {{ $t('settings.tutorials') }}
+      </button>
     </div>
 
     <!-- Contenido de la pestaña General -->
@@ -159,7 +190,6 @@ export default {
             @update:model-value="onThemeChange"
         />
       </div>
-
 
       <!-- Sección de Notificaciones -->
       <div class="config-section">
@@ -217,11 +247,34 @@ export default {
 
     <!-- Contenido de la pestaña Notificaciones -->
     <div v-if="activeTab === 'notifications'" class="tab-content">
-      <!-- Componente de NotificationPreferences SIN wrapper -->
       <NotificationPreferences
           @close="closeNotifications"
           @updated="handleNotificationUpdate"
       />
+    </div>
+
+    <!-- Contenido de la pestaña Tutoriales -->
+    <div v-if="activeTab === 'tutorials'" class="tab-content">
+      <div class="config-section">
+        <h3 class="config-title">{{ $t('settings.tutorials') }}</h3>
+        <p class="config-description">{{ $t('settings.tutorialsDescription') }}</p>
+
+        <div class="tutorial-actions">
+          <AppButton
+              :label="$t('settings.restartAdminTutorial')"
+              variant="primary"
+              icon="pi pi-refresh"
+              @click="reactivarTutorialLayout"
+          />
+
+          <AppButton
+              :label="$t('settings.restartAllTutorials')"
+              variant="primary"
+              icon="pi pi-replay"
+              @click="resetearTodosLosTutorials"
+          />
+        </div>
+      </div>
     </div>
 
     <AppNotification
@@ -239,6 +292,12 @@ export default {
   max-width: 800px;
   margin: 0 auto;
   padding: 2rem;
+}
+
+.tutorial-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 /* Navegación de tabs */

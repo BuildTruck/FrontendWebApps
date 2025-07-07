@@ -147,5 +147,53 @@ export const AuthService = {
             this.logout();
             throw error;
         }
+    },
+    async forgotPassword(email) {
+        try {
+            const response = await http.post('/auth/forgot-password', {
+                email: email
+            });
+
+            return {
+                success: true,
+                message: response.data.message || 'Email enviado exitosamente'
+            };
+        } catch (error) {
+            console.error('Error en forgot password:', error);
+            return {
+                success: false,
+                message: error.response?.data?.message || 'Error al enviar email de recuperación'
+            };
+        }
+    },
+
+    async resetPassword(token, email, newPassword) {
+        try {
+            const response = await http.post('/auth/reset-password', {
+                token: token,
+                email: email,
+                newPassword: newPassword
+            });
+
+            return {
+                success: true,
+                message: response.data.message || 'Contraseña restablecida exitosamente'
+            };
+        } catch (error) {
+            console.error('Error en reset password:', error);
+            throw error; // Re-throw para que el componente pueda manejar diferentes tipos de error
+        }
+    },
+    async changePassword(id, currentPassword, newPassword) {
+        try {
+            const response = await http.put(`${this.basePath}/${id}/password`, {
+                currentPassword,
+                newPassword
+            })
+            return { success: true }
+        } catch (error) {
+            console.error('Error cambiando contraseña:', error)
+            throw error
+        }
     }
 }

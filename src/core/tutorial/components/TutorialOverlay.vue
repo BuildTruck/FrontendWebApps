@@ -492,7 +492,7 @@ export default {
   height: 100%;
   background: linear-gradient(135deg, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.8));
   backdrop-filter: blur(8px);
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .tutorial-highlight-ring {
@@ -500,7 +500,7 @@ export default {
   border: 3px solid transparent;
   border-radius: 12px;
   pointer-events: none;
-  transition: all 0.2s ease;
+  transition: all 0.01s ease;
   z-index: 10000;
   background: linear-gradient(135deg, #3b82f6, #60a5fa) border-box;
   -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
@@ -541,7 +541,7 @@ export default {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   border: 1px solid rgba(255, 255, 255, 0.3);
   transform: translateY(0);
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
   animation: tooltip-appear 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 

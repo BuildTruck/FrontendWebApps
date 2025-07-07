@@ -3,10 +3,14 @@
 export const supervisorLayoutSteps = [
     {
         id: 'supervisor-welcome',
-        target: '.welcome-header, .page-title',
+        target: '[data-tutorial="header-bar"]',
         title: 'Panel de Supervisión',
         description: 'Bienvenido a tu área de supervisión. Desde aquí gestionas las operaciones diarias del proyecto asignado.',
-        position: 'bottom',
+        position: {
+            desktop: { placement: 'bottom', offset: { x: 0, y: 15 } },
+            tablet: { placement: 'bottom', offset: { x: 0, y: 20 } },
+            mobile: { placement: 'bottom', offset: { x: 0, y: 25 } }
+        },
         order: 1,
         optional: false
     },
@@ -15,7 +19,11 @@ export const supervisorLayoutSteps = [
         target: '[data-tutorial="notifications"]',
         title: 'Notificaciones de Campo',
         description: 'Recibe alertas importantes sobre el proyecto: cambios de personal, incidentes, y actualizaciones urgentes.',
-        position: 'bottom',
+        position: {
+            desktop: { placement: 'bottom-left', offset: { x: -20, y: 15 } },
+            tablet: { placement: 'bottom', offset: { x: -10, y: 20 } },
+            mobile: { placement: 'bottom', offset: { x: 0, y: 25 } }
+        },
         order: 2,
         optional: false
     },
@@ -24,7 +32,11 @@ export const supervisorLayoutSteps = [
         target: '[data-tutorial="language"]',
         title: 'Idioma',
         description: 'Cambia el idioma de la interfaz según tu preferencia.',
-        position: 'bottom',
+        position: {
+            desktop: { placement: 'bottom-right', offset: { x: 20, y: 15 } },
+            tablet: { placement: 'bottom', offset: { x: 10, y: 20 } },
+            mobile: { placement: 'left', offset: { x: -30, y: 0 } }
+        },
         order: 3,
         optional: true
     },
@@ -33,7 +45,11 @@ export const supervisorLayoutSteps = [
         target: '[data-tutorial="personal"]',
         title: 'Gestión de Personal',
         description: 'Tu herramienta principal: gestiona la asistencia, información y asignaciones del equipo de trabajo.',
-        position: 'right',
+        position: {
+            desktop: { placement: 'right', offset: { x: 25, y: 0 } },
+            tablet: { placement: 'right', offset: { x: 20, y: -5 } },
+            mobile: { placement: 'bottom', offset: { x: 0, y: 15 } }
+        },
         order: 4,
         optional: false
     },
@@ -42,7 +58,11 @@ export const supervisorLayoutSteps = [
         target: '[data-tutorial="inventario"]',
         title: 'Control de Inventario',
         description: 'Registra el uso de materiales, herramientas y equipos. Mantén un control preciso del inventario.',
-        position: 'right',
+        position: {
+            desktop: { placement: 'right', offset: { x: 25, y: 5 } },
+            tablet: { placement: 'right', offset: { x: 20, y: 0 } },
+            mobile: { placement: 'bottom', offset: { x: 0, y: 15 } }
+        },
         order: 5,
         optional: false
     },
@@ -51,7 +71,11 @@ export const supervisorLayoutSteps = [
         target: '[data-tutorial="maquinaria"]',
         title: 'Maquinaria y Equipos',
         description: 'Supervisa el estado y uso de maquinaria pesada. Reporta mantenimientos y problemas.',
-        position: 'right',
+        position: {
+            desktop: { placement: 'right', offset: { x: 25, y: 10 } },
+            tablet: { placement: 'right', offset: { x: 20, y: 5 } },
+            mobile: { placement: 'bottom', offset: { x: 0, y: 15 } }
+        },
         order: 6,
         optional: true
     },
@@ -60,7 +84,11 @@ export const supervisorLayoutSteps = [
         target: '[data-tutorial="incidentes"]',
         title: 'Reporte de Incidentes',
         description: 'Documenta incidentes de seguridad, accidentes y situaciones que requieren atención inmediata.',
-        position: 'right',
+        position: {
+            desktop: { placement: 'right', offset: { x: 25, y: -200 } },
+            tablet: { placement: 'right', offset: { x: 20, y: -150 } },
+            mobile: { placement: 'bottom', offset: { x: 0, y: 15 } }
+        },
         order: 7,
         optional: false
     },
@@ -69,7 +97,11 @@ export const supervisorLayoutSteps = [
         target: '[data-tutorial="documentacion"]',
         title: 'Documentación de Campo',
         description: 'Accede a planos, especificaciones y documentos técnicos necesarios para las operaciones.',
-        position: 'right',
+        position: {
+            desktop: { placement: 'right', offset: { x: 25, y: -200 } },
+            tablet: { placement: 'right', offset: { x: 20, y: -150 } },
+            mobile: { placement: 'bottom', offset: { x: 0, y: -150 } }
+        },
         order: 8,
         optional: true
     },
@@ -78,7 +110,11 @@ export const supervisorLayoutSteps = [
         target: '[data-tutorial="configuraciones"]',
         title: 'Configuraciones',
         description: 'Ajusta configuraciones específicas de tu área de trabajo y preferencias operativas.',
-        position: 'right',
+        position: {
+            desktop: { placement: 'right', offset: { x: 25, y: -250 } },
+            tablet: { placement: 'right', offset: { x: 20, y: -150 } },
+            mobile: { placement: 'top', offset: { x: 0, y: -150 } }
+        },
         order: 9,
         optional: true
     },
@@ -87,14 +123,18 @@ export const supervisorLayoutSteps = [
         target: '[data-tutorial="perfil"]',
         title: 'Tu Perfil',
         description: 'Actualiza tu información personal y configuraciones de cuenta.',
-        position: 'right',
+        position: {
+            desktop: { placement: 'right', offset: { x: 25, y: -250 } },
+            tablet: { placement: 'right', offset: { x: 20, y: -150 } },
+            mobile: { placement: 'top', offset: { x: 0, y: -150 } }
+        },
         order: 10,
         optional: true
     }
 ]
 
 export const supervisorLayoutConfig = {
-    id: 'supervisor-layout',
+    id: 'supervisor',
     name: 'Panel de Supervisión',
     description: 'Tutorial de introducción para supervisores de campo',
     steps: supervisorLayoutSteps,

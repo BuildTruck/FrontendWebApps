@@ -4,10 +4,14 @@ import LanguageSwitcher from "../../../core/components/language-switcher.compone
 import { useThemeStore } from "../../../core/stores/theme.js";
 import { useLogo } from "../../../core/composables/useLogo.js";
 import NotificationBell from "../../../core/notifications/components/NotificationBell.vue";
+import TutorialOverlay from "../../../core/tutorial/components/TutorialOverlay.vue";
+import {useTutorial} from "../../../core/tutorial/composables/useTutorial.js";
+import {supervisorLayoutSteps} from "../../../core/tutorial/config/supervisor-layout.js";
 
 export default {
   name: 'SupervisorLayout',
-  components: {LanguageSwitcher,NotificationBell },
+  components: {LanguageSwitcher,NotificationBell,
+    TutorialOverlay },
   props: {
     userName: {
       type: String,
@@ -21,22 +25,27 @@ export default {
   setup() {
     const themeStore = useThemeStore()
     const { logoSrc } = useLogo()
-    return { themeStore, logoSrc }
+    const tutorialComposable = useTutorial()
+    return {
+      themeStore,
+      logoSrc,
+      tutorialComposable
+    }
   },
   data() {
     return {
       displayName: '',
       menuItems: [
-        { id: 'personal', label: 'project.tabs.personal', icon: 'pi pi-users', route: `/supervisor/${this.projectId}/personal`, active: true },
-        { id: 'inventario', label: 'project.tabs.inventario', icon: 'pi pi-inbox', route: `/supervisor/${this.projectId}/inventario`, active: false },
-        { id: 'maquinaria', label: 'project.tabs.maquinaria', icon: 'pi pi-cog', route: `/supervisor/${this.projectId}/maquinaria`, active: false },
-        { id: 'incidentes', label: 'project.tabs.incidentes', icon: 'pi pi-exclamation-triangle', route: `/supervisor/${this.projectId}/incidentes`, active: false },
-        { id: 'documentacion', label: 'project.tabs.documentacion', icon: 'pi pi-file', route: `/supervisor/${this.projectId}/documentacion`, active: false },
+        { id: 'personal', label: 'project.tabs.personal', icon: 'pi pi-users', route: `/supervisor/${this.projectId}/personal`, active: true ,tutorialId: 'personal'},
+        { id: 'inventario', label: 'project.tabs.inventario', icon: 'pi pi-inbox', route: `/supervisor/${this.projectId}/inventario`, active: false ,tutorialId: 'inventario'},
+        { id: 'maquinaria', label: 'project.tabs.maquinaria', icon: 'pi pi-cog', route: `/supervisor/${this.projectId}/maquinaria`, active: false ,tutorialId: 'maquinaria'},
+        { id: 'incidentes', label: 'project.tabs.incidentes', icon: 'pi pi-exclamation-triangle', route: `/supervisor/${this.projectId}/incidentes`, active: false ,tutorialId: 'incidentes'},
+        { id: 'documentacion', label: 'project.tabs.documentacion', icon: 'pi pi-file', route: `/supervisor/${this.projectId}/documentacion`, active: false ,tutorialId: 'documentacion'},
       ],
       profileItems: [
         { id: 'salir', label: 'navigation.salir', icon: 'pi pi-sign-out', route: '/logout', active: false },
-        { id: 'configuraciones', label: 'project.tabs.configuracion', icon: 'pi pi-cog', route: `/supervisor/${this.projectId}/configuraciones`, active: false },
-        { id: 'perfil', label: 'navigation.perfil', icon: 'pi pi-user', route: `/supervisor/${this.projectId}/perfil`, active: false }
+        { id: 'configuraciones', label: 'project.tabs.configuracion', icon: 'pi pi-cog', route: `/supervisor/${this.projectId}/configuraciones`, active: false ,tutorialId: 'configuraciones'},
+        { id: 'perfil', label: 'navigation.perfil', icon: 'pi pi-user', route: `/supervisor/${this.projectId}/perfil`, active: false  ,tutorialId: 'perfil'}
       ]
     }
   },
@@ -71,6 +80,13 @@ export default {
       return currentItem ? currentItem.label : 'Personal';
     }
   },
+  mounted() {
+    setTimeout(async () => {
+      const { dev, resetUserProgress } = this.tutorialComposable
+      await resetUserProgress() // ← Ahora es async
+      await dev.forceStart('supervisor', supervisorLayoutSteps)
+    }, 500)
+  },
   methods: {
     navigateTo(route) {
       // Si es la opción de salir, ejecutar logout
@@ -84,7 +100,8 @@ export default {
     logout() {
       // Llamar al método logout del AuthService
       AuthService.logout();
-    }
+    },
+
   }
 }
 </script>
@@ -96,7 +113,6 @@ export default {
       <div class="logo-container">
         <img :src="logoSrc" alt="Logo" class="logo" />
       </div>
-
       <!-- Menú principal -->
       <nav class="sidebar-menu">
         <ul class="menu-list">
@@ -104,6 +120,7 @@ export default {
               v-for="item in menuItems"
               :key="item.id"
               :class="['menu-item', { active: activeMenuId === item.id }]"
+              :data-tutorial="item.tutorialId"
               @click="navigateTo(item.route)"
           >
             <i :class="item.icon"></i>
@@ -122,6 +139,7 @@ export default {
               v-for="item in profileItems"
               :key="item.id"
               :class="['menu-item', { active: activeMenuId === item.id }]"
+              :data-tutorial="item.tutorialId"
               @click="navigateTo(item.route)"
           >
             <i :class="item.icon"></i>
@@ -134,11 +152,11 @@ export default {
     <!-- Contenido principal con header fijo -->
     <div class="main-wrapper">
       <!-- Header bar fijo -->
-      <header class="header-bar">
+      <header class="header-bar" data-tutorial="header-bar">
         <h1 class="page-title">{{ $t(pageTitle) }}</h1>
         <div class="header-actions">
-          <NotificationBell />
-          <language-switcher/>
+          <NotificationBell data-tutorial="notifications"/>
+          <language-switcher data-tutorial="language"/>
         </div>
       </header>
 
@@ -148,6 +166,7 @@ export default {
       </div>
     </div>
   </div>
+  <TutorialOverlay />
 </template>
 
 <style scoped>

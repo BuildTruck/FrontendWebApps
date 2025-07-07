@@ -56,13 +56,33 @@ export const useThemeStore = defineStore('theme', {
                 this.detectSystemTheme()
 
                 const user = AuthService.getCurrentUser()
-                this.currentTheme = user?.settings?.theme || 'auto'
+
+                // 🔄 MEJORADO: Cargar configuración completa desde API
+                try {
+                    const configuration = await configurationService.loadCurrentUserSettings()
+
+                    // Aplicar tema SIN guardarlo
+                    this.currentTheme = configuration?.theme || 'auto'
+
+                    // 🆕 NUEVO: Guardar configuración en sessionStorage para futuro uso
+                    if (user && configuration) {
+                        const updatedUser = {
+                            ...user,
+                            settings: configuration.toJSON() // Incluye tutorials y todo
+                        }
+                        sessionStorage.setItem('user', JSON.stringify(updatedUser))
+                    }
+
+                } catch (error) {
+                    console.error('Error cargando configuración del usuario:', error)
+                    this.currentTheme = user?.settings?.theme || 'auto'
+                }
 
                 this.applyThemeToBody()
                 this.isInitialized = true
 
             } catch (error) {
-                console.error('Error cargando configuración del usuario:', error)
+                console.error('Error en initializeFromLogin:', error)
                 this.currentTheme = 'auto'
                 this.applyThemeToBody()
                 this.isInitialized = true
@@ -102,15 +122,9 @@ export const useThemeStore = defineStore('theme', {
         },
 
         async setTheme(theme) {
-            const validThemes = ['light', 'dark', 'auto']
-            if (!validThemes.includes(theme)) {
-                theme = 'auto'
-            }
+            this.applyTheme(theme) // Aplicar visualmente
 
-            this.currentTheme = theme
-            this.applyThemeToBody()
-
-            // Guardar en sessionStorage inmediatamente
+            // Guardar en sessionStorage y API
             const user = AuthService.getCurrentUser()
             if (user) {
                 const updatedUser = {
@@ -122,7 +136,7 @@ export const useThemeStore = defineStore('theme', {
                 }
                 sessionStorage.setItem('user', JSON.stringify(updatedUser))
 
-                // Guardar en API en background (sin bloquear UI)
+                // Guardar en API en background
                 this.saveThemeToAPI(theme).catch(error => {
                     console.error('Error guardando tema en API:', error)
                 })
@@ -171,6 +185,18 @@ export const useThemeStore = defineStore('theme', {
                 class: this.themeClass,
                 isInitialized: this.isInitialized
             }
-        }
+        },
+        applyTheme(theme) {
+            const validThemes = ['light', 'dark', 'auto']
+            if (!validThemes.includes(theme)) {
+                theme = 'auto'
+            }
+
+            this.currentTheme = theme
+            this.applyThemeToBody()
+
+            // NO guardar en API, solo aplicar visualmente
+        },
+
     }
 })

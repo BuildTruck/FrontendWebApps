@@ -51,23 +51,21 @@ export default {
   async mounted() {
     console.log('🔍 ManagerLayout mounted...')
 
-    // PRODUCCIÓN: Solo mostrar tutorial en primer login
     setTimeout(async () => {
       try {
-        const { shouldShowTutorial, initializeLayoutTutorial } = this.tutorialComposable
+        console.log('🎯 [ADMIN] Iniciando tutorial...');
 
-        // Verificar si debe mostrar el tutorial
-        if (shouldShowTutorial('manager-layout')) {
-          console.log('🎯 Primer acceso detectado, iniciando tutorial...')
-          await initializeLayoutTutorial('manager', managerLayoutSteps)
-        } else {
-          console.log('✅ Tutorial ya completado anteriormente')
-        }
+        const { dev, resetUserProgress } = this.tutorialComposable;
+
+        // await resetUserProgress(); // ← COMENTAR esto por ahora
+
+        const result = await dev.forceStart('manager', managerLayoutSteps);
+        console.log('✅ [ADMIN] Tutorial iniciado:', result);
 
       } catch (error) {
-        console.error('❌ Error en tutorial:', error)
+        console.error('❌ [ADMIN] Error:', error);
       }
-    }, 500)
+    }, 500);
   },
   computed: {
     activeMenuId() {
@@ -88,27 +86,7 @@ export default {
     }
   },
   methods: {
-    nextTutorialStep() {
-      this.tutorialComposable.nextStep()
-    },
 
-    prevTutorialStep() {
-      this.tutorialComposable.previousStep()
-    },
-
-    restartTutorial() {
-      const { dev, resetUserProgress } = this.tutorialComposable
-      resetUserProgress()
-      dev.forceStart('manager-layout', managerLayoutSteps)
-    },
-
-    // Ver qué elemento está siendo destacado
-    debugTutorial() {
-      const { currentStep, highlightElement } = this.tutorialComposable
-      console.log('🔍 Paso actual:', currentStep.value)
-      console.log('🎯 Elemento:', highlightElement.value)
-      console.log('📍 DOM element:', document.querySelector(highlightElement.value))
-    },
     navigateTo(route) {
       // Si es la opción de salir, ejecutar logout
       if (route === '/logout') {
@@ -117,25 +95,7 @@ export default {
         this.$router.push(route);
       }
     },
-    simulateDevice(device) {
-      const sizes = {
-        mobile: 375,
-        tablet: 768,
-        desktop: 1200
-      }
 
-      // Simular cambio de viewport
-      Object.defineProperty(window, 'innerWidth', {
-        writable: true,
-        configurable: true,
-        value: sizes[device]
-      })
-
-      // Reiniciar tutorial para ver cambios
-      this.restartTutorial()
-
-      console.log(`📱 Simulando ${device} (${sizes[device]}px)`)
-    },
     logout() {
       // Llamar al método logout del AuthService
       AuthService.logout();

@@ -4,24 +4,33 @@ import LanguageSwitcher from "../../../core/components/language-switcher.compone
 import { useThemeStore} from "../../stores/theme.js";
 import { useLogo} from "../../composables/useLogo.js";
 import NotificationBell from "../../notifications/components/NotificationBell.vue";
+import TutorialOverlay from "../../tutorial/components/TutorialOverlay.vue";
+import {useTutorial} from "../../tutorial/composables/useTutorial.js";
+import {adminLayoutSteps} from "../../tutorial/config/admin-layout.js";
 
 export default {
   name: 'AdminLayout',
   components: {LanguageSwitcher,
-    NotificationBell},
+    NotificationBell, TutorialOverlay},
   setup() {
     const themeStore = useThemeStore()
     const { logoSrc } = useLogo()
-    return { themeStore, logoSrc }
+    const tutorialComposable = useTutorial()
+    return {
+      themeStore,
+      logoSrc,
+      tutorialComposable,
+      TutorialOverlay
+    }
   },
   data() {
     return {
       displayName: '',
 
       menuItems: [
-        { id: 'dashboard', label: 'admin.tabs.dashboard', icon: 'pi pi-home', route: '/admin/dashboard', active: true },
-        { id: 'usuarios', label: 'admin.tabs.usuarios', icon: 'pi pi-users', route: '/admin/usuarios', active: false },
-        { id: 'configuraciones', label: 'admin.tabs.configuraciones', icon: 'pi pi-cog', route: '/admin/configuraciones', active: false },
+        { id: 'dashboard', label: 'admin.tabs.dashboard', icon: 'pi pi-home', route: '/admin/dashboard', active: true,tutorialId: 'dashboard' },
+        { id: 'usuarios', label: 'admin.tabs.usuarios', icon: 'pi pi-users', route: '/admin/usuarios', active: false,tutorialId: 'usuarios' },
+        { id: 'configuraciones', label: 'admin.tabs.configuraciones', icon: 'pi pi-cog', route: '/admin/configuraciones', active: false,tutorialId: 'configuraciones' },
       ],
 
       profileItems: [
@@ -58,6 +67,13 @@ export default {
       return currentItem ? currentItem.label : 'Dashboard';
     }
   },
+  mounted() {
+    setTimeout(async () => {
+      const { dev, resetUserProgress } = this.tutorialComposable
+      await resetUserProgress() // ← Ahora es async
+      await dev.forceStart('admin', adminLayoutSteps)
+    }, 500)
+  },
   methods: {
     navigateTo(route) {
       if (route === '/logout') {
@@ -69,7 +85,7 @@ export default {
 
     logout() {
       AuthService.logout();
-    }
+    },
   }
 }
 </script>
@@ -81,7 +97,6 @@ export default {
       <div class="logo-container">
         <img :src="logoSrc" alt="Logo" class="logo" />
       </div>
-
       <!-- Menú principal -->
       <nav class="sidebar-menu">
         <ul class="menu-list">
@@ -89,6 +104,7 @@ export default {
               v-for="item in menuItems"
               :key="item.id"
               :class="['menu-item', { active: activeMenuId === item.id }]"
+              :data-tutorial="item.tutorialId"
               @click="navigateTo(item.route)"
           >
             <i :class="item.icon"></i>
@@ -107,6 +123,7 @@ export default {
               v-for="item in profileItems"
               :key="item.id"
               :class="['menu-item', { active: activeMenuId === item.id }]"
+              :data-tutorial="item.tutorialId"
               @click="navigateTo(item.route)"
           >
             <i :class="item.icon"></i>
@@ -117,13 +134,13 @@ export default {
     </aside>
 
     <!-- Contenido principal con header fijo -->
-    <div class="main-wrapper">
+    <div class="main-wrapper" >
       <!-- Header bar fijo -->
-      <header class="header-bar">
+      <header class="header-bar" data-tutorial="dashboard-header">
         <h1 class="page-title">{{ $t(pageTitle) }}</h1>
         <div class="header-actions">
-          <NotificationBell />
-          <language-switcher/>
+          <NotificationBell data-tutorial="notifications"/>
+          <language-switcher data-tutorial="language"/>
         </div>
       </header>
 
@@ -133,6 +150,7 @@ export default {
       </div>
     </div>
   </div>
+  <TutorialOverlay />
 </template>
 
 <style scoped>

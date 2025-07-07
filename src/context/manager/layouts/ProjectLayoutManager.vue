@@ -5,13 +5,17 @@ import {useThemeStore} from "../../../core/stores/theme.js";
 import {useLogo} from "../../../core/composables/useLogo.js";
 import {projectService} from "../../projects/services/projects-api.service.js";
 import NotificationBell from "../../../core/notifications/components/NotificationBell.vue";
+import TutorialOverlay from "../../../core/tutorial/components/TutorialOverlay.vue";
+import {useTutorial} from "../../../core/tutorial/composables/useTutorial.js";
+import {managerProjectSteps} from "../../../core/tutorial/config/manager-project.js";
 
 export default {
   name: 'ProjectLayoutManager',
   components: {
     AppButton,
     LanguageSwitcher,
-    NotificationBell
+    NotificationBell,
+    TutorialOverlay
   },
   props: {
     projectName: {
@@ -38,18 +42,23 @@ export default {
   setup() {
     const themeStore = useThemeStore()
     const { logoSrc } = useLogo()
-    return { themeStore, logoSrc }
+    const tutorialComposable = useTutorial()
+    return {
+      themeStore,
+      logoSrc,
+      tutorialComposable
+    }
   },
   data() {
     return {
       currentProjectName: this.projectName || 'Proyecto',
       tabs: [
-        { id: 'documentacion', label: 'Documentación' },
-        { id: 'personal', label: 'Personal' },
-        { id: 'inventario', label: 'Inventario' },
-        { id: 'incidentes', label: 'Incidentes' },
-        { id: 'maquinaria', label: 'Maquinaria' },
-        { id: 'configuracion', label: 'Configuración de la obra' }
+        { id: 'documentacion', label: 'Documentación',tutorialId: 'documentacion'},
+        { id: 'personal', label: 'Personal',tutorialId: 'personal'},
+        { id: 'inventario', label: 'Inventario',tutorialId: 'inventario'  },
+        { id: 'incidentes', label: 'Incidentes',tutorialId: 'incidentes'  },
+        { id: 'maquinaria', label: 'Maquinaria',tutorialId: 'maquinaria'  },
+        { id: 'configuracion', label: 'Configuración de la obra', tutorialId: 'configuracion'  }
       ],
       activeTab: ''
     }
@@ -86,15 +95,26 @@ export default {
       this.activeTab = 'documentacion';
       this.$router.replace(`/proyecto/${this.projectId}/documentacion`);
     }
+
+    setTimeout(async () => {
+      // ✅ USAR: Los métodos del tutorialComposable directamente
+      const shouldShow = await this.tutorialComposable.shouldShowTutorial('manager-projects')
+      if (shouldShow) {
+        // ✅ IMPORTAR: managerProjectSteps al inicio del archivo
+        const { managerProjectSteps } = await import('../../../core/tutorial/config/manager-project.js')
+        await this.tutorialComposable.startTutorial('manager-projects', managerProjectSteps)
+      }
+    }, 1000)
   },
   methods: {
+
     setActiveTab(tabId) {
       this.activeTab = tabId;
       this.$router.push(`/proyecto/${this.projectId}/${tabId}`);
     },
     goBack() {
       this.$router.push('/proyectos');
-    }
+    },
   }
 }
 </script>
@@ -114,6 +134,7 @@ export default {
             variant="back"
             @click="goBack"
             class="large-back-button"
+            data-tutorial="back-button"
         />
       </div>
     </aside>
@@ -124,23 +145,25 @@ export default {
       <header class="project-header">
         <h1 class="project-title">{{ $t('project.title') }} {{ currentProjectName }}</h1>
         <div class="header-actions">
-          <NotificationBell />
+          <NotificationBell data-tutorial="notifications" />
           <language-switcher/>
         </div>
       </header>
 
       <!-- Tabs Navigation con contadores dinámicos -->
-      <nav class="tabs-nav">
+      <nav class="tabs-nav"   data-tutorial="tabs">
         <div
             v-for="tab in tabsWithCounters"
             :key="tab.id"
             :class="['tab', { active: activeTab === tab.id }]"
+            :data-tutorial="tab.tutorialId"
             @click="setActiveTab(tab.id)"
         >
           {{ $t(`project.tabs.${tab.id}`) }}
           <span
               v-if="tab.count !== null"
               :class="['tab-count', tab.count > 0 ? 'highlight' : 'neutral']"
+              data-tutorial="tab-counters"
           >{{ tab.count }}</span>
         </div>
       </nav>
@@ -151,6 +174,7 @@ export default {
       </main>
     </div>
   </div>
+  <TutorialOverlay />
 </template>
 
 <style scoped>

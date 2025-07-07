@@ -38,6 +38,11 @@ const routes = [
         name: 'ResetPassword',
         component: () => import('../auth/views/ResetPasswordComponent.vue')
     },
+    {
+        path: '/change-password',
+        name: 'ChangePassword',
+        component: () => import('../auth/views/ChangePasswordComponent.vue')
+    },
     // Rutas propias de manager (proyectos, etc.)
     ...ManagerRoutes,
 
@@ -61,7 +66,7 @@ const router = createRouter({
 
 // Protección global de rutas
 router.beforeEach((to, from, next) => {
-    const publicPaths = ['/login', '/forgot-password', '/reset-password']
+    const publicPaths = ['/login', '/forgot-password', '/reset-password','/change-password']
     const user = JSON.parse(sessionStorage.getItem('user'))
 
     const isPublic = publicPaths.includes(to.path)

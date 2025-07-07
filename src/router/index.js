@@ -28,7 +28,16 @@ const routes = [
         name: 'Login',
         component: () => import('../auth/views/login.component.vue')
     },
-
+    {
+        path: '/forgot-password',
+        name: 'ForgotPassword',
+        component: () => import('../auth/views/ForgotPasswordComponent.vue')
+    },
+    {
+        path: '/reset-password',
+        name: 'ResetPassword',
+        component: () => import('../auth/views/ResetPasswordComponent.vue')
+    },
     // Rutas propias de manager (proyectos, etc.)
     ...ManagerRoutes,
 
@@ -52,7 +61,7 @@ const router = createRouter({
 
 // Protección global de rutas
 router.beforeEach((to, from, next) => {
-    const publicPaths = ['/login']
+    const publicPaths = ['/login', '/forgot-password', '/reset-password']
     const user = JSON.parse(sessionStorage.getItem('user'))
 
     const isPublic = publicPaths.includes(to.path)

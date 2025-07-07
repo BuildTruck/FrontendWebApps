@@ -191,7 +191,9 @@ export default {
             <div class="form-group">
               <div class="password-header">
                 <label>{{ $t('auth.password') }}</label>
-                <a href="#" class="forgot-link">{{ $t('auth.forgotPassword') }}</a>
+                <router-link to="/forgot-password" class="forgot-link">
+                  {{ $t('auth.forgotPassword') }}
+                </router-link>
               </div>
               <AppInput
                   v-model="password"

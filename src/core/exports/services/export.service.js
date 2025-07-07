@@ -210,6 +210,50 @@ export class ExportService {
         this.generateTablePDF(doc, data, config, { ...pdfConfig, startY: yPosition })
     }
 
+
+    drawBasicTable(doc, tableData, startY, margin) {
+        const pageWidth = doc.internal.pageSize.getWidth()
+        const colWidth = (pageWidth - 2 * margin) / tableData.headers.length
+        let yPosition = startY
+
+        // Dibujar headers
+        doc.setFontSize(10)
+        doc.setFont('helvetica', 'bold')
+        doc.setFillColor(255, 95, 1) // Color naranja
+        doc.rect(margin, yPosition, pageWidth - 2 * margin, 8, 'F')
+
+        doc.setTextColor(255, 255, 255) // Texto blanco
+        tableData.headers.forEach((header, index) => {
+            doc.text(header, margin + (index * colWidth) + 2, yPosition + 6)
+        })
+
+        yPosition += 8
+        doc.setTextColor(0, 0, 0) // Volver a texto negro
+        doc.setFont('helvetica', 'normal')
+        doc.setFontSize(8)
+
+        // Dibujar filas
+        tableData.rows.forEach((row, rowIndex) => {
+            if (yPosition > doc.internal.pageSize.getHeight() - 20) {
+                doc.addPage()
+                yPosition = 30
+            }
+
+            // Alternar color de fondo
+            if (rowIndex % 2 === 0) {
+                doc.setFillColor(245, 245, 245)
+                doc.rect(margin, yPosition, pageWidth - 2 * margin, 6, 'F')
+            }
+
+            row.forEach((cell, cellIndex) => {
+                const text = cell.toString().substring(0, 20) // Truncar texto largo
+                doc.text(text, margin + (cellIndex * colWidth) + 2, yPosition + 4)
+            })
+
+            yPosition += 6
+        })
+    }
+
     // ==================== GENERADORES EXCEL ====================
 
     generateSingleSheetExcel(data, config, excelConfig) {

@@ -176,6 +176,44 @@ export const EXPORT_CONFIGS = {
             dateField: 'startDate',
             statusFilter: true
         }
+    },
+
+    // ==================== MACHINERY ====================
+    machinery: {
+        name: 'Maquinaria',
+        fields: {
+            name: 'Nombre',
+            licensePlate: 'Placa',
+            machineryType: 'Tipo de Maquinaria',
+            status: 'Estado',
+            provider: 'Proveedor',
+            description: 'Descripción',
+            assignedOperator: 'Operador Asignado',
+            registerDate: 'Fecha de Registro',
+            createdAt: 'Fecha de Creación'
+        },
+        formats: {
+            excel: {
+                enabled: true,
+                sheetName: 'Maquinaria',
+                autoWidth: true,
+                includeCharts: false
+            },
+            pdf: {
+                enabled: true,
+                layout: 'table',
+                includeImages: false,
+                pageSize: 'a4',
+                orientation: 'landscape',
+                title: 'Reporte de Maquinaria'
+            }
+        },
+        filters: {
+            dateRange: true,
+            dateField: 'registerDate',
+            statusFilter: true,
+            groupBy: ['machineryType', 'status']
+        }
     }
 }
 
@@ -209,6 +247,24 @@ export const VALUE_MAPPERS = {
             'SANTANDER': 'Banco Santander',
             'CITIBANK': 'Citibank',
             'OTHER': 'Otro'
+        }
+    },
+    machinery: {
+        status: {
+            'ACTIVE': 'Activo',
+            'MAINTENANCE': 'Mantenimiento'
+        },
+        machineryType: {
+            'EXCAVATOR': 'Excavadora',
+            'TRACTOR': 'Tractor',
+            'CRANE': 'Grúa',
+            'BULLDOZER': 'Bulldozer',
+            'LOADER': 'Cargadora',
+            'DUMP_TRUCK': 'Volquete',
+            'COMPACTOR': 'Compactadora',
+            'MIXER': 'Mezcladora',
+            'GENERATOR': 'Generador',
+            'PUMP': 'Bomba'
         }
     }
 }

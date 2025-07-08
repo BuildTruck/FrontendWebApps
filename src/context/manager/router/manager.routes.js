@@ -14,6 +14,7 @@ import ReportsManagerComponent from '../../reports/components/reports-manager.co
 import ConfigurationManagerComponent from '../../configuration/components/manager-configuration.component.vue'
 import ManagerProfileConfigurationComponent from '../../configuration/components/manager-profile-configuration.component.vue'
 import PageNotFound from "../../../views/PageNotFound.vue";
+import ChangePasswordComponent from "../../../auth/views/ChangePasswordComponent.vue";
 
 export default [
     // Rutas que usan ManagerLayout
@@ -44,6 +45,12 @@ export default [
             {
                 path: '',
                 component: ConfigurationManagerComponent,
+            },
+            // 👇 CHANGE PASSWORD DENTRO DE CONFIGURACION
+            {
+                path: 'change-password',
+                name: 'ManagerChangePassword',
+                component: ChangePasswordComponent,
             }
         ]
     },

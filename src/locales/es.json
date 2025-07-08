@@ -49,6 +49,7 @@
     "networkError": "Error de red. Compruebe su conexión."
   },
   "settings": {
+    "changePassword": "Cambiar contraseña",
     "restartSupervisorTutorial" : "Tutorial del Supervisor ",
     "restartAdminTutorial": "Tutorial del Admin",
     "tutorials": "Tutoriales",

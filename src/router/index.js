@@ -38,11 +38,7 @@ const routes = [
         name: 'ResetPassword',
         component: () => import('../auth/views/ResetPasswordComponent.vue')
     },
-    {
-        path: '/change-password',
-        name: 'ChangePassword',
-        component: () => import('../auth/views/ChangePasswordComponent.vue')
-    },
+
     // Rutas propias de manager (proyectos, etc.)
     ...ManagerRoutes,
 

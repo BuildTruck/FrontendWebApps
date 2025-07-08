@@ -152,6 +152,9 @@ export default {
 
     closeNotifications() {
       this.activeTab = 'general';
+    },
+    goToChangePassword() {
+      this.$router.push('/configuracion/change-password');
     }
   }
 };
@@ -186,6 +189,13 @@ export default {
       >
         <i class="pi pi-question-circle"></i>
         {{ $t('settings.tutorials') }}
+      </button>
+      <button
+          @click="goToChangePassword()"
+          class="tab-button"
+      >
+        <i class="pi pi-lock"></i>
+        {{ $t('settings.changePassword')}}
       </button>
     </div>
 

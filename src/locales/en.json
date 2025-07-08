@@ -49,6 +49,7 @@
     "networkError": "Network error. Please check your connection."
   },
   "settings": {
+    "changePassword": "Change Password",
     "restartSupervisorTutorial" : "Restart Seupervisor Tutorial",
     "restartAdminTutorial": "Restart Admin Tutorial",
     "tutorials": "Tutorials",

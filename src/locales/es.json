@@ -49,6 +49,8 @@
     "networkError": "Error de red. Compruebe su conexión."
   },
   "settings": {
+    "restartSupervisorTutorial" : "Tutorial del Supervisor ",
+    "restartAdminTutorial": "Tutorial del Admin",
     "tutorials": "Tutoriales",
     "tutorialsDescription": "Reactiva los tutoriales para verlos nuevamente",
     "restartManagerTutorial": "Tutorial del Panel",
@@ -180,7 +182,11 @@
       "maquinaria": "Maquinaria",
       "configuracion": "Configuración de la Obra"
     }
-  },"inventory": {
+  },
+  "inventory": {
+  "viewInventoryOverview": "Administra el inventario de tu obra",
+  "materialEntries": "Entradas de materiales",
+  "materialUsages": "Usos de materiales",
   "addItem": "Agregar Artículo",
   "itemName": "Nombre del Artículo",
   "category": "Categoría",
@@ -1163,6 +1169,7 @@
     },
 
     "options": {
+      "multiSheet": "Múltiples hojas",
       "includeImages": "Incluir Imágenes",
       "includeCharts": "Incluir Gráficos",
       "multipleSheets": "Múltiples Hojas",

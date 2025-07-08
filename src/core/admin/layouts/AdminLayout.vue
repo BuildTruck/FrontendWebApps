@@ -69,9 +69,21 @@ export default {
   },
   mounted() {
     setTimeout(async () => {
-      const { dev, resetUserProgress } = this.tutorialComposable
-      await resetUserProgress() // ← Ahora es async
-      await dev.forceStart('admin', adminLayoutSteps)
+      try {
+        console.log('🎯 [ADMIN] Verificando tutorial...');
+
+        // ✅ USAR: Método normal que respeta si ya está completado
+        const shouldShow = await this.tutorialComposable.shouldShowTutorial('admin')
+        if (shouldShow) {
+          const result = await this.tutorialComposable.startTutorial('admin', adminLayoutSteps);
+          console.log('✅ [ADMIN] Tutorial iniciado:', result);
+        } else {
+          console.log('✅ [ADMIN] Tutorial ya completado, no se muestra');
+        }
+
+      } catch (error) {
+        console.error('❌ [ADMIN] Error:', error);
+      }
     }, 500)
   },
   methods: {

@@ -44,13 +44,15 @@ export default {
     return {
       // Vistas: 'list' | 'detail'
       currentView: 'list',
-
+      selectedIncidents: [],
       // Estado de edición
       isEditing: false,
       hasChanges: false,
       originalData: null,
       isSaving: false,
-
+      showDeleteConfirm: false,
+      deleteConfirmMessage: '',
+      itemsToDelete: [],
       // Manejo de imágenes
       imagePreviewUrls: {},
 
@@ -238,6 +240,61 @@ export default {
   },
 
   methods: {
+    onSelectionUpdate(selection) {
+      this.selectedIncidents = selection
+    },
+
+    showDeleteConfirmation(items) {
+      const itemText = items.length === 1
+          ? `el incident "${items[0].title || items[0].id}"`
+          : `${items.length} incidents`
+
+      this.itemsToDelete = items;
+      this.deleteConfirmMessage = `¿Estás seguro de que deseas eliminar ${itemText}? Esta acción no se puede deshacer.`;
+      this.showDeleteConfirm = true;
+    },
+    cancelDelete() {
+      this.showDeleteConfirm = false;
+      this.itemsToDelete = [];
+    },
+    async handleDelete(selectedItems) {
+      if (!selectedItems || selectedItems.length === 0) {
+        this.showNotificationMessage('No hay elementos seleccionados', 'warning');
+        return
+      }
+
+      // Mostrar confirmación usando AppNotification
+      this.showDeleteConfirmation(selectedItems);
+    },
+    async confirmDelete() {
+      const selectedItems = this.itemsToDelete;
+      this.showDeleteConfirm = false; // Cerrar el confirm
+
+      this.loading = true;
+      try {
+        if (selectedItems.length === 1) {
+          await this.incidentService.delete(selectedItems[0].id);
+          this.showNotificationMessage('Incident eliminado exitosamente', 'success');
+        } else {
+          const ids = selectedItems.map(item => item.id);
+          await this.incidentService.deleteMultiple(ids);
+          this.showNotificationMessage(`${selectedItems.length} incidents eliminados exitosamente`, 'success');
+        }
+
+        // Recargar datos
+        await this.loadIncidents();
+
+        // Limpiar selección
+        this.selectedIncidents = [];
+
+      } catch (error) {
+        console.error('Error deleting incidents:', error);
+        this.showNotificationMessage('Error al eliminar. Intenta nuevamente.', 'error');
+      } finally {
+        this.loading = false;
+        this.itemsToDelete = [];
+      }
+    },
     // ========== MÉTODOS DE EDICIÓN ==========
 
     startEditing() {
@@ -699,7 +756,11 @@ export default {
             :rows="15"
             :show-export-button="false"
             :show-filter-button="false"
+            :selectable="true"
+            :selection="selectedIncidents"
             data-key="id"
+            @delete="handleDelete"
+            @update:selection="onSelectionUpdate"
             @row-click="handleIncidentClick"
             class="incident-table"
             :row-hover="true"
@@ -1049,7 +1110,30 @@ export default {
         </div>
       </div>
     </div>
-
+    <AppNotification
+        v-model="showDeleteConfirm"
+        :message="deleteConfirmMessage"
+        type="warning"
+        :auto-close="false"
+        button-text="Cancelar"
+        @close="cancelDelete"
+    >
+      <!-- Slot personalizado para botones de confirmación -->
+      <template #actions>
+        <div class="confirm-actions">
+          <AppButton
+              label="Cancelar"
+              variant="secondary"
+              @click="cancelDelete"
+          />
+          <AppButton
+              label="Eliminar"
+              variant="danger"
+              @click="confirmDelete"
+          />
+        </div>
+      </template>
+    </AppNotification>
     <!-- Notificaciones -->
     <AppNotification
         v-model="showNotification"

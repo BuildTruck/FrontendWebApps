@@ -53,19 +53,21 @@ export default {
 
     setTimeout(async () => {
       try {
-        console.log('🎯 [ADMIN] Iniciando tutorial...');
+        console.log('🎯 [MANAGER] Verificando tutorial...');
 
-        const { dev, resetUserProgress } = this.tutorialComposable;
-
-        // await resetUserProgress(); // ← COMENTAR esto por ahora
-
-        const result = await dev.forceStart('manager', managerLayoutSteps);
-        console.log('✅ [ADMIN] Tutorial iniciado:', result);
+        const shouldShow = await this.tutorialComposable.shouldShowTutorial('manager')
+        if (shouldShow) {
+          const result = await this.tutorialComposable.startTutorial('manager', managerLayoutSteps);
+          console.log('✅ [MANAGER] Tutorial iniciado:', result);
+        } else {
+          console.log('✅ [MANAGER] Tutorial ya completado, no se muestra');
+        }
 
       } catch (error) {
-        console.error('❌ [ADMIN] Error:', error);
+        console.error('❌ [MANAGER] Error:', error);
       }
     }, 500);
+
   },
   computed: {
     activeMenuId() {

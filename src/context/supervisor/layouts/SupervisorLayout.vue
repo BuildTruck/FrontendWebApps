@@ -82,9 +82,21 @@ export default {
   },
   mounted() {
     setTimeout(async () => {
-      const { dev, resetUserProgress } = this.tutorialComposable
-      await resetUserProgress() // ← Ahora es async
-      await dev.forceStart('supervisor', supervisorLayoutSteps)
+      try {
+        console.log('🎯 [SUPERVISOR] Verificando tutorial...');
+
+        // ✅ USAR: Método normal que respeta si ya está completado
+        const shouldShow = await this.tutorialComposable.shouldShowTutorial('supervisor')
+        if (shouldShow) {
+          const result = await this.tutorialComposable.startTutorial('supervisor', supervisorLayoutSteps);
+          console.log('✅ [SUPERVISOR] Tutorial iniciado:', result);
+        } else {
+          console.log('✅ [SUPERVISOR] Tutorial ya completado, no se muestra');
+        }
+
+      } catch (error) {
+        console.error('❌ [SUPERVISOR] Error:', error);
+      }
     }, 500)
   },
   methods: {

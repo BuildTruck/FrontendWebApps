@@ -36,7 +36,10 @@ export default {
     return {
       // Vistas: 'list' | 'detail'
       currentView: 'list',
-
+      selectedMachinery: [],
+      showDeleteConfirm: false,
+      deleteConfirmMessage: '',
+      itemsToDelete: [],
       // Estado de edición
       isEditing: false,
       hasChanges: false,
@@ -210,6 +213,59 @@ export default {
 
   methods: {
     // ========== MÉTODOS DE EDICIÓN ==========
+    onSelectionUpdate(selection) {
+      this.selectedMachinery = selection;
+    },
+
+    showDeleteConfirmation(items) {
+      const itemText = items.length === 1
+          ? `la maquinaria "${items[0].name || items[0].id}"`
+          : `${items.length} maquinarias`;
+
+      this.itemsToDelete = items;
+      this.deleteConfirmMessage = `¿Estás seguro de que deseas eliminar ${itemText}? Esta acción no se puede deshacer.`;
+      this.showDeleteConfirm = true;
+    },
+
+    cancelDelete() {
+      this.showDeleteConfirm = false;
+      this.itemsToDelete = [];
+    },
+
+    async handleDelete(selectedItems) {
+      if (!selectedItems || selectedItems.length === 0) {
+        this.showNotificationMessage('No hay elementos seleccionados', 'warning');
+        return;
+      }
+      this.showDeleteConfirmation(selectedItems);
+    },
+
+    async confirmDelete() {
+      const selectedItems = this.itemsToDelete;
+      this.showDeleteConfirm = false;
+
+      this.loading = true;
+      try {
+        if (selectedItems.length === 1) {
+          await this.machineryService.delete(selectedItems[0].id);
+          this.showNotificationMessage('Maquinaria eliminada exitosamente', 'success');
+        } else {
+          const ids = selectedItems.map(item => item.id);
+          await this.machineryService.deleteMultiple(ids);
+          this.showNotificationMessage(`${selectedItems.length} maquinarias eliminadas exitosamente`, 'success');
+        }
+
+        await this.loadMachinery();
+        this.selectedMachinery = [];
+
+      } catch (error) {
+        console.error('Error deleting machinery:', error);
+        this.showNotificationMessage('Error al eliminar. Intenta nuevamente.', 'error');
+      } finally {
+        this.loading = false;
+        this.itemsToDelete = [];
+      }
+    },
 
     startEditing() {
       if (!this.canEdit || this.isEditing) return;
@@ -627,7 +683,11 @@ export default {
             :rows="15"
             :show-export-button="false"
             :show-filter-button="false"
+            :selectable="true"
+            :selection="selectedMachinery"
             data-key="id"
+            @delete="handleDelete"
+            @update:selection="onSelectionUpdate"
             @row-click="handleMachineryClick"
             class="machinery-table"
             :row-hover="true"
@@ -905,7 +965,30 @@ export default {
       </div>
     </div>
 
-    <!-- Notificaciones -->
+    <AppNotification
+        v-model="showDeleteConfirm"
+        :message="deleteConfirmMessage"
+        type="warning"
+        :auto-close="false"
+        button-text="Cancelar"
+        @close="cancelDelete"
+    >
+      <template #actions>
+        <div class="confirm-actions">
+          <AppButton
+              label="Cancelar"
+              variant="secondary"
+              @click="cancelDelete"
+          />
+          <AppButton
+              label="Eliminar"
+              variant="danger"
+              @click="confirmDelete"
+          />
+        </div>
+      </template>
+    </AppNotification>
+
     <AppNotification
         v-model="showNotification"
         :message="notificationMessage"

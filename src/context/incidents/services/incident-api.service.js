@@ -62,13 +62,28 @@ export class IncidentApiService extends BaseService {
         }
     }
 
-    // DELETE /api/v1/incident/{id}
+
+// Agregar estos métodos a tu incident.service.js:
+
     async delete(id) {
         try {
             await http.delete(`/incident/${id}`);
             return true;
         } catch (error) {
             console.error(`Error deleting incident ${id}:`, error);
+            throw error;
+        }
+    }
+
+// ✅ Método para eliminar múltiples incidents (para selección masiva)
+    async deleteMultiple(ids) {
+        try {
+            // Ejecutar eliminaciones en paralelo
+            const deletePromises = ids.map(id => this.delete(id));
+            await Promise.all(deletePromises);
+            return true;
+        } catch (error) {
+            console.error('Error deleting multiple incidents:', error);
             throw error;
         }
     }

@@ -214,6 +214,173 @@ export const EXPORT_CONFIGS = {
             statusFilter: true,
             groupBy: ['machineryType', 'status']
         }
+    },
+    // ==================== INCIDENTS ====================
+    incidents: {
+        name: 'Incidentes',
+        fields: {
+            // Información Básica
+            title: 'Título',
+            description: 'Descripción',
+            incidentType: 'Tipo de Incidente',
+            severity: 'Severidad',
+            status: 'Estado',
+            location: 'Ubicación',
+            notes: 'Notas',
+
+            // Asignación
+            reportedBy: 'Reportado Por',
+            assignedTo: 'Asignado A',
+
+            // Fechas
+            occurredAt: 'Fecha de Ocurrencia',
+            resolvedAt: 'Fecha de Resolución',
+            registerDate: 'Fecha de Registro',
+            createdAt: 'Fecha de Creación',
+
+            // Imagen
+            image: 'Imagen',
+
+            // Campos Calculados
+            daysOpen: 'Días Abierto',
+            isResolved: 'Resuelto',
+            isAssigned: 'Asignado'
+        },
+        formats: {
+            pdf: {
+                enabled: true,
+                layout: 'report',
+                includeImages: true,
+                pageSize: 'a4',
+                orientation: 'portrait',
+                title: 'Reporte de Incidentes',
+                groupBy: 'severity',
+                sections: {
+                    summary: true,
+                    detailed: true,
+                    charts: true
+                }
+            },
+            excel: {
+                enabled: true,
+                multiSheet: true,
+                sheets: {
+                    'Incidentes': {
+                        fields: ['title', 'incidentType', 'severity', 'status', 'location', 'occurredAt', 'resolvedAt', 'daysOpen'],
+                        groupBy: 'severity',
+                        conditionalFormatting: {
+                            severity: {
+                                'ALTO': { background: '#ffebee', color: '#c62828' },
+                                'MEDIO': { background: '#fff3e0', color: '#f57c00' },
+                                'BAJO': { background: '#e8f5e8', color: '#2e7d32' }
+                            },
+                            status: {
+                                'REPORTADO': { background: '#e3f2fd', color: '#1976d2' },
+                                'EN_PROGRESO': { background: '#fff3e0', color: '#f57c00' },
+                                'RESUELTO': { background: '#e8f5e8', color: '#2e7d32' }
+                            }
+                        }
+                    },
+                    'Por Severidad': {
+                        fields: ['title', 'incidentType', 'location', 'occurredAt', 'status', 'daysOpen'],
+                        groupBy: 'severity',
+                        title: 'Incidentes por Severidad',
+                        includeCharts: true
+                    },
+                    'Por Tipo': {
+                        fields: ['title', 'severity', 'location', 'occurredAt', 'status', 'assignedTo'],
+                        groupBy: 'incidentType',
+                        title: 'Incidentes por Tipo'
+                    },
+                    'Pendientes': {
+                        fields: ['title', 'incidentType', 'severity', 'location', 'occurredAt', 'daysOpen', 'assignedTo'],
+                        filter: { status: ['REPORTADO', 'EN_PROGRESO'] },
+                        title: 'Incidentes Pendientes',
+                        sortBy: 'daysOpen',
+                        sortOrder: 'desc'
+                    },
+                    'Resumen': {
+                        summary: true,
+                        charts: ['severity', 'status', 'incidentType'],
+                        kpis: {
+                            total: 'Total de Incidentes',
+                            pending: 'Incidentes Pendientes',
+                            resolved: 'Incidentes Resueltos',
+                            avgDaysOpen: 'Promedio Días Abierto',
+                            highSeverity: 'Severidad Alta'
+                        }
+                    }
+                },
+                autoWidth: true,
+                includeCharts: true,
+                freezeHeader: true
+            },
+            csv: {
+                enabled: true,
+                separator: ',',
+                encoding: 'utf-8',
+                fields: ['title', 'incidentType', 'severity', 'status', 'location', 'occurredAt', 'resolvedAt', 'reportedBy', 'assignedTo']
+            },
+            json: {
+                enabled: true,
+                pretty: true,
+                includeMetadata: true
+            }
+        },
+        filters: {
+            dateRange: true,
+            dateField: 'occurredAt',
+            groupBy: ['severity', 'status', 'incidentType'],
+            statusFilter: true,
+            severityFilter: true,
+            typeFilter: true,
+            assignedFilter: true,
+            locationFilter: true,
+            customFilters: {
+                openOnly: {
+                    label: 'Solo Incidentes Abiertos',
+                    filter: { status: ['REPORTADO', 'EN_PROGRESO'] }
+                },
+                highPriority: {
+                    label: 'Alta Prioridad',
+                    filter: { severity: 'ALTO' }
+                },
+                unassigned: {
+                    label: 'Sin Asignar',
+                    filter: { assignedTo: null }
+                }
+            }
+        },
+        calculations: {
+            totals: ['daysOpen'],
+            averages: ['daysOpen'],
+            counts: ['severity', 'status', 'incidentType', 'assignedTo'],
+            percentages: ['status', 'severity'],
+            kpis: {
+                resolutionRate: {
+                    formula: 'resolved / total * 100',
+                    label: 'Tasa de Resolución (%)'
+                },
+                avgResolutionTime: {
+                    formula: 'sum(daysOpen where status = RESUELTO) / count(status = RESUELTO)',
+                    label: 'Tiempo Promedio de Resolución (días)'
+                },
+                highSeverityRate: {
+                    formula: 'count(severity = ALTO) / total * 100',
+                    label: 'Tasa de Incidentes de Alta Severidad (%)'
+                }
+            }
+        },
+        sorting: {
+            default: { field: 'occurredAt', order: 'desc' },
+            options: [
+                { field: 'occurredAt', label: 'Fecha de Ocurrencia' },
+                { field: 'severity', label: 'Severidad' },
+                { field: 'status', label: 'Estado' },
+                { field: 'daysOpen', label: 'Días Abierto' },
+                { field: 'title', label: 'Título' }
+            ]
+        }
     }
 }
 
@@ -265,6 +432,35 @@ export const VALUE_MAPPERS = {
             'MIXER': 'Mezcladora',
             'GENERATOR': 'Generador',
             'PUMP': 'Bomba'
+        }
+    },
+    incidents: {
+        severity: {
+            'BAJO': 'Bajo',
+            'MEDIO': 'Medio',
+            'ALTO': 'Alto'
+        },
+        status: {
+            'REPORTADO': 'Reportado',
+            'EN_PROGRESO': 'En Progreso',
+            'RESUELTO': 'Resuelto'
+        },
+        incidentType: {
+            'ACCIDENTE_LABORAL': 'Accidente Laboral',
+            'FALLA_EQUIPO': 'Falla de Equipo',
+            'SEGURIDAD': 'Problema de Seguridad',
+            'CALIDAD': 'Problema de Calidad',
+            'AMBIENTAL': 'Incidente Ambiental',
+            'OTROS': 'Otros'
+        },
+        // Mapeos booleanos para campos calculados
+        isResolved: {
+            true: 'Sí',
+            false: 'No'
+        },
+        isAssigned: {
+            true: 'Sí',
+            false: 'No'
         }
     }
 }

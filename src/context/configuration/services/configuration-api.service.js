@@ -45,19 +45,29 @@ class ConfigurationService {
     // Método principal para guardar (crea o actualiza automáticamente)
     async saveOrUpdate(userId, configData) {
         try {
-            return await this.create(configData);
-        } catch (createError) {
-            if (createError.response?.status === 400) {
-                try {
-                    const existing = await this.getByUserId(userId);
-                    if (existing && existing.id) {
-                        return await this.update(existing.id, configData);
-                    }
-                } catch (getError) {
-                    console.error('Error getting existing configuration:', getError);
-                }
+            // PRIMERO: Intentar obtener configuración existente
+            const existing = await this.getByUserId(userId);
+
+            if (existing && existing.id) {
+                // Si existe, hacer UPDATE
+                console.log('🔄 [CONFIG] Actualizando configuración existente:', existing.id);
+                return await this.update(existing.id, configData);
+            } else {
+                // Si no existe, hacer CREATE
+                console.log('➕ [CONFIG] Creando nueva configuración');
+                return await this.create(configData);
             }
-            throw createError;
+        } catch (error) {
+            console.error('❌ [CONFIG] Error en saveOrUpdate:', error);
+
+            // Log detallado del error para debugging
+            if (error.response) {
+                console.error('❌ Response status:', error.response.status);
+                console.error('❌ Response data:', error.response.data);
+                console.error('❌ Data enviada:', configData);
+            }
+
+            throw error;
         }
     }
 
@@ -153,10 +163,33 @@ class ConfigurationService {
     async isTutorialCompleted(tutorialId) {
         try {
             const configuration = await this.loadCurrentUserSettings();
-            return configuration.isTutorialCompleted(tutorialId);
+            const isCompleted = configuration.isTutorialCompleted(tutorialId);
+
+            // Si no está completado en backend, verificar localStorage como fallback
+            if (!isCompleted) {
+                const fallbackKey = `tutorial_${tutorialId}_${this.getCurrentUserId()}`;
+                const fallbackCompleted = localStorage.getItem(fallbackKey) === 'completed';
+
+                if (fallbackCompleted) {
+                    console.log(`📦 Tutorial encontrado en localStorage fallback: ${tutorialId}`);
+                    return true;
+                }
+            }
+
+            return isCompleted;
         } catch (error) {
             console.error('Error checking tutorial completion:', error);
-            return false;
+
+            // En caso de error, verificar localStorage
+            try {
+                const fallbackKey = `tutorial_${tutorialId}_${this.getCurrentUserId()}`;
+                const fallbackCompleted = localStorage.getItem(fallbackKey) === 'completed';
+                console.log(`📦 Usando fallback localStorage para ${tutorialId}: ${fallbackCompleted}`);
+                return fallbackCompleted;
+            } catch (fallbackError) {
+                console.error('Error verificando fallback:', fallbackError);
+                return false;
+            }
         }
     }
 
@@ -165,7 +198,7 @@ class ConfigurationService {
         try {
             const configuration = await this.loadCurrentUserSettings();
 
-            // NUEVO: Validar que la configuración sea válida antes de marcar
+            // Validar que la configuración sea válida antes de marcar
             if (!configuration.isValid()) {
                 console.warn('⚠️ Configuración inválida, recreando...');
                 const newConfig = new Configuration({ userId: this.getCurrentUserId() });
@@ -179,9 +212,18 @@ class ConfigurationService {
             console.log(`✅ Tutorial '${tutorialId}' marcado como completado`);
             return true;
         } catch (error) {
-            console.error(`Error marking tutorial '${tutorialId}' as completed:`, error);
+            console.error(`❌ Error marking tutorial '${tutorialId}' as completed:`, error);
 
-            // MEJORADO: Log más detallado del error
+            // NUEVO: Guardar en localStorage como fallback si falla el backend
+            try {
+                const fallbackKey = `tutorial_${tutorialId}_${this.getCurrentUserId()}`;
+                localStorage.setItem(fallbackKey, 'completed');
+                console.log(`💾 Tutorial guardado en localStorage como fallback`);
+            } catch (fallbackError) {
+                console.error('❌ Error guardando fallback:', fallbackError);
+            }
+
+            // Log más detallado del error
             if (error.response) {
                 console.error('❌ Response status:', error.response.status);
                 console.error('❌ Response data:', error.response.data);
@@ -190,6 +232,7 @@ class ConfigurationService {
             throw error;
         }
     }
+
 
 // Resetear tutorial específico
     async resetTutorial(tutorialId) {

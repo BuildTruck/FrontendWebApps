@@ -49,6 +49,8 @@
     "networkError": "Network error. Please check your connection."
   },
   "settings": {
+    "restartSupervisorTutorial" : "Restart Seupervisor Tutorial",
+    "restartAdminTutorial": "Restart Admin Tutorial",
     "tutorials": "Tutorials",
     "tutorialsDescription": "Reactivate tutorials to view them again",
     "restartManagerTutorial": "Panel Tutorial",
@@ -182,6 +184,9 @@
     }
   },
   "inventory": {
+    "viewInventoryOverview": "View inventory overview and stock levels",
+    "materialEntries": "Material Entries",
+    "materialUsages": "Material Usages",
     "addItem": "Add Item",
     "itemName": "Item Name",
     "category": "Category",
@@ -1154,6 +1159,7 @@
     },
 
     "options": {
+      "multiSheet": "Multiple Sheets",
       "includeImages": "Include Images",
       "includeCharts": "Include Charts",
       "multipleSheets": "Multiple Sheets",

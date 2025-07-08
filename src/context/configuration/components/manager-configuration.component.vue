@@ -72,7 +72,7 @@ export default {
       this.showNotification(this.$t('settings.tutorialReactivated'), 'success')
       setTimeout(() => {
         this.$router.push('/proyectos')
-      }, 1000)
+      }, 500)
     },
 
     async reactivarTutorialProyecto() {

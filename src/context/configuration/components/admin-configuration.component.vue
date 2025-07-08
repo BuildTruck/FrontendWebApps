@@ -58,11 +58,11 @@ export default {
   },
   methods: {
     async reactivarTutorialLayout() {
-      await this.resetSpecificTutorial('admin') // ✅ admin en lugar de admin-layout
+      await this.resetSpecificTutorial('admin')
       this.showNotification(this.$t('settings.tutorialReactivated'), 'success')
       setTimeout(() => {
-        this.$router.push('/dashboard')
-      }, 1000)
+        this.$router.push('/admin/dashboard') // ✅ CORRECTO
+      }, 500)
     },
 
     async resetearTodosLosTutorials() {

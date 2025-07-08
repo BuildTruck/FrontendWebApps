@@ -85,7 +85,7 @@ export default {
     <div class="forgot-password-container">
       <div class="form-section">
         <div class="logo-container">
-          <img :src="logoSrc" alt="Logo" class="logo" />
+          <img :src="logoSrc" alt="Logo"  class="logo" />
           <div class="language-switcher-container">
             <language-switcher />
           </div>

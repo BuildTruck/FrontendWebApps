@@ -96,11 +96,10 @@ export default {
       this.$router.replace(`/proyecto/${this.projectId}/documentacion`);
     }
 
+    // Para el tutorial de proyectos (mantener como está)
     setTimeout(async () => {
-      // ✅ USAR: Los métodos del tutorialComposable directamente
       const shouldShow = await this.tutorialComposable.shouldShowTutorial('manager-projects')
       if (shouldShow) {
-        // ✅ IMPORTAR: managerProjectSteps al inicio del archivo
         const { managerProjectSteps } = await import('../../../core/tutorial/config/manager-project.js')
         await this.tutorialComposable.startTutorial('manager-projects', managerProjectSteps)
       }

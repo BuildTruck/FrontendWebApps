@@ -58,11 +58,26 @@ export default {
   },
   methods: {
     async reactivarTutorialLayout() {
-      await this.resetSpecificTutorial('supervisor') // ✅ supervisor en lugar de supervisor-layout
+      await this.resetSpecificTutorial('supervisor')
       this.showNotification(this.$t('settings.tutorialReactivated'), 'success')
+
       setTimeout(() => {
-        this.$router.push('/personal') // O la ruta que uses para supervisor
-      }, 1000)
+        try {
+          const user = AuthService.getCurrentUser() // Usa tu servicio de auth
+          const supervisorId = user.id
+
+          if (supervisorId) {
+            this.$router.push(`/supervisor/${supervisorId}/personal`)
+          } else {
+            // Fallback si no se puede obtener el ID
+            console.warn('No se pudo obtener ID del supervisor')
+            this.showNotification('Error: No se pudo determinar el ID del supervisor', 'error')
+          }
+        } catch (error) {
+          console.error('Error obteniendo datos del usuario:', error)
+          this.showNotification('Error al redirigir', 'error')
+        }
+      }, 500)
     },
 
     async resetearTodosLosTutorials() {

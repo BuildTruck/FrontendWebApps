@@ -110,11 +110,13 @@ export default {
         </div>
 
         <div class="app-notification-actions">
+          <slot name="actions">
           <app-button
               :label="buttonText"
               variant="primary"
               @click="close"
           />
+          </slot>
         </div>
       </div>
     </div>
@@ -122,6 +124,10 @@ export default {
 </template>
 
 <style>
+.confirm-actions {
+  display: flex;
+  gap: 12px;
+}
 .app-notification-overlay {
   position: fixed;
   top: 0;

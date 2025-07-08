@@ -165,7 +165,7 @@ export default {
       <div class="form-section">
         <div class="logo-container">
           <!-- 🆕 LOGO REACTIVO -->
-          <img :src="logoSrc" alt="Logo" class="logo" />
+          <img :src="logoSrc" alt="Logo" class="logo" l/>
           <div class="language-switcher-container">
             <language-switcher />
           </div>

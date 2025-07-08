@@ -65,7 +65,7 @@ router.beforeEach((to, from, next) => {
     const publicPaths = ['/login', '/forgot-password', '/reset-password','/change-password']
     const user = JSON.parse(sessionStorage.getItem('user'))
 
-    const isPublic = publicPaths.includes(to.path)
+    const isPublic = publicPaths.includes(to.path) || to.path === '/reset-password'
 
     if (!isPublic && !user) {
         // No hay usuario y la ruta requiere autenticación

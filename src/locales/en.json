@@ -1461,7 +1461,7 @@
     "requirementUppercase": "One uppercase letter",
     "requirementLowercase": "One lowercase letter",
     "requirementNumber": "One number",
-    "requirementSpecial": "One special character  (like @, $, !, %, *, ?, o &)",
+    "requirementSpecial": "One special character",
     "invalidToken": "Invalid link",
     "invalidTokenDescription": "The recovery link is invalid or has expired. Request a new one.",
     "resetTokenError": "The link is invalid or has expired",

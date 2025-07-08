@@ -1503,7 +1503,7 @@
     "requirementUppercase": "Una letra mayúscula",
     "requirementLowercase": "Una letra minúscula",
     "requirementNumber": "Un número",
-    "requirementSpecial": "Un carácter especial (como @, $, !, %, *, ?, o &)",
+    "requirementSpecial": "Un carácter especial",
     "invalidToken": "Enlace inválido",
     "invalidTokenDescription": "El enlace de recuperación no es válido o ha expirado. Solicita uno nuevo.",
     "resetTokenError": "El enlace no es válido o ha expirado",

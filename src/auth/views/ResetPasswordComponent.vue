@@ -33,19 +33,23 @@ export default {
     }
   },
   mounted() {
-    // Limpiar almacenamiento por si acaso
-    AuthService.clearAllStorages();
+    try{
+        // Limpiar almacenamiento por si acaso
+        AuthService.clearAllStorages();
+        this.themeStore.initializeForLogin();
 
-    // Inicializar tema para reset password
-    this.themeStore.initializeForLogin();
+        // Obtener parámetros más robustamente
+        const url = new URL(window.location.href);
+        this.token = url.searchParams.get('token') || '';
+        this.email = url.searchParams.get('email') || '';
 
-    // Obtener token y email de la URL
-    const urlParams = new URLSearchParams(window.location.search);
-    this.token = urlParams.get('token') || '';
-    this.email = urlParams.get('email') || '';
-
-    // Validar que tenemos token y email
-    if (!this.token || !this.email) {
+        // Validar que tenemos token y email
+        if (!this.token || !this.email) {
+          console.error('Token o email faltante');
+          this.tokenError = true;
+        }
+    } catch (error) {
+      console.error('Error en reset password:', error);
       this.tokenError = true;
     }
   },

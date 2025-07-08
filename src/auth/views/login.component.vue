@@ -165,7 +165,7 @@ export default {
       <div class="form-section">
         <div class="logo-container">
           <!-- 🆕 LOGO REACTIVO -->
-          <img :src="logoSrc" alt="Logo" class="logo" />
+          <img :src="logoSrc" alt="Logo" class="logo" l/>
           <div class="language-switcher-container">
             <language-switcher />
           </div>
@@ -191,7 +191,9 @@ export default {
             <div class="form-group">
               <div class="password-header">
                 <label>{{ $t('auth.password') }}</label>
-                <a href="#" class="forgot-link">{{ $t('auth.forgotPassword') }}</a>
+                <router-link to="/forgot-password" class="forgot-link">
+                  {{ $t('auth.forgotPassword') }}
+                </router-link>
               </div>
               <AppInput
                   v-model="password"

@@ -1,15 +1,13 @@
 <script>
-import AppTable from '../../../core/components/AppTable.vue'
 import AppNotification from '../../../core/components/AppNotification.vue'
 import AppButton from '../../../core/components/AppButton.vue'
+import MachineryForm from './machinery-form.vue'
 import { MachineryApiService } from "../services/machinery-api.service.js";
-import MachineryForm from "./machinery-form.vue";
 
 export default {
   name: 'MachinerySupervisor',
   components: {
     MachineryForm,
-    AppTable,
     AppNotification,
     AppButton,
   },
@@ -21,40 +19,21 @@ export default {
   },
   data() {
     return {
-      selectedTab: 'machinery',
-      machinery: [],
-      selectedMachine: null,
-      showForm: false,
-      isReadonly: false,
-      isEditing: false,
-      showAddForm: false,
       loading: false,
       showNotification: false,
       notificationMessage: '',
+      notificationType: 'success',
       machineryService: new MachineryApiService(),
-      showConfirmation: false,
-      confirmationMessage: '',
-      pendingDeleteMachinery: [],
+
+      // Control de formulario para agregar
+      showAddForm: false,
+      selectedMachine: null,
     }
   },
   computed: {
-    columns() {
-      return [
-        { field: 'name', header: this.$t('machinery.name') },
-        { field: 'licensePlate', header: this.$t('machinery.licensePlate') },
-        { field: 'machineryType', header: this.$t('machinery.machineryType') },
-        { field: 'status', header: this.$t('machinery.status') },
-        { field: 'provider', header: this.$t('machinery.provider') },
-        { field: 'registerDate', header: this.$t('machinery.registerDate'), dataType: 'date' }
-      ];
-    },
-
     currentProjectId() {
       return this.projectId || this.getCurrentProjectIdFromSession();
     }
-  },
-  async created() {
-    await this.loadMachinery()
   },
   methods: {
     getCurrentProjectIdFromSession() {
@@ -67,243 +46,44 @@ export default {
       }
     },
 
-    async loadMachinery() {
-      try {
-        this.loading = true;
-
-        if (!this.currentProjectId) {
-          throw new Error('No projectId found');
-        }
-
-        console.log('Loading machinery for project:', this.currentProjectId);
-        const data = await this.machineryService.getByProject(this.currentProjectId);
-        this.machinery = Array.isArray(data) ? data : [];
-
-        console.log('Loaded machinery:', this.machinery.length);
-      } catch (error) {
-        console.error('Error loading machinery:', error);
-        this.machinery = [];
-        this.notificationMessage = this.$t('machinery.errorLoading');
-        this.showNotification = true;
-      } finally {
-        this.loading = false;
-      }
-    },
-
-    async handleUpdated(message = '') {
-      await this.loadMachinery()
-      if (message) {
-        this.notificationMessage = message
-        this.showNotification = true
-      }
-    },
-
     handleAdd() {
-      this.selectedMachine = null
-      this.showForm = true
-      this.isReadonly = false
-      this.isEditing = false
-      this.showAddForm = true
+      this.selectedMachine = null;
+      this.showAddForm = true;
     },
 
-    async handleConfirm(machinery) {
+    async handleSave(machinery) {
       try {
-        console.log('🎯 handleConfirm called with:', machinery);
+        console.log('🎯 handleSave called with:', machinery);
 
-        // ✅ SOLO manejar la respuesta, no llamar al service otra vez
         this.notificationMessage = machinery.id
             ? this.$t('machinery.machineryUpdated')
             : this.$t('machinery.machineryCreated');
 
         this.showNotification = true;
-        this.showForm = false;
         this.showAddForm = false;
         this.selectedMachine = null;
-        await this.loadMachinery();
+
+        // Forzar recarga del MachineryForm
+        this.$refs.machineryForm?.loadMachinery?.();
 
         console.log('✅ Machinery operation completed:', machinery);
       } catch (error) {
-        console.error('❌ Error in handleConfirm:', error);
+        console.error('❌ Error in handleSave:', error);
         this.notificationMessage = error.message || this.$t('machinery.errorSaving');
+        this.notificationType = 'error';
         this.showNotification = true;
       }
     },
 
-    handleRowClick({data}) {
-      this.selectedMachine = {...data}
-      this.showForm = true
-      this.isReadonly = true
-      this.isEditing = false
+    handleCancel() {
+      this.showAddForm = false;
+      this.selectedMachine = null;
     },
 
-    handleEdit() {
-      this.isReadonly = false
-      this.isEditing = true
-      this.showForm = true
-      this.showAddForm = false
-    },
-
-    cancelView() {
-      this.showForm = false
-      this.showAddForm = false
-      this.selectedMachine = null
-      this.isReadonly = false
-      this.isEditing = false
-    },
-
-    async handleDelete(selectedMachinery) {
-      if (!selectedMachinery || selectedMachinery.length === 0) {
-        return;
-      }
-
-      try {
-        const confirmMessage = selectedMachinery.length === 1
-            ? this.$t('machinery.deleteConfirm')
-            : this.$t('machinery.deleteMultipleConfirm', { count: selectedMachinery.length });
-
-        // Mostrar confirmación
-        this.confirmationMessage = confirmMessage;
-        this.showConfirmation = true;
-        this.pendingDeleteMachinery = selectedMachinery;
-      } catch (error) {
-        console.error('Error preparing delete:', error);
-        this.showNotificationMessage(error.message || this.$t('machinery.errorDeleting'), 'error');
-      }
-    },
-    async confirmDelete() {
-      if (!this.pendingDeleteMachinery || this.pendingDeleteMachinery.length === 0) {
-        return;
-      }
-
-      this.loading = true;
-
-      try {
-        console.log('🗑️ Deleting machinery:', this.pendingDeleteMachinery);
-
-        if (this.pendingDeleteMachinery.length === 1) {
-          // Eliminar una sola maquinaria
-          await this.machineryService.delete(this.pendingDeleteMachinery[0].id);
-          this.showNotificationMessage(this.$t('machinery.machineryDeleted'), 'success');
-        } else {
-          // Eliminar múltiples maquinarias
-          const ids = this.pendingDeleteMachinery.map(m => m.id);
-          await this.machineryService.deleteMultiple(ids);
-          this.showNotificationMessage(
-              this.$t('machinery.machineryMultipleDeleted', { count: ids.length }),
-              'success'
-          );
-        }
-
-        // ✅ Recargar la lista
-        await this.loadMachinery();
-
-        // ✅ Limpiar confirmación
-        this.cancelDelete();
-
-      } catch (error) {
-        console.error('Error deleting machinery:', error);
-
-        let errorMessage = this.$t('machinery.errorDeleting');
-
-        // Manejar errores específicos
-        if (error.response?.status === 404) {
-          errorMessage = this.$t('machinery.machineryNotFound');
-        } else if (error.response?.status === 409) {
-          errorMessage = this.$t('machinery.machineryInUse');
-        }
-
-        this.showNotificationMessage(errorMessage, 'error');
-      } finally {
-        this.loading = false;
-      }
-    },
-    async executeDelete() {
-      try {
-        this.loading = true;
-        this.showConfirmation = false;
-
-        if (this.pendingDeleteMachinery.length === 1) {
-          await this.machineryService.delete(this.pendingDeleteMachinery[0].id);
-        } else {
-          const ids = this.pendingDeleteMachinery.map(m => m.id);
-          await this.machineryService.deleteMultiple(ids);
-        }
-
-        this.showNotificationMessage(this.$t('machinery.machineryDeleted'), 'success');
-        await this.loadMachinery();
-      } catch (error) {
-        console.error('Error deleting machinery:', error);
-        this.showNotificationMessage(error.message || this.$t('machinery.errorDeleting'), 'error');
-      } finally {
-        this.loading = false;
-        this.pendingDeleteMachinery = [];
-      }
-    },
-
-    cancelDelete() {
-      this.showConfirmation = false;
-      this.confirmationMessage = '';
-      this.pendingDeleteMachinery = [];
-    },
-
-    async handleExport({ filteredData, selectedData, allData }) {
-      try {
-        const dataToExport = selectedData && selectedData.length > 0
-            ? selectedData
-            : filteredData && filteredData.length > 0
-                ? filteredData
-                : allData;
-
-        if (!dataToExport || dataToExport.length === 0) {
-          this.notificationMessage = this.$t('machinery.noDataAvailable');
-          this.showNotification = true;
-          return;
-        }
-
-        await this.machineryService.exportToExcel(dataToExport, 'machinery');
-
-        this.notificationMessage = this.$t('machinery.exportedSuccessfully');
-        this.showNotification = true;
-      } catch (error) {
-        console.error('Error exporting machinery:', error);
-        this.notificationMessage = error.message || 'Error exporting data';
-        this.showNotification = true;
-      }
-    },
-    convertStatusFromBackend(statusNumber) {
-      const statusMap = {
-        0: 'ACTIVE',
-        1: 'MAINTENANCE'
-      };
-      return statusMap[statusNumber] || 'ACTIVE';
-    },
-    getStatusDisplay(status) {
-      // ✅ AGREGAR conversión de números del backend
-      const normalizedStatus = typeof status === 'number' ? this.convertStatusFromBackend(status) : status;
-
-      const statusMap = {
-        'ACTIVE': { label: this.$t('machinery.statusActive'), class: 'status-success' },
-        'MAINTENANCE': { label: this.$t('machinery.statusMaintenance'), class: 'status-warning' }
-      };
-
-      return statusMap[normalizedStatus] || { label: normalizedStatus, class: 'status-default' };
-    },
-
-    getMachineryTypeDisplay(type) {
-      const typeMap = {
-        'EXCAVATOR': this.$t('machinery.typeExcavator'),
-        'TRACTOR': this.$t('machinery.typeTractor'),
-        'CRANE': this.$t('machinery.typeCrane'),
-        'BULLDOZER': this.$t('machinery.typeBulldozer'),
-        'LOADER': this.$t('machinery.typeLoader'),
-        'DUMP_TRUCK': this.$t('machinery.typeDumpTruck'),
-        'COMPACTOR': this.$t('machinery.typeCompactor'),
-        'MIXER': this.$t('machinery.typeMixer'),
-        'GENERATOR': this.$t('machinery.typeGenerator'),
-        'PUMP': this.$t('machinery.typePump')
-      };
-
-      return typeMap[type] || type;
+    showNotificationMessage(message, type = 'success') {
+      this.notificationMessage = message;
+      this.notificationType = type;
+      this.showNotification = true;
     }
   }
 }
@@ -311,87 +91,51 @@ export default {
 
 <template>
   <div class="machinery-supervisor">
-    <!-- TABS -->
-    <div v-if="selectedTab === 'machinery'">
-      <!-- Formulario para maquinaria -->
-      <machinery-form
-          v-if="showForm || showAddForm"
-          :machinery="selectedMachine || {}"
-          :project-id="currentProjectId"
-          @save="handleConfirm"
-          @cancel="cancelView"
-      />
-
-      <!-- Botones al ver detalles -->
-      <div v-if="showForm && isReadonly" class="detail-actions">
-        <AppButton
-            :label="$t('general.edit')"
-            variant="primary"
-            @click="handleEdit"
-        />
-        <AppButton
-            :label="$t('general.close')"
-            variant="secondary"
-            @click="cancelView"
-        />
+    <!-- Header con botón Agregar (solo cuando no está en modo agregar) -->
+    <div v-if="!showAddForm" class="supervisor-header">
+      <div class="header-left">
+        <h2 class="page-title">{{ $t('machinery.machineryManagement', 'Gestión de Maquinaria') }}</h2>
+        <p class="page-subtitle">{{ $t('machinery.manageMachineryDescription', 'Administra y supervisa toda la maquinaria del proyecto') }}</p>
       </div>
-
-      <!-- Estado vacío -->
-      <div v-if="!showForm && !showAddForm && !loading && machinery.length === 0" class="empty-state">
-        <i class="pi pi-wrench empty-icon"></i>
-        <h3>{{ $t('machinery.noDataAvailable') }}</h3>
-        <p>{{ $t('machinery.addFirstMachinery') }}</p>
+      <div class="header-actions">
         <AppButton
-            :label="$t('machinery.addNew')"
+            :label="$t('machinery.addNew', 'Agregar Maquinaria')"
             variant="primary"
             icon="pi pi-plus"
             @click="handleAdd"
         />
       </div>
+    </div>
 
-      <!-- Tabla - solo cuando hay datos -->
-      <div v-if="!showForm && !showAddForm && (loading || machinery.length > 0)" class="table-container">
-        <AppTable
-            :columns="columns"
-            :data="machinery"
-            :loading="loading"
-            :showFilterButton="true"
-            :showAddButton="true"
-            :showExportButton="false"
-            :selectable="true"
-            @add="handleAdd"
-            @row-click="handleRowClick"
-            @delete="handleDelete"
-        >
-          <!-- Custom template for machinery type column -->
-          <template #body-machineryType="{ data }">
-            <span class="machinery-type-display">
-              {{ getMachineryTypeDisplay(data.machineryType) }}
-            </span>
-          </template>
+    <!-- Formulario para agregar nueva maquinaria -->
+    <div v-if="showAddForm" class="add-form-container">
+      <MachineryForm
+          :project-id="currentProjectId"
+          :readonly="false"
+          :allow-editing="true"
+          :is-adding-new="true"
+          @cancel="handleCancel"
+          @save="handleSave"
+      />
+    </div>
 
-          <!-- Custom template for status column -->
-          <template #body-status="{ data }">
-            <div class="status-container">
-              <span
-                  class="status-dot"
-                  :class="getStatusDisplay(data.status).class"
-              ></span>
-              <span>{{ getStatusDisplay(data.status).label }}</span>
-            </div>
-          </template>
-        </AppTable>
-      </div>
+    <!-- Vista general (tabla + detalle + edición) -->
+    <div v-if="!showAddForm" class="general-view">
+      <MachineryForm
+          ref="machineryForm"
+          :project-id="currentProjectId"
+          :readonly="false"
+          :allow-editing="true"
+      />
     </div>
 
     <AppNotification
         v-model="showNotification"
         :message="notificationMessage"
-        :type="warning"
+        :type="notificationType"
         :auto-close="true"
         :duration="3000"
     />
-
   </div>
 </template>
 
@@ -403,153 +147,162 @@ export default {
   background-color: #f8f9fa;
 }
 
-.detail-actions {
+/* Header del supervisor */
+.supervisor-header {
   display: flex;
-  justify-content: flex-end;
-  gap: 0.75rem;
-  padding: 1rem;
+  justify-content: space-between;
+  align-items: center;
   background: white;
-  border-bottom: 1px solid #e0e0e0;
-  margin-bottom: 1rem;
+  padding: 1.5rem 2rem;
+  border-radius: 12px;
+  margin: 2rem 2rem 0 2rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+  border: 1px solid #e9ecef;
 }
 
-.table-container {
+.header-left {
   flex: 1;
-  background: white;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.machinery-type-display {
-  font-weight: 500;
+.page-title {
+  margin: 0 0 0.5rem 0;
+  font-size: 2rem;
+  font-weight: 700;
   color: #333;
 }
 
-.status-container {
+.page-subtitle {
+  margin: 0;
+  color: #666;
+  font-size: 1.125rem;
+}
+
+.header-actions {
   display: flex;
+  gap: 0.75rem;
   align-items: center;
-  gap: 0.5rem;
 }
 
-.status-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  display: inline-block;
+/* Contenedor del formulario de agregar */
+.add-form-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: 2rem;
 }
 
-.status-dot.status-success {
-  background-color: #22c55e;
+/* Vista general */
+.general-view {
+  flex: 1;
+  overflow-y: auto;
 }
 
-.status-dot.status-danger {
-  background-color: #ef4444;
+/* Responsive */
+@media (max-width: 1200px) {
+  .supervisor-header {
+    margin: 1.5rem;
+    padding: 1.5rem;
+  }
+
+  .page-title {
+    font-size: 1.75rem;
+  }
+
+  .page-subtitle {
+    font-size: 1rem;
+  }
 }
 
-.status-dot.status-warning {
-  background-color: #f97316;
-}
+@media (max-width: 992px) {
+  .supervisor-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 1.5rem;
+    margin: 1rem;
+    padding: 1.5rem;
+  }
 
-.status-dot.status-info {
-  background-color: #3b82f6;
-}
+  .header-left {
+    text-align: center;
+  }
 
-.status-dot.status-default {
-  background-color: #6b7280;
-}
+  .header-actions {
+    justify-content: center;
+  }
 
-/* Estilos para columna de personal asignado */
-.personnel-container {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.personnel-icon {
-  font-size: 0.875rem;
-  color: #22c55e;
-}
-
-.personnel-icon.unassigned {
-  color: #9ca3af;
-}
-
-.unassigned-text {
-  color: #9ca3af;
-  font-style: italic;
-}
-
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 4rem 2rem;
-  text-align: center;
-  background: white;
-  border-radius: 12px;
-  margin: 2rem;
-  min-height: 400px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.empty-icon {
-  font-size: 4rem;
-  color: #9ca3af;
-  margin-bottom: 1.5rem;
-  opacity: 0.8;
-}
-
-.empty-state h3 {
-  margin: 0 0 0.5rem 0;
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #374151;
-}
-
-.empty-state p {
-  margin: 0 0 1.5rem 0;
-  color: #6b7280;
-  font-size: 0.875rem;
+  .add-form-container {
+    padding: 1rem;
+  }
 }
 
 @media (max-width: 768px) {
-  .detail-actions {
-    padding: 0.75rem;
+  .supervisor-header {
+    margin: 0.75rem;
+    padding: 1rem;
+    border-radius: 8px;
+  }
+
+  .page-title {
+    font-size: 1.5rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .page-subtitle {
+    font-size: 0.875rem;
+  }
+
+  .header-actions {
+    flex-direction: column;
     gap: 0.5rem;
   }
 
-  .table-container {
-    margin: 0.5rem;
-    border-radius: 6px;
-  }
-
-  .empty-state {
-    padding: 3rem 1.5rem;
-    margin: 1rem;
-    min-height: 300px;
-  }
-
-  .empty-icon {
-    font-size: 2.5rem;
+  .add-form-container {
+    padding: 0.75rem;
   }
 }
 
 @media (max-width: 480px) {
-  .detail-actions {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .machinery-supervisor {
-    padding: 0;
-  }
-
-  .empty-state {
-    padding: 2rem 1rem;
+  .supervisor-header {
     margin: 0.5rem;
-    min-height: 250px;
+    padding: 0.75rem;
+    gap: 1rem;
   }
+
+  .page-title {
+    font-size: 1.25rem;
+  }
+
+  .page-subtitle {
+    font-size: 0.75rem;
+  }
+
+  .add-form-container {
+    padding: 0.5rem;
+  }
+}
+
+/* Animaciones */
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.supervisor-header {
+  animation: slideInDown 0.4s ease-out;
+}
+
+/* Estilos para integración con MachineryFormGeneral */
+:deep(.machinery-form) {
+  background-color: transparent;
+}
+
+:deep(.manager-header) {
+  margin-top: 0;
+  margin-bottom: 2rem;
 }
 </style>

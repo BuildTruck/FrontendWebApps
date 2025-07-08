@@ -11,7 +11,12 @@ export class IncidentApiService extends BaseService {
     async getByProject(projectId) {
         try {
             const response = await http.get(`/incident/project/${projectId}`);
-            return Incident.fromJsonArray(response.data || []);
+
+            // AGREGAR ESTAS LÍNEAS PARA DEBUG:
+            console.log('🔍 Backend response:', response.data);
+            console.log('🔍 First incident from backend:', response.data[0]);
+
+            return response.data || [];
         } catch (error) {
             console.error(`Error fetching project incidents ${projectId}:`, error);
             return [];
@@ -57,13 +62,28 @@ export class IncidentApiService extends BaseService {
         }
     }
 
-    // DELETE /api/v1/incident/{id}
+
+// Agregar estos métodos a tu incident.service.js:
+
     async delete(id) {
         try {
             await http.delete(`/incident/${id}`);
             return true;
         } catch (error) {
             console.error(`Error deleting incident ${id}:`, error);
+            throw error;
+        }
+    }
+
+// ✅ Método para eliminar múltiples incidents (para selección masiva)
+    async deleteMultiple(ids) {
+        try {
+            // Ejecutar eliminaciones en paralelo
+            const deletePromises = ids.map(id => this.delete(id));
+            await Promise.all(deletePromises);
+            return true;
+        } catch (error) {
+            console.error('Error deleting multiple incidents:', error);
             throw error;
         }
     }

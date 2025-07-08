@@ -6,7 +6,11 @@ export const managerProjectSteps = [
         target: '.project-header',
         title: 'Gestión de Proyecto',
         description: 'Bienvenido al área de gestión de tu proyecto. Aquí puedes administrar todos los aspectos de la construcción.',
-        position: 'bottom',
+        position: {
+            desktop: { placement: 'bottom', offset: { x: 0, y: 10 } },
+            tablet: { placement: 'bottom', offset: { x: 0, y: 15 } },
+            mobile: { placement: 'bottom', offset: { x: 0, y: 20 } }
+        },
         order: 1,
         optional: false
     },
@@ -15,7 +19,11 @@ export const managerProjectSteps = [
         target: '[data-tutorial="back-button"]',
         title: 'Volver a Proyectos',
         description: 'Usa este botón para regresar a la lista principal de todos tus proyectos.',
-        position: 'right',
+        position: {
+            desktop: { placement: 'right', offset: { x: 70, y: -300 } },
+            tablet: { placement: 'right', offset: { x: 70, y: -300 } },
+            mobile: { placement: 'bottom', offset: { x: 60, y: -220 } }
+        },
         order: 2,
         optional: false
     },
@@ -24,16 +32,24 @@ export const managerProjectSteps = [
         target: '[data-tutorial="notifications"]',
         title: 'Notificaciones del Proyecto',
         description: 'Recibe alertas específicas sobre este proyecto: actualizaciones de personal, incidentes, y más.',
-        position: 'bottom',
+        position: {
+            desktop: { placement: 'bottom-left', offset: { x: -20, y: 15 } },
+            tablet: { placement: 'bottom', offset: { x: -10, y: 20 } },
+            mobile: { placement: 'bottom', offset: { x: 0, y: 25 } }
+        },
         order: 3,
         optional: true
     },
     {
         id: 'project-tabs',
-        target: '.tabs-nav',
+        target: '[data-tutorial="tabs"]',
         title: 'Secciones del Proyecto',
         description: 'Navega entre las diferentes secciones para gestionar cada aspecto de tu proyecto.',
-        position: 'bottom',
+        position: {
+            desktop: { placement: 'bottom', offset: { x: 0, y: 15 } },
+            tablet: { placement: 'bottom', offset: { x: 0, y: 20 } },
+            mobile: { placement: 'bottom', offset: { x: 0, y: 25 } }
+        },
         order: 4,
         optional: false
     },
@@ -42,7 +58,11 @@ export const managerProjectSteps = [
         target: '[data-tutorial="documentacion"]',
         title: 'Documentación',
         description: 'Gestiona planos, contratos, permisos y toda la documentación importante del proyecto.',
-        position: 'bottom',
+        position: {
+            desktop: { placement: 'bottom', offset: { x: 0, y: 20 } },
+            tablet: { placement: 'bottom', offset: { x: 0, y: 25 } },
+            mobile: { placement: 'top', offset: { x: 0, y: -15 } }
+        },
         order: 5,
         optional: false
     },
@@ -51,7 +71,11 @@ export const managerProjectSteps = [
         target: '[data-tutorial="personal"]',
         title: 'Personal',
         description: 'Administra el equipo de trabajo: asignaciones, asistencia y información del personal.',
-        position: 'bottom',
+        position: {
+            desktop: { placement: 'bottom', offset: { x: 0, y: 20 } },
+            tablet: { placement: 'bottom', offset: { x: 0, y: 25 } },
+            mobile: { placement: 'top', offset: { x: 0, y: -15 } }
+        },
         order: 6,
         optional: false
     },
@@ -60,7 +84,11 @@ export const managerProjectSteps = [
         target: '[data-tutorial="inventario"]',
         title: 'Inventario',
         description: 'Controla materiales, herramientas y equipos disponibles en el proyecto.',
-        position: 'bottom',
+        position: {
+            desktop: { placement: 'bottom', offset: { x: 0, y: 20 } },
+            tablet: { placement: 'bottom', offset: { x: 0, y: 25 } },
+            mobile: { placement: 'top', offset: { x: 0, y: -15 } }
+        },
         order: 7,
         optional: true
     },
@@ -69,7 +97,11 @@ export const managerProjectSteps = [
         target: '[data-tutorial="incidentes"]',
         title: 'Incidentes',
         description: 'Registra y da seguimiento a incidentes de seguridad, problemas y observaciones.',
-        position: 'bottom',
+        position: {
+            desktop: { placement: 'bottom', offset: { x: 0, y: 20 } },
+            tablet: { placement: 'bottom', offset: { x: 0, y: 25 } },
+            mobile: { placement: 'top', offset: { x: 0, y: -15 } }
+        },
         order: 8,
         optional: true
     },
@@ -78,7 +110,11 @@ export const managerProjectSteps = [
         target: '[data-tutorial="maquinaria"]',
         title: 'Maquinaria',
         description: 'Gestiona el mantenimiento y uso de maquinaria pesada y equipos especializados.',
-        position: 'bottom',
+        position: {
+            desktop: { placement: 'bottom', offset: { x: 0, y: 20 } },
+            tablet: { placement: 'bottom', offset: { x: 0, y: 25 } },
+            mobile: { placement: 'top', offset: { x: 0, y: -15 } }
+        },
         order: 9,
         optional: true
     },
@@ -86,24 +122,19 @@ export const managerProjectSteps = [
         id: 'configuracion-tab',
         target: '[data-tutorial="configuracion"]',
         title: 'Configuración de la Obra',
-        description: 'Ajusta parámetros específicos del proyecto, horarios de trabajo y configuraciones generales.',
-        position: 'bottom',
+        description: 'Ajusta parámetros específicos del proyecto, estado y configuraciones generales.',
+        position: {
+            desktop: { placement: 'bottom', offset: { x: 0, y: 20 } },
+            tablet: { placement: 'bottom', offset: { x: 0, y: 25 } },
+            mobile: { placement: 'top', offset: { x: 0, y: -15 } }
+        },
         order: 10,
-        optional: true
-    },
-    {
-        id: 'tab-counters',
-        target: '.tab-count:first',
-        title: 'Contadores Dinámicos',
-        description: 'Estos números te muestran la cantidad de elementos en cada sección (personal activo, documentos, etc.).',
-        position: 'top',
-        order: 11,
         optional: true
     }
 ]
 
 export const managerProjectConfig = {
-    id: 'manager-project',
+    id: 'manager-projects',
     name: 'Gestión de Proyecto Individual',
     description: 'Tutorial para la gestión detallada de un proyecto específico',
     steps: managerProjectSteps,
@@ -361,7 +392,11 @@ export const documentacionFirstVisitSteps = [
         target: '.project-content',
         title: 'Gestión de Documentación',
         description: 'Aquí puedes subir y organizar todos los documentos importantes: planos, contratos, permisos y más.',
-        position: 'top',
+        position: {
+            desktop: { placement: 'top', offset: { x: 0, y: -20 } },
+            tablet: { placement: 'top', offset: { x: 0, y: -25 } },
+            mobile: { placement: 'bottom', offset: { x: 0, y: 20 } }
+        },
         order: 1,
         optional: false
     }

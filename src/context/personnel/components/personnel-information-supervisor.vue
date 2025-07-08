@@ -23,7 +23,9 @@ export default {
   emits: ['personnel-updated', 'edit-personnel', 'add-personnel'],
   data() {
     return {
-      // Datos principales
+      showDeleteConfirm: false,
+      deleteConfirmMessage: '',
+      itemsToDelete: [],
       personnel: [],
       loading: false,
       showExportModal: false,
@@ -129,29 +131,7 @@ export default {
         this.showNotificationMessage(this.$t('personnel.selectToDelete'), 'warning');
         return;
       }
-
-      const count = this.selectedPersonnel.length;
-      const message = count === 1
-          ? this.$t('personnel.confirmDelete')
-          : this.$t('personnel.confirmDeleteMultiple', { count });
-
-      if (!confirm(message)) {
-        return;
-      }
-
-      try {
-        const ids = this.selectedPersonnel.map(p => p.id);
-        await this.personnelService.deleteMultiple(ids);
-        this.showNotificationMessage(
-            this.$t('personnel.multipleDeleted', { count }),
-            'success'
-        );
-        this.selectedPersonnel = [];
-        await this.loadPersonnel();
-      } catch (error) {
-        console.error('Error al eliminar personal:', error);
-        this.showNotificationMessage(this.$t('personnel.errorDeleting'), 'error');
-      }
+      this.showDeleteConfirmation(this.selectedPersonnel);
     },
 
     handleRowClick(event) {
@@ -198,7 +178,48 @@ export default {
         startDate: this.formatDate(p.startDate)
       }));
     },
+    showDeleteConfirmation(items) {
+      const itemText = items.length === 1
+          ? `el personal "${items[0].name} ${items[0].lastname}"`
+          : `${items.length} miembros del personal`;
 
+      this.itemsToDelete = items;
+      this.deleteConfirmMessage = `¿Estás seguro de que deseas eliminar ${itemText}? Esta acción no se puede deshacer.`;
+      this.showDeleteConfirm = true;
+    },
+
+    cancelDelete() {
+      this.showDeleteConfirm = false;
+      this.itemsToDelete = [];
+    },
+
+    async confirmDelete() {
+      const selectedItems = this.itemsToDelete;
+      this.showDeleteConfirm = false;
+
+      try {
+        if (selectedItems.length === 1) {
+          await this.personnelService.delete(selectedItems[0].id);
+          this.showNotificationMessage(this.$t('personnel.personnelDeleted'), 'success');
+        } else {
+          const ids = selectedItems.map(item => item.id);
+          await this.personnelService.deleteMultiple(ids);
+          this.showNotificationMessage(
+              this.$t('personnel.multipleDeleted', { count: selectedItems.length }),
+              'success'
+          );
+        }
+
+        this.selectedPersonnel = [];
+        await this.loadPersonnel();
+
+      } catch (error) {
+        console.error('Error deleting personnel:', error);
+        this.showNotificationMessage(this.$t('personnel.errorDeleting'), 'error');
+      } finally {
+        this.itemsToDelete = [];
+      }
+    },
     // Métodos simples de formateo que NO causan conflicto
     formatPersonnelType(type) {
       const types = {
@@ -313,6 +334,29 @@ export default {
         :row-hover="true"
         selection-mode="multiple"
     />
+    <AppNotification
+        v-model="showDeleteConfirm"
+        :message="deleteConfirmMessage"
+        type="warning"
+        :auto-close="false"
+        button-text="Cancelar"
+        @close="cancelDelete"
+    >
+      <template #actions>
+        <div class="confirm-actions">
+          <AppButton
+              label="Cancelar"
+              variant="secondary"
+              @click="cancelDelete"
+          />
+          <AppButton
+              label="Eliminar"
+              variant="danger"
+              @click="confirmDelete"
+          />
+        </div>
+      </template>
+    </AppNotification>
 
     <!-- Notificaciones -->
     <AppNotification

@@ -49,6 +49,8 @@
     "networkError": "Network error. Please check your connection."
   },
   "settings": {
+    "restartSupervisorTutorial" : "Restart Seupervisor Tutorial",
+    "restartAdminTutorial": "Restart Admin Tutorial",
     "tutorials": "Tutorials",
     "tutorialsDescription": "Reactivate tutorials to view them again",
     "restartManagerTutorial": "Panel Tutorial",
@@ -182,6 +184,9 @@
     }
   },
   "inventory": {
+    "viewInventoryOverview": "View inventory overview and stock levels",
+    "materialEntries": "Material Entries",
+    "materialUsages": "Material Usages",
     "addItem": "Add Item",
     "itemName": "Item Name",
     "category": "Category",
@@ -1024,7 +1029,29 @@
       "byStatus": "Machinery by Status",
       "availability": "Availability",
       "efficiency": "Efficiency",
-      "summary": "Machinery Summary"
+      "summary": "Machinery Summary",
+
+      "machineryManagement": "Machinery Management",
+      "viewMachineryDetails": "View machinery details and information",
+      "allStatuses": "All Statuses",
+      "exportAll": "Export All",
+
+
+      "typeEXCAVATOR": "Excavator",
+      "typeTRACTOR": "Tractor",
+      "typeCRANE": "Crane",
+      "typeBULLDOZER": "Bulldozer",
+      "typeLOADER": "Loader",
+      "typeDUMP_TRUCK": "Dump Truck",
+      "typeCOMPACTOR": "Compactor",
+      "typeMIXER": "Concrete Mixer",
+      "typeGENERATOR": "Generator",
+      "typePUMP": "Water Pump",
+
+
+      "statusACTIVE": "Active",
+      "statusMAINTENANCE": "Maintenance"
+
     },
 
     "alerts": {
@@ -1132,6 +1159,7 @@
     },
 
     "options": {
+      "multiSheet": "Multiple Sheets",
       "includeImages": "Include Images",
       "includeCharts": "Include Charts",
       "multipleSheets": "Multiple Sheets",
@@ -1402,5 +1430,74 @@
       "toggleFilters": "Toggle filters",
       "togglePreferences": "Toggle preferences"
     }
+  },
+  "password": {
+    "forgotPassword": "Forgot your password?",
+    "forgotPasswordDescription": "Enter your corporate email and we'll send you a link to reset your password.",
+    "emailRequired": "Email is required",
+    "emailInvalid": "Please enter a valid email",
+    "sendResetLink": "Send reset link",
+    "sending": "Sending...",
+    "resetError": "Error processing request. Please try again.",
+    "emailSent": "Email sent!",
+    "emailSentDescription": "If your email is registered, you'll receive a link to reset your password.",
+    "checkInbox": "Check your inbox and follow the instructions in the email.",
+    "resetPassword": "Reset password",
+    "resetPasswordDescription": "Enter your new password. It must meet the security requirements.",
+    "newPassword": "New password",
+    "newPasswordPlaceholder": "Enter your new password",
+    "confirmPassword": "Confirm password",
+    "confirmPasswordPlaceholder": "Confirm your new password",
+    "resetPasswordButton": "Reset password",
+    "resetting": "Resetting...",
+    "newPasswordRequired": "New password is required",
+    "confirmPasswordRequired": "You must confirm the password",
+    "passwordMinLength": "Password must be at least 6 characters",
+    "passwordComplexity": "Password must contain uppercase, lowercase, numbers and symbols",
+    "passwordsDoNotMatch": "Passwords do not match",
+    "passwordRequirements": "Password requirements:",
+    "requirementLength": "At least 6 characters",
+    "requirementUppercase": "One uppercase letter",
+    "requirementLowercase": "One lowercase letter",
+    "requirementNumber": "One number",
+    "requirementSpecial": "One special character (like @, $, !, %, *, ?, &)",
+    "invalidToken": "Invalid link",
+    "invalidTokenDescription": "The recovery link is invalid or has expired. Request a new one.",
+    "resetTokenError": "The link is invalid or has expired",
+    "resetSuccess": "Password reset!",
+    "resetSuccessDescription": "Your password has been successfully reset. You can now sign in.",
+    "backToLogin": "Back to sign in",
+    "goToLogin": "Go to sign in",
+    "requestNewReset": "Request new link"
+  },
+  "changePassword": {
+    "title": "Change password",
+    "description": "For security, enter your current password before setting a new one.",
+    "currentPassword": "Current password",
+    "currentPasswordPlaceholder": "Enter your current password",
+    "newPassword": "New password",
+    "newPasswordPlaceholder": "Enter your new password",
+    "confirmPassword": "Confirm new password",
+    "confirmPasswordPlaceholder": "Confirm your new password",
+    "changePasswordButton": "Change password",
+    "changing": "Changing...",
+    "currentPasswordRequired": "Current password is required",
+    "newPasswordRequired": "New password is required",
+    "confirmPasswordRequired": "You must confirm the new password",
+    "passwordMinLength": "Password must be at least 6 characters",
+    "passwordComplexity": "Password must contain uppercase, lowercase, numbers and symbols",
+    "passwordsDoNotMatch": "Passwords do not match",
+    "samePassword": "New password must be different from current password",
+    "passwordRequirements": "New password requirements:",
+    "requirementLength": "At least 6 characters",
+    "requirementUppercase": "One uppercase letter",
+    "requirementLowercase": "One lowercase letter",
+    "requirementNumber": "One number",
+    "requirementSpecial": "One special character (special symbols)",
+    "changeSuccess": "Password changed successfully!",
+    "incorrectCurrentPassword": "Current password is incorrect",
+    "invalidData": "The entered data is not valid",
+    "changeError": "Error changing password. Please try again.",
+    "notAuthenticated": "Session expired. Please log in again."
   }
 }

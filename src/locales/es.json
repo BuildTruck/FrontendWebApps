@@ -49,6 +49,8 @@
     "networkError": "Error de red. Compruebe su conexión."
   },
   "settings": {
+    "restartSupervisorTutorial" : "Tutorial del Supervisor ",
+    "restartAdminTutorial": "Tutorial del Admin",
     "tutorials": "Tutoriales",
     "tutorialsDescription": "Reactiva los tutoriales para verlos nuevamente",
     "restartManagerTutorial": "Tutorial del Panel",
@@ -180,7 +182,11 @@
       "maquinaria": "Maquinaria",
       "configuracion": "Configuración de la Obra"
     }
-  },"inventory": {
+  },
+  "inventory": {
+  "viewInventoryOverview": "Administra el inventario de tu obra",
+  "materialEntries": "Entradas de materiales",
+  "materialUsages": "Usos de materiales",
   "addItem": "Agregar Artículo",
   "itemName": "Nombre del Artículo",
   "category": "Categoría",
@@ -783,7 +789,21 @@
     "machineryManager": "Gestor de Maquinaria",
     "allTypes": "Todos los Tipos",
     "allStatuses": "Todos los Estados",
-    "exportAll": "Exportar Todo"
+    "exportAll": "Exportar Todo",
+    "machineryManagement": "Gestión de Maquinaria",
+    "viewMachineryDetails": "Ver detalles e información de maquinaria",
+    "typeEXCAVATOR": "Excavadora",
+    "typeTRACTOR": "Tractor",
+    "typeCRANE": "Grúa",
+    "typeBULLDOZER": "Bulldozer",
+    "typeLOADER": "Cargadora",
+    "typeDUMP_TRUCK": "Volquete",
+    "typeCOMPACTOR": "Compactadora",
+    "typeMIXER": "Mezcladora de Concreto",
+    "typeGENERATOR": "Generador",
+    "typePUMP": "Bomba de Agua",
+    "statusACTIVE": "Activo",
+    "statusMAINTENANCE": "Mantenimiento"
   },
   "incidents": {
     "title": "Incidentes",
@@ -925,7 +945,21 @@
     "assigned": "Asignado",
     "unassigned": "No asignado",
     "assignment": "Asignación",
-    "noIncidentsMatchFilter": "Ningún incidente coincide con los filtros actuales"
+    "noIncidentsMatchFilter": "Ningún incidente coincide con los filtros actuales",
+    "incidentManagement": "Gestión de Incidentes",
+    "manageIncidentsDescription": "Administra y supervisa todos los incidentes del proyecto",
+    "viewIncidentDetails": "Ver detalles e información de incidentes",
+    "filterByType": "Filtrar por Tipo",
+    "filterBySeverity": "Filtrar por Severidad",
+    "filterByStatus": "Filtrar por Estado",
+    "filterByAssignment": "Filtrar por Asignación",
+    "available": "Disponible",
+    "noIncidentsFound": "No se encontraron incidentes",
+    "tryAdjustingFilters": "Intenta ajustar tus filtros",
+    "noAssignment": "Sin asignar",
+    "createdAt": "Creado en",
+    "statusRESUELTO": "Resuelto",
+    "noReporter": "Sin reportador"
 
   },
   "stats": {
@@ -1135,6 +1169,7 @@
     },
 
     "options": {
+      "multiSheet": "Múltiples hojas",
       "includeImages": "Incluir Imágenes",
       "includeCharts": "Incluir Gráficos",
       "multipleSheets": "Múltiples Hojas",
@@ -1436,5 +1471,75 @@
       "toggleFilters": "Mostrar/ocultar filtros",
       "togglePreferences": "Mostrar/ocultar preferencias"
     }
+  },
+
+  "password": {
+    "forgotPassword": "¿Olvidaste tu contraseña?",
+    "forgotPasswordDescription": "Ingresa tu email corporativo y te enviaremos un enlace para restablecer tu contraseña.",
+    "emailRequired": "El email es obligatorio",
+    "emailInvalid": "Por favor ingresa un email válido",
+    "sendResetLink": "Enviar enlace de recuperación",
+    "sending": "Enviando...",
+    "resetError": "Error al procesar la solicitud. Intenta nuevamente.",
+    "emailSent": "¡Email enviado!",
+    "emailSentDescription": "Si tu email está registrado, recibirás un enlace para restablecer tu contraseña.",
+    "checkInbox": "Revisa tu bandeja de entrada y sigue las instrucciones del email.",
+    "resetPassword": "Restablecer contraseña",
+    "resetPasswordDescription": "Ingresa tu nueva contraseña. Debe cumplir con los requisitos de seguridad.",
+    "newPassword": "Nueva contraseña",
+    "newPasswordPlaceholder": "Ingresa tu nueva contraseña",
+    "confirmPassword": "Confirmar contraseña",
+    "confirmPasswordPlaceholder": "Confirma tu nueva contraseña",
+    "resetPasswordButton": "Restablecer contraseña",
+    "resetting": "Restableciendo...",
+    "newPasswordRequired": "La nueva contraseña es obligatoria",
+    "confirmPasswordRequired": "Debes confirmar la contraseña",
+    "passwordMinLength": "La contraseña debe tener al menos 6 caracteres",
+    "passwordComplexity": "La contraseña debe contener mayúsculas, minúsculas, números y símbolos",
+    "passwordsDoNotMatch": "Las contraseñas no coinciden",
+    "passwordRequirements": "Requisitos de la contraseña:",
+    "requirementLength": "Al menos 6 caracteres",
+    "requirementUppercase": "Una letra mayúscula",
+    "requirementLowercase": "Una letra minúscula",
+    "requirementNumber": "Un número",
+    "requirementSpecial": "Un carácter especial (como @, $, !, %, *, ?, &)",
+    "invalidToken": "Enlace inválido",
+    "invalidTokenDescription": "El enlace de recuperación no es válido o ha expirado. Solicita uno nuevo.",
+    "resetTokenError": "El enlace no es válido o ha expirado",
+    "resetSuccess": "¡Contraseña restablecida!",
+    "resetSuccessDescription": "Tu contraseña ha sido restablecida exitosamente. Ahora puedes iniciar sesión.",
+    "backToLogin": "Volver al inicio de sesión",
+    "goToLogin": "Ir al inicio de sesión",
+    "requestNewReset": "Solicitar nuevo enlace"
+  },
+  "changePassword": {
+    "title": "Cambiar contraseña",
+    "description": "Por seguridad, ingresa tu contraseña actual antes de establecer una nueva.",
+    "currentPassword": "Contraseña actual",
+    "currentPasswordPlaceholder": "Ingresa tu contraseña actual",
+    "newPassword": "Nueva contraseña",
+    "newPasswordPlaceholder": "Ingresa tu nueva contraseña",
+    "confirmPassword": "Confirmar nueva contraseña",
+    "confirmPasswordPlaceholder": "Confirma tu nueva contraseña",
+    "changePasswordButton": "Cambiar contraseña",
+    "changing": "Cambiando...",
+    "currentPasswordRequired": "La contraseña actual es obligatoria",
+    "newPasswordRequired": "La nueva contraseña es obligatoria",
+    "confirmPasswordRequired": "Debes confirmar la nueva contraseña",
+    "passwordMinLength": "La contraseña debe tener al menos 6 caracteres",
+    "passwordComplexity": "La contraseña debe contener mayúsculas, minúsculas, números y símbolos",
+    "passwordsDoNotMatch": "Las contraseñas no coinciden",
+    "samePassword": "La nueva contraseña debe ser diferente a la actual",
+    "passwordRequirements": "Requisitos de la nueva contraseña:",
+    "requirementLength": "Al menos 6 caracteres",
+    "requirementUppercase": "Una letra mayúscula",
+    "requirementLowercase": "Una letra minúscula",
+    "requirementNumber": "Un número",
+    "requirementSpecial": "Un carácter especial (símbolos especiales)",
+    "changeSuccess": "¡Contraseña cambiada exitosamente!",
+    "incorrectCurrentPassword": "La contraseña actual es incorrecta",
+    "invalidData": "Los datos ingresados no son válidos",
+    "changeError": "Error al cambiar la contraseña. Intenta nuevamente.",
+    "notAuthenticated": "Sesión expirada. Inicia sesión nuevamente."
   }
 }

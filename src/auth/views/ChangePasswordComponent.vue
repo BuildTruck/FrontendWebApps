@@ -1,7 +1,7 @@
 <script>
 import AppInput from '../../core/components/AppInput.vue'
 import AppButton from '../../core/components/AppButton.vue'
-import { userService } from '../services/user.service'
+import { userService} from "../../core/services/user-api.service.js";
 
 export default {
   name: 'ChangePasswordComponent',

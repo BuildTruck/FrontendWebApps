@@ -154,6 +154,11 @@ export default {
       // Solo aplicar visualmente, NO guardar
       this.themeStore.currentTheme = newTheme;
       this.themeStore.applyThemeToBody();
+    },
+    goToChangePassword() {
+      const projectId = this.$route.params.projectId;
+      // 👇 CAMBIAR ESTA LÍNEA
+      this.$router.push(`/supervisor/${projectId}/change-password`);
     }
   }
 };
@@ -190,7 +195,15 @@ export default {
         <i class="pi pi-question-circle"></i>
         {{ $t('settings.tutorials') }}
       </button>
+      <button
+          @click="goToChangePassword()"
+          class="tab-button"
+      >
+        <i class="pi pi-lock"></i>
+        {{ $t('settings.changePassword') || 'Cambiar Contraseña' }}
+      </button>
     </div>
+
 
     <!-- Contenido de la pestaña General -->
     <div v-if="activeTab === 'general'" class="tab-content">

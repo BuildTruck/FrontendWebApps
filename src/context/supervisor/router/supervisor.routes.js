@@ -10,6 +10,7 @@ import ConfigurationSupervisorComponent from '../../configuration/components/sup
 import ProfileSupervisorComponent from '../../configuration/components/supervisor-profile-configuration.component.vue'
 import MaterialsSupervisorComponent from "../../materials/components/materials-supervisor.component.vue";
 import PageNotFound from "../../../views/PageNotFound.vue";
+import ChangePasswordComponent from "../../../auth/views/ChangePasswordComponent.vue";
 export default [
     // Ruta principal para supervisores con su proyecto asignado
     {
@@ -52,6 +53,12 @@ export default [
             {
                 path: 'configuraciones',
                 component: ConfigurationSupervisorComponent,
+                props: true
+            },
+            {
+                path: 'change-password',
+                name: 'SupervisorChangePassword',
+                component: ChangePasswordComponent,
                 props: true
             },
             {

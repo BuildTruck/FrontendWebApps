@@ -7049,3 +7049,173 @@
 [data-theme="dark"] .value.amount {
     color: #3b82f6 !important;
 }
+/* ================================================================
+   CHANGE PASSWORD COMPONENT - DARK MODE
+   ================================================================ */
+
+/* ========== CONTENEDOR PRINCIPAL ========== */
+[data-theme="dark"] .change-password-container {
+    background-color: var(--bg-primary) !important;
+}
+
+/* ========== CARD ========== */
+[data-theme="dark"] .change-password-card {
+    background: var(--bg-card) !important;
+    box-shadow: var(--shadow) !important;
+}
+
+/* ========== HEADER ========== */
+[data-theme="dark"] .card-header h1 {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .back-button {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .back-button:hover {
+    background-color: var(--bg-secondary) !important;
+    color: #FF5F01 !important;
+}
+
+/* ========== FORMULARIO ========== */
+[data-theme="dark"] .form-description {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .form-group label {
+    color: var(--text-primary) !important;
+}
+
+/* ========== INPUTS ========== */
+[data-theme="dark"] .change-password-form :deep(.app-input) {
+    background-color: var(--input-bg) !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .change-password-form :deep(.app-input:focus) {
+    border-color: #FF5F01 !important;
+    box-shadow: 0 0 0 3px rgba(255, 95, 1, 0.2) !important;
+}
+
+[data-theme="dark"] .change-password-form :deep(.app-input:disabled) {
+    background-color: var(--bg-secondary) !important;
+    opacity: 0.6 !important;
+}
+
+[data-theme="dark"] .change-password-form :deep(.app-input::placeholder) {
+    color: var(--text-muted) !important;
+}
+
+/* ========== REQUISITOS DE CONTRASEÑA ========== */
+[data-theme="dark"] .password-requirements {
+    background: var(--bg-secondary) !important;
+    border: 1px solid var(--border-color) !important;
+}
+
+[data-theme="dark"] .password-requirements h4 {
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .password-requirements li {
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] .password-requirements li::before {
+    color: #ef4444 !important;
+}
+
+[data-theme="dark"] .password-requirements li.requirement-met {
+    color: #10b981 !important;
+}
+
+[data-theme="dark"] .password-requirements li.requirement-met::before {
+    color: #10b981 !important;
+}
+
+/* ========== MENSAJES ========== */
+[data-theme="dark"] .success-message {
+    background-color: rgba(16, 185, 129, 0.15) !important;
+    color: #10b981 !important;
+    border-left: 4px solid #10b981 !important;
+}
+
+[data-theme="dark"] .submit-error {
+    background-color: rgba(239, 68, 68, 0.15) !important;
+    color: #ef4444 !important;
+    border-left: 4px solid #ef4444 !important;
+}
+
+[data-theme="dark"] .error-message {
+    color: #ef4444 !important;
+}
+
+/* ========== BOTONES ========== */
+[data-theme="dark"] .submit-button {
+    background-color: #FF5F01 !important;
+    border: none !important;
+}
+
+[data-theme="dark"] .submit-button:hover:not(:disabled) {
+    background-color: #e5560c !important;
+    box-shadow: 0 4px 12px rgba(255, 95, 1, 0.4) !important;
+}
+
+[data-theme="dark"] .submit-button:disabled {
+    background-color: #6b7280 !important;
+    color: var(--text-muted) !important;
+}
+
+/* ========== RESPONSIVE EN DARK MODE ========== */
+@media (max-width: 768px) {
+    [data-theme="dark"] .change-password-card {
+        background: var(--bg-card) !important;
+    }
+}
+
+/* ========== ANIMACIONES EN DARK MODE ========== */
+[data-theme="dark"] .change-password-card {
+    border: 1px solid var(--border-color) !important;
+    transition: box-shadow 0.3s ease !important;
+}
+
+[data-theme="dark"] .change-password-card:hover {
+    box-shadow: var(--shadow-hover) !important;
+}
+
+/* ========== SCROLLBAR DARK MODE ========== */
+[data-theme="dark"] .change-password-container::-webkit-scrollbar {
+    width: 8px !important;
+}
+
+[data-theme="dark"] .change-password-container::-webkit-scrollbar-track {
+    background: var(--bg-secondary) !important;
+}
+
+[data-theme="dark"] .change-password-container::-webkit-scrollbar-thumb {
+    background-color: #FF5F01 !important;
+    border-radius: 4px !important;
+    border: 2px solid var(--bg-secondary) !important;
+}
+
+[data-theme="dark"] .change-password-container::-webkit-scrollbar-thumb:hover {
+    background-color: #ff7a2b !important;
+}
+
+/* ========== ESTADOS DE FOCUS ========== */
+[data-theme="dark"] .back-button:focus {
+    outline: 2px solid rgba(255, 95, 1, 0.5) !important;
+    outline-offset: 2px !important;
+}
+
+[data-theme="dark"] .submit-button:focus {
+    outline: 2px solid rgba(255, 95, 1, 0.5) !important;
+    outline-offset: 2px !important;
+}
+
+/* ========== TEXT SELECTION ========== */
+[data-theme="dark"] .change-password-container *::selection {
+    background: rgba(255, 95, 1, 0.3) !important;
+    color: var(--text-primary) !important;
+}

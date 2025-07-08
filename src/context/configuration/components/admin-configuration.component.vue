@@ -139,6 +139,9 @@ export default {
       // Solo aplicar visualmente, NO guardar
       this.themeStore.currentTheme = newTheme;
       this.themeStore.applyThemeToBody();
+    },
+    goToChangePassword() {
+      this.$router.push('/admin/configuraciones/change-password');
     }
   }
 };
@@ -174,6 +177,13 @@ export default {
       >
         <i class="pi pi-question-circle"></i>
         {{ $t('settings.tutorials') }}
+      </button>
+      <button
+          @click="goToChangePassword()"
+          class="tab-button"
+      >
+        <i class="pi pi-lock"></i>
+        {{ $t('settings.changePassword') || 'Cambiar Contraseña' }}
       </button>
     </div>
 

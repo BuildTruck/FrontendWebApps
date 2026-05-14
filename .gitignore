@@ -23,7 +23,8 @@ dist-ssr
 *.sln
 *.sw?
 /tatus
- 
+
+.env
  
 # Local Netlify folder
 .netlify
